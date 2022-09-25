@@ -35,6 +35,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
       - name: Setup ENV
+        uses: getsentry/action-release@v1
         env:
               db_user: ${{ secrets.DB_USER }}
               password: ${{ secrets.DB_PASSWORD }}
