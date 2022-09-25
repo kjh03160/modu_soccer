@@ -2,6 +2,7 @@ plugins {
 	id 'org.springframework.boot' version '2.7.3'
 	id 'io.spring.dependency-management' version '1.0.13.RELEASE'
 	id 'java'
+	id 'groovy'
 }
 
 group = 'com.modu'
@@ -24,7 +25,12 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'mysql:mysql-connector-java'
 	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+	testImplementation ('org.springframework.boot:spring-boot-starter-test') {
+		exclude module: 'junit'
+	}
+	testImplementation 'org.spockframework:spock-core:2.2-groovy-3.0'
+	testImplementation 'org.codehaus.groovy:groovy-all:3.0.12'
 }
 
 tasks.named('test') {
