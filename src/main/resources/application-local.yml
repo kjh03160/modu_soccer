@@ -1,0 +1,6 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/modu_soccer
+    username: ${db_user}
+    password: ${password}
+    driver-class-name: com.mysql.cj.jdbc.Driver

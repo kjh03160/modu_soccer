@@ -1,0 +1,20 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+oauth:
+  kakao:
+    auth_host: "https://kauth.kakao.com"
+    api_host: "https://kapi.kakao.com"
+    client_id: ${kakao_client_id}
+    client_secret: ${kakao_client_secret}
+    redirect_uri: ${kakao_redirect_url}
+
+logging:
+  config: classpath:logback-spring.xml
+
+aws:
+  credentials:
+    access_key: ${aws_access_key}
+    secret_key: ${aws_secret_key}
