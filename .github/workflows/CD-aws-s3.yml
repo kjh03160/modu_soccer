@@ -73,4 +73,4 @@ jobs:
         run: aws s3 cp --acl private --region ap-northeast-2 ./$GITHUB_SHA.zip s3://modu-soccer/build/$GITHUB_SHA.zip
 
       - name: Code Deploy
-        run: aws deploy create-deployment --application-name modu-soccer --deployment-config-name CodeDeployDefault.OneAtATime --deployment-group-name dev --s3-location bucket=isntyet-deploy,bundleType=zip,key=build/$GITHUB_SHA.zip
+        run: aws deploy create-deployment --application-name modu-soccer --deployment-config-name CodeDeployDefault.OneAtATime --deployment-group-name dev --s3-location bucket=modu-soccer,bundleType=zip,key=build/$GITHUB_SHA.zip
