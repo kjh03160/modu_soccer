@@ -1,6 +1,30 @@
 spring:
+  jpa:
+    hibernate:
+      ddl-auto: none
   datasource:
     url: jdbc:mysql://localhost:3306/modu_soccer
     username: ${db_user}
     password: ${password}
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+oauth:
+  kakao:
+    auth_host: "https://kauth.kakao.com"
+    api_host: "https://kapi.kakao.com"
+    client_id: ${kakao_client_id}
+    client_secret: ${kakao_client_secret}
+    redirect_uri: http://localhost:8080/oauth/callback/kakao
+
+logging:
+  config: classpath:logback-spring.xml
+
+aws:
+  credentials:
+    access_key: ${aws_access_key}
+    secret_key: ${aws_secret_key}
+
+log:
+  config:
+    path: logs
+    filename: spring
