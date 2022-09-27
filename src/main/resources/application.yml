@@ -2,7 +2,11 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
-
+  datasource:
+    url: jdbc:mysql://modu-soccer.cln0znqbq7ya.ap-northeast-2.rds.amazonaws.com:13306/modu_soccer
+    username: ${db_user}
+    password: ${password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
 oauth:
   kakao:
     auth_host: "https://kauth.kakao.com"
@@ -18,3 +22,8 @@ aws:
   credentials:
     access_key: ${aws_access_key}
     secret_key: ${aws_secret_key}
+
+log:
+  config:
+    path: logs
+    filename: spring

@@ -1,12 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
 <configuration packagingData="true">
+    <!-- err log file name -->
+    <property name="ERR_LOG_FILE_NAME" value="err_log"/>
+    <!-- pattern -->
+    <property name="LOG_PATTERN" value="%-5level %d{yy-MM-dd HH:mm:ss}[%thread] [%logger{0}:%line] - %msg%n"/>
+    <!-- log file path -->
+    <springProperty name="LOG_PATH" source="log.config.path"/>
+    <!-- log file name -->
+    <springProperty name="LOG_FILE_NAME" source="log.config.filename"/>
+
     <timestamp key="timestamp" datePattern="yyyy-MM-dd-HH-mm-ssSSS"/>
     <springProperty name="AWS_ACCESS_KEY" source="aws.credentials.accessKey"/>
     <springProperty name="AWS_SECRET_KEY" source="aws.credentials.secretKey"/>
     <appender name="aws_cloud_watch_log" class="ca.pjer.logback.AwsLogsAppender">
         <layout>
-            <pattern>[%thread] [%date] [%level] [%file:%line] - %msg%n</pattern>
+            <pattern>${LOG_PATTERN}</pattern>
         </layout>
         <logGroupName>modu_soccer-</logGroupName>
         <logStreamUuidPrefix>modu_soccer-</logStreamUuidPrefix>
@@ -18,15 +27,42 @@
         <accessKeyId>${AWS_ACCESS_KEY}</accessKeyId>
         <secretAccessKey>${AWS_SECRET_KEY}</secretAccessKey>
     </appender>
-    <appender name="application_log" class="ch.qos.logback.core.ConsoleAppender">
+
+    <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>[%thread] [%date] [%level] [%file:%line] - %msg%n</pattern>
+            <pattern>${LOG_PATTERN}</pattern>
         </encoder>
+    </appender>
+
+    <!-- File Appender -->
+    <appender name="fileAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 파일경로 설정 -->
+        <file>${LOG_PATH}/${LOG_FILE_NAME}.log</file>
+
+        <!-- 출력패턴 설정-->
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+
+        <!-- Rolling 정책 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- .gz,.zip 등을 넣으면 자동 일자별 로그파일 압축 -->
+            <fileNamePattern>${LOG_PATH}/${LOG_FILE_NAME}.%d{yyyy-MM-dd}_%i.log</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <!-- 파일당 최고 용량 kb, mb, gb -->
+                <maxFileSize>10MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <!-- 일자별 로그파일 최대 보관주기(~일), 해당 설정일 이상된 파일은 자동으로 제거-->
+            <maxHistory>30</maxHistory>
+            <!--<MinIndex>1</MinIndex>
+            <MaxIndex>10</MaxIndex>-->
+        </rollingPolicy>
     </appender>
 
     <springProfile name="(dev | real | local)">
         <root level="INFO">
-            <appender-ref ref="application_log"/>
+            <appender-ref ref="consoleAppender"/>
+            <appender-ref ref="fileAppender"/>
         </root>
         <logger name="com.modu" level="DEBUG">
             <appender-ref ref="aws_cloud_watch_log"/>
