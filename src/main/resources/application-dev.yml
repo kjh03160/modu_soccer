@@ -7,6 +7,7 @@ spring:
     username: ${db_user}
     password: ${password}
     driver-class-name: com.mysql.cj.jdbc.Driver
+
 oauth:
   kakao:
     auth_host: "https://kauth.kakao.com"
