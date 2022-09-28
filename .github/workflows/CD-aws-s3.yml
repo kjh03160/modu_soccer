@@ -58,6 +58,17 @@ jobs:
         with:
           files: build/test-results/**/*.xml
 
+      - name: Setting .env
+        run: |
+          echo "aws_secret_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> .env
+          echo "aws_access_key=${{ secrets.AWS_ACCESS_KEY }}" >> .env
+          echo "kakao_redirect_url=${{ secrets.KAKAO_REDIRECT_URL }}" >> .env
+          echo "kakao_client_id=${{ secrets.KAKAO_CLIENT_ID}}" >> .env
+          echo "kakao_client_secret=${{ secrets.KAKAO_CLIENT_SECRET }}" >> .env
+          echo "db_user=${{ secrets.DB_USER }}" >> .env
+          echo "password=${{ secrets.DB_PASSWORD }}" >> .env
+          cat .env
+
       - name: Make zip file
         run: zip -qq -r ./$GITHUB_SHA.zip .
         shell: bash
