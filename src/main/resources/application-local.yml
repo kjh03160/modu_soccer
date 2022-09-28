@@ -10,6 +10,9 @@ spring:
   output:
     ansi:
       enabled: always
+  config:
+    import: optional:file:.env[.properties]
+
 oauth:
   kakao:
     auth_host: "https://kauth.kakao.com"
