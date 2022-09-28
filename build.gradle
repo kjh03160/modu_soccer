@@ -4,9 +4,9 @@ plugins {
 	id 'java'
 	id 'groovy'
 }
-
+def timestamp = new Date().format('yy-MM-dd-HHmmss')
 group = 'com.modu'
-version = '0.0.1-SNAPSHOT'
+version = timestamp
 sourceCompatibility = '17'
 
 configurations {

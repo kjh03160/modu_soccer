@@ -32,15 +32,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-#       - name: Setup ENV
-#         run: echo "ENV Setup"
-#         env:
-#           db_user: ${{ secrets.DB_USER }}
-#           password: ${{ secrets.DB_PASSWORD }}
-#           kakao_client_id: ${{ secrets.KAKAO_CLIENT_ID }}
-#           kakao_client_secret: ${{ secrets.KAKAO_CLIENT_SECRET }}
-#           kakao_redirect_url: ${{ secrets.KAKAO_REDIRECT_URL }}
-
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
         
