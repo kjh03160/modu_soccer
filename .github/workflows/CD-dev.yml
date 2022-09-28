@@ -47,7 +47,7 @@ jobs:
       - name: Set Yaml
         uses: microsoft/variable-substitution@v1
         with:
-          files: ${{ env.RESOURCE_PATH }} 
+          files: ./src/main/resources/application-dev.yaml
         env:
           oauth.kakao.client_id: ${{ secrets.KAKAO_CLIENT_ID}}
           oauth.kakao.client_secret: ${{ secrets.KAKAO_CLIENT_SECRET}}
