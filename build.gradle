@@ -4,9 +4,9 @@ plugins {
 	id 'java'
 	id 'groovy'
 }
-
+def timestamp = new Date().format('yy-MM-dd-HHmmss')
 group = 'com.modu'
-version = '0.0.1-SNAPSHOT'
+version = timestamp
 sourceCompatibility = '17'
 
 configurations {
@@ -22,6 +22,8 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation group: 'ca.pjer', name: 'logback-awslogs-appender', version: '1.6.0'
+
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'mysql:mysql-connector-java'
 	annotationProcessor 'org.projectlombok:lombok'

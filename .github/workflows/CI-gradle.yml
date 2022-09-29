@@ -9,8 +9,6 @@
 name: On feature
 
 on:
-  push:
-    branches: [ master ]
   pull_request:    
     branches: [ master ]
 
@@ -35,6 +33,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
       - name: Setup ENV
+        run: echo "ENV Setup"
         env:
               db_user: ${{ secrets.DB_USER }}
               password: ${{ secrets.DB_PASSWORD }}
