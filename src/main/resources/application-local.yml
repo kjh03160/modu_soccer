@@ -1,7 +1,7 @@
 spring:
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: create
   datasource:
     url: jdbc:mysql://localhost:3306/modu_soccer
     username: ${db_user}
@@ -17,7 +17,7 @@ oauth:
     api_host: "https://kapi.kakao.com"
     client_id: ${kakao_client_id}
     client_secret: ${kakao_client_secret}
-    redirect_uri: http://localhost:8080/oauth/callback/kakao
+    redirect_uri: ${kakao_redirect_url}
 
 logging:
   config: classpath:logback-spring.xml
