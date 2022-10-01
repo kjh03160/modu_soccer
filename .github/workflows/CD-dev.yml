@@ -42,7 +42,7 @@ jobs:
         env:
           oauth.kakao.client_id: ${{ secrets.KAKAO_CLIENT_ID}}
           oauth.kakao.client_secret: ${{ secrets.KAKAO_CLIENT_SECRET}}
-          oauth.kakao.redirect_url: ${{ secrets.KAKAO_REDIRECT_URL}}
+          oauth.kakao.redirect_uri: ${{ secrets.KAKAO_REDIRECT_URL}}
           spring.datasource.username: ${{ secrets.DB_USER}}
           spring.datasource.password: ${{ secrets.DB_PASSWORD}}
           aws.credentials.access_key: ${{ secrets.AWS_ACCESS_KEY}}

@@ -83,9 +83,7 @@
         <root level="INFO">
             <appender-ref ref="consoleAppender"/>
             <appender-ref ref="fileAppender"/>
-        </root>
-        <logger name="com.modu" level="INFO">
             <appender-ref ref="aws_cloud_watch_log"/>
-        </logger>
+        </root>
     </springProfile>
 </configuration>
