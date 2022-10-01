@@ -51,7 +51,11 @@ public class GlobalExceptionAdvice {
 
 	@ExceptionHandler(value = {Exception.class})
 	protected ResponseEntity<ErrorResponse> handleUnKnownException(Exception e) {
-		log.error("Unknown Exception : {}", e.getMessage());
+		StringBuilder builder = new StringBuilder();
+		builder.append(String.format("Unknown Exception : %s\n", e.getMessage()));
+		StackTraceElement[] stackTrace = e.getStackTrace();
+		builder.append(stackTrace[0].toString());
+		log.error(builder.toString());
 		return ErrorResponse.toResponseEntity(UNKNOWN_ERROR);
 	}
 }

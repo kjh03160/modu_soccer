@@ -10,6 +10,10 @@ public enum ErrorCode {
 	// 400
 	INVALID_PARAM(HttpStatus.BAD_REQUEST, 40000, ""),
 	INVALID_KAKAO_EMAIL_STATUS(HttpStatus.BAD_REQUEST, 40001, "kakao email status is invalid"),
+
+	//401
+	JWT_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, 40100, "access token expired"),
+	AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, 40100, "authentication failed"),
 	// 409
 	DUPLICATE_RESOURCE(HttpStatus.CONFLICT, 40900, "duplicated resource"),
 	DUPLICATE_USER(HttpStatus.CONFLICT, 40901, "duplicated user"),

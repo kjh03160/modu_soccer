@@ -47,7 +47,8 @@ jobs:
           spring.datasource.password: ${{ secrets.DB_PASSWORD}}
           aws.credentials.access_key: ${{ secrets.AWS_ACCESS_KEY}}
           aws.credentials.secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
-          
+          jwt.secret_key: ${{ secrets.JWT_SECRET_KEY}}
+
       - name: Build with Gradle
         uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
         with:
