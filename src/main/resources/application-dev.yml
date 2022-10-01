@@ -14,7 +14,7 @@ oauth:
     api_host: "https://kapi.kakao.com"
     client_id: ${kakao_client_id}
     client_secret: ${kakao_client_secret}
-    redirect_uri: ${kakao_redirect_url}
+    redirect_uri: ${kakao_redirect_uri}
 
 logging:
   config: classpath:logback-spring.xml
