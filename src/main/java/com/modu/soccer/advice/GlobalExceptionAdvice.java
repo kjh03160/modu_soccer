@@ -9,6 +9,7 @@ import com.modu.soccer.exception.CustomException;
 import com.modu.soccer.exception.ErrorResponse;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -56,11 +57,7 @@ public class GlobalExceptionAdvice {
 
 	@ExceptionHandler(value = {Exception.class})
 	protected ResponseEntity<ErrorResponse> handleUnKnownException(Exception e) {
-		StringBuilder builder = new StringBuilder();
-		builder.append(String.format("Unknown Exception : %s\n", e.getMessage()));
-		StackTraceElement[] stackTrace = e.getStackTrace();
-		builder.append(stackTrace[0].toString());
-		log.error(builder.toString());
+		log.error("Unknown Exception: {}", ExceptionUtils.getStackTrace(e));
 		return ErrorResponse.toResponseEntity(UNKNOWN_ERROR);
 	}
 }
