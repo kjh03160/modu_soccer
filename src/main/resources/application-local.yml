@@ -1,7 +1,7 @@
 spring:
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
   datasource:
     url: jdbc:mysql://localhost:3306/modu_soccer
     username: ${db_user}
@@ -34,4 +34,7 @@ log:
 
 jwt:
   secret_key: ${jwt.secret_key}
-  expire_in: 100
+  expire_in:
+    access_token: 600000
+    refresh_token: 86400000
+

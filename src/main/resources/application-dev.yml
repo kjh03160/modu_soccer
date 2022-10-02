@@ -14,7 +14,7 @@ oauth:
     api_host: "https://kapi.kakao.com"
     client_id: ${kakao_client_id}
     client_secret: ${kakao_client_secret}
-    redirect_uri: ${kakao_redirect_uri}
+    redirect_uri: ${kakao_redirect_url}
 
 logging:
   config: classpath:logback-spring.xml
@@ -31,4 +31,6 @@ log:
 
 jwt:
   secret_key: ${jwt.secret_key}
-  expire_in: 600000
+  expire_in:
+    access_token: 600000
+    refresh_token: 86400000
