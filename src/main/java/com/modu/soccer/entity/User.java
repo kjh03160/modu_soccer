@@ -12,6 +12,9 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import javax.persistence.criteria.CriteriaBuilder.In;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -21,10 +24,10 @@ import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Table(name = "users")
-@Getter
-@Setter
-@ToString
+@Data
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class User extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,6 +46,8 @@ public class User extends BaseEntity {
 	@Column(name = "auth_provider")
 	@Enumerated(EnumType.STRING)
 	private AuthProvider authProvider;
+	@Column(name = "refresh_token")
+	private String refreshToken;
 
 	@Override
 	public boolean equals(Object o) {

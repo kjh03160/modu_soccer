@@ -27,6 +27,11 @@ public class GlobalExceptionAdvice {
 		return ErrorResponse.toResponseEntity(DUPLICATE_RESOURCE);
 	}
 
+	@ExceptionHandler(value = {IllegalArgumentException.class})
+	protected ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
+		return ErrorResponse.toResponseEntity(INVALID_PARAM, e.getMessage());
+	}
+
 	@ExceptionHandler(value = {CustomException.class})
 	protected ResponseEntity<ErrorResponse> handleCustomException(CustomException e) {
 		if (e.getErrorCode().getHttpStatus().value() >= 500) {

@@ -18,8 +18,12 @@ public class UserDto {
 	private Integer age;
 	@JsonProperty("auth_provider")
 	private AuthProvider authProvider;
+	@JsonProperty("access_token")
+	private String accessToken;
+	@JsonProperty("refresh_token")
+	private String refreshToken;
 
-	public static UserDto fromEntity(User user) {
+	private static UserDtoBuilder fromEntity(User user) {
 		return UserDto.builder()
 			.email(user.getEmail())
 			.profileURL(user.getProfileURL())
@@ -27,6 +31,13 @@ public class UserDto {
 			.isPro(user.getIsPro())
 			.age(user.getAge())
 			.authProvider(user.getAuthProvider())
+			.refreshToken(user.getRefreshToken());
+	}
+
+	public static UserDto of(User user, String accessToken) {
+		UserDto userDto = UserDto.fromEntity(user)
+			.accessToken(accessToken)
 			.build();
+		return userDto;
 	}
 }
