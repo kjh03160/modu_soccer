@@ -9,6 +9,8 @@ import com.modu.soccer.utils.LocalDateTimeUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import java.security.Key;
@@ -69,6 +71,11 @@ public class JwtProvider {
 			return false;
 		} catch (ExpiredJwtException e) {
 			MDC.put(MDCKey.USER_ID.getKey(), e.getClaims().get("user_id").toString());
+		} catch (MalformedJwtException | UnsupportedJwtException e) {
+			throw new IllegalArgumentException(e.getMessage());
+		} catch (Exception e) {
+			log.error("token verifying error: {}", e.getMessage());
+			throw new CustomException(ErrorCode.UNKNOWN_ERROR);
 		}
 		return true;
 	}

@@ -2,6 +2,7 @@ package com.modu.soccer.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.modu.soccer.domain.ApiResponse;
+import com.modu.soccer.exception.CustomException;
 import com.modu.soccer.exception.ErrorCode;
 import com.modu.soccer.exception.ErrorResponse;
 import java.io.IOException;
@@ -27,12 +28,18 @@ public class JwtAuthenticateFilter extends OncePerRequestFilter {
 		FilterChain filterChain) throws IOException, ServletException {
 		String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 		try {
-			if (jwtProvider.isTokenExpired(jwtProvider.getJwtTokenFromHeader(authorizationHeader))){
+			if (jwtProvider.isTokenExpired(
+				jwtProvider.getJwtTokenFromHeader(authorizationHeader))) {
 				ApiResponse<?> apiResponse = setResponse(response, ErrorCode.ACCESS_TOKEN_EXPIRED);
 				objectMapper.writeValue(response.getWriter(), apiResponse);
 				return;
 			}
-		}  catch (Exception e) {
+		} catch (CustomException e) {
+			ApiResponse<?> apiResponse = setResponse(response, e.getErrorCode());
+			objectMapper.writeValue(response.getWriter(), apiResponse);
+			return;
+
+		} catch (Exception e) {
 			ApiResponse<?> apiResponse = setResponse(response, ErrorCode.UNKNOWN_ERROR);
 			log.error("jwt token validate error: {}", e.getMessage());
 			objectMapper.writeValue(response.getWriter(), apiResponse);
