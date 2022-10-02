@@ -28,3 +28,9 @@ log:
   config:
     path: logs
     filename: spring
+
+jwt:
+  secret_key: ${jwt.secret_key}
+  expire_in:
+    access_token: 600000
+    refresh_token: 86400000

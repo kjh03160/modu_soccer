@@ -9,6 +9,7 @@ import com.modu.soccer.exception.CustomException;
 import com.modu.soccer.exception.ErrorResponse;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,11 @@ public class GlobalExceptionAdvice {
 		DataIntegrityViolationException.class})
 	protected ResponseEntity<ErrorResponse> handleDataException() {
 		return ErrorResponse.toResponseEntity(DUPLICATE_RESOURCE);
+	}
+
+	@ExceptionHandler(value = {IllegalArgumentException.class})
+	protected ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
+		return ErrorResponse.toResponseEntity(INVALID_PARAM, e.getMessage());
 	}
 
 	@ExceptionHandler(value = {CustomException.class})
@@ -51,7 +57,7 @@ public class GlobalExceptionAdvice {
 
 	@ExceptionHandler(value = {Exception.class})
 	protected ResponseEntity<ErrorResponse> handleUnKnownException(Exception e) {
-		log.error("Unknown Exception : {}", e.getMessage());
+		log.error("Unknown Exception: {}", ExceptionUtils.getStackTrace(e));
 		return ErrorResponse.toResponseEntity(UNKNOWN_ERROR);
 	}
 }
