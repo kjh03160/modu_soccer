@@ -19,4 +19,14 @@ public class ErrorResponse {
 				.build()
 			);
 	}
+
+	public static ResponseEntity<ErrorResponse> toResponseEntity(ErrorCode errorCode, String msg) {
+		return ResponseEntity
+			.status(errorCode.getHttpStatus())
+			.body(ErrorResponse.builder()
+				.code(errorCode.getCode())
+				.message(msg)
+				.build()
+			);
+	}
 }

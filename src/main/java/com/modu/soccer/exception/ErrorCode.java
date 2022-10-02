@@ -12,8 +12,10 @@ public enum ErrorCode {
 	INVALID_KAKAO_EMAIL_STATUS(HttpStatus.BAD_REQUEST, 40001, "kakao email status is invalid"),
 
 	//401
-	JWT_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, 40100, "access token expired"),
-	AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, 40100, "authentication failed"),
+	USER_NOT_REGISTERED(HttpStatus.UNAUTHORIZED, 40100, "user is not registered"),
+	ACCESS_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, 40101, "access token expired"),
+	REFRESH_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, 40102, "refresh token expired"),
+	AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, 40103, "authentication failed"),
 	// 409
 	DUPLICATE_RESOURCE(HttpStatus.CONFLICT, 40900, "duplicated resource"),
 	DUPLICATE_USER(HttpStatus.CONFLICT, 40901, "duplicated user"),
