@@ -19,16 +19,35 @@
     <timestamp key="timestamp" datePattern="yyyy-MM-dd-HH-mm-ssSSS"/>
     <springProperty name="AWS_ACCESS_KEY" source="aws.credentials.access_key"/>
     <springProperty name="AWS_SECRET_KEY" source="aws.credentials.secret_key"/>
-    <appender name="aws_cloud_watch_log" class="ca.pjer.logback.AwsLogsAppender">
+
+    <appender name="aws_cloud_watch_all_log" class="ca.pjer.logback.AwsLogsAppender">
         <layout>
             <pattern>${LOG_PATTERN}</pattern>
         </layout>
-        <logGroupName>modu_soccer-</logGroupName>
+        <logGroupName>modu_soccer</logGroupName>
         <logStreamUuidPrefix>modu_soccer-</logStreamUuidPrefix>
         <logRegion>ap-northeast-2</logRegion>
         <maxBatchLogEvents>50</maxBatchLogEvents>
-        <maxFlushTimeMillis>3000</maxFlushTimeMillis>
-        <maxBlockTimeMillis>1000</maxBlockTimeMillis>
+        <maxFlushTimeMillis>30000</maxFlushTimeMillis>
+        <maxBlockTimeMillis>5000</maxBlockTimeMillis>
+        <retentionTimeDays>0</retentionTimeDays>
+        <accessKeyId>${AWS_ACCESS_KEY}</accessKeyId>
+        <secretAccessKey>${AWS_SECRET_KEY}</secretAccessKey>
+    </appender>
+
+    <appender name="aws_cloud_watch_error_log" class="ca.pjer.logback.AwsLogsAppender">
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <layout>
+            <pattern>${LOG_PATTERN}</pattern>
+        </layout>
+        <logGroupName>modu_soccer_error</logGroupName>
+        <logStreamUuidPrefix>modu_soccer_error-</logStreamUuidPrefix>
+        <logRegion>ap-northeast-2</logRegion>
+        <maxBatchLogEvents>50</maxBatchLogEvents>
+        <maxFlushTimeMillis>30000</maxFlushTimeMillis>
+        <maxBlockTimeMillis>5000</maxBlockTimeMillis>
         <retentionTimeDays>0</retentionTimeDays>
         <accessKeyId>${AWS_ACCESS_KEY}</accessKeyId>
         <secretAccessKey>${AWS_SECRET_KEY}</secretAccessKey>
@@ -83,7 +102,8 @@
         <root level="INFO">
             <appender-ref ref="consoleAppender"/>
             <appender-ref ref="fileAppender"/>
-            <appender-ref ref="aws_cloud_watch_log"/>
+            <appender-ref ref="aws_cloud_watch_all_log"/>
+            <appender-ref ref="aws_cloud_watch_error_log"/>
         </root>
     </springProfile>
 </configuration>
