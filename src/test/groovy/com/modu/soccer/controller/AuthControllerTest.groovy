@@ -1,12 +1,11 @@
-package com.modu.soccer
+package com.modu.soccer.controller
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.modu.soccer.controller.AuthController
 import com.modu.soccer.domain.ApiResponse
-import com.modu.soccer.domain.UserDto
 import com.modu.soccer.domain.request.OauthLoginRequest
 import com.modu.soccer.domain.request.TokenRefreshRequest
+import com.modu.soccer.domain.response.AuthenticateResponse
 import com.modu.soccer.domain.response.KakaoUserInfoResponse
 import com.modu.soccer.entity.User
 import com.modu.soccer.enums.MDCKey
@@ -65,7 +64,7 @@ class AuthControllerTest extends Specification {
                         .andReturn()
                         .getResponse()
 
-        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<UserDto>>(){})
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<AuthenticateResponse>>(){})
         then:
         noExceptionThrown()
         response.getCode() == 0
@@ -91,7 +90,7 @@ class AuthControllerTest extends Specification {
                 .andReturn()
                 .getResponse()
 
-        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<UserDto>>(){})
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<AuthenticateResponse>>(){})
         then:
         noExceptionThrown()
         response.getCode() == 0
@@ -114,7 +113,7 @@ class AuthControllerTest extends Specification {
                 .andReturn()
                 .getResponse()
 
-        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<UserDto>>(){})
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<AuthenticateResponse>>(){})
         then:
         noExceptionThrown()
         response.getCode() == 40000

@@ -2,6 +2,14 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+        use_sql_comments: true
+    database: mysql
+    database-platform: org.hibernate.spatial.dialect.mysql.MySQL8SpatialDialect
+
   datasource:
     url: jdbc:mysql://localhost:3306/modu_soccer
     username: ${db_user}
@@ -35,6 +43,6 @@ log:
 jwt:
   secret_key: ${jwt.secret_key}
   expire_in:
-    access_token: 600000
-    refresh_token: 86400000
+    access_token: 99600000
+    refresh_token: 986400000
 
