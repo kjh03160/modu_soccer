@@ -1,14 +1,12 @@
 package com.modu.soccer.entity;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import javax.persistence.Column;
-import lombok.Getter;
-import lombok.Setter;
+import javax.persistence.MappedSuperclass;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-@Getter
+@MappedSuperclass
 public class BaseEntity {
 	@Column(name = "created_at")
 	@CreationTimestamp
