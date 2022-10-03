@@ -5,6 +5,8 @@ import com.modu.soccer.entity.Team;
 import com.modu.soccer.entity.TeamMember;
 import com.modu.soccer.entity.User;
 import com.modu.soccer.enums.MDCKey;
+import com.modu.soccer.enums.Permission;
+import com.modu.soccer.enums.Role;
 import com.modu.soccer.exception.CustomException;
 import com.modu.soccer.exception.ErrorCode;
 import com.modu.soccer.repository.TeamMemberRepository;
@@ -43,6 +45,8 @@ public class TeamService {
 		TeamMember owner = TeamMember.builder()
 			.user(user)
 			.team(team)
+			.permission(Permission.ADMIN)
+			.role(Role.NONE)
 			.isApproved(true)
 			.build();
 		teamRepository.save(team);

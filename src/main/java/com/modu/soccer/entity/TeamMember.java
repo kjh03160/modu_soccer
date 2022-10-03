@@ -1,5 +1,6 @@
 package com.modu.soccer.entity;
 
+import com.modu.soccer.enums.Permission;
 import com.modu.soccer.enums.Position;
 import com.modu.soccer.enums.Role;
 import java.util.Objects;
@@ -50,6 +51,9 @@ public class TeamMember extends BaseEntity{
 
 	@Enumerated(EnumType.STRING)
 	private Role role;
+
+	@Enumerated(EnumType.STRING)
+	private Permission permission;
 
 	@Column(name = "is_approved")
 	@ColumnDefault("false")

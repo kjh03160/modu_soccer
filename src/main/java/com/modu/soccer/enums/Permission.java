@@ -5,11 +5,10 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public enum Role {
-	CAPTAIN("C"),
-	GK("GK"),
-	BOSS("BOSS"),
-	NONE("NONE")
+public enum Permission {
+	ADMIN("ADMIN"),
+	MANAGER("MANAGER"),
+	MEMBER("MEMBER")
 	;
 
 	private String name;
