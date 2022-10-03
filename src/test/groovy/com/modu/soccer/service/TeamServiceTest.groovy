@@ -1,11 +1,14 @@
 package com.modu.soccer.service
 
+
 import com.modu.soccer.domain.request.TeamRequest
+import com.modu.soccer.entity.TeamRecord
 import com.modu.soccer.entity.User
 import com.modu.soccer.enums.MDCKey
 import com.modu.soccer.exception.CustomException
 import com.modu.soccer.exception.ErrorCode
 import com.modu.soccer.repository.TeamMemberRepository
+import com.modu.soccer.repository.TeamRecordRepository
 import com.modu.soccer.repository.TeamRepository
 import com.modu.soccer.repository.UserRepository
 import org.slf4j.MDC
@@ -15,10 +18,11 @@ class TeamServiceTest extends Specification {
     private UserRepository userRepository = Mock();
     private TeamRepository teamRepository = Mock();
     private TeamMemberRepository teamMemberRepository = Mock();
+    private TeamRecordRepository teamRecordRepository = Mock();
     private TeamService service;
 
     def setup() {
-        service = new TeamService(userRepository, teamRepository, teamMemberRepository)
+        service = new TeamService(userRepository, teamRepository, teamMemberRepository, teamRecordRepository)
     }
 
     def cleanup() {
@@ -34,6 +38,7 @@ class TeamServiceTest extends Specification {
         1 * userRepository.findById(1l) >> Optional.of(user)
         1 * teamRepository.save(_)
         1 * teamMemberRepository.save(_)
+        1 * teamRecordRepository.save(_) >> new TeamRecord()
 
         when:
         def team = service.createTeam(request)
@@ -43,6 +48,7 @@ class TeamServiceTest extends Specification {
         team.getName() == request.getName()
         team.getLocation().getX() == request.getLongitude()
         team.getLocation().getY() == request.getLatitude()
+        team.getRecord().getWin() == 0
     }
 
     def "createTeam - user id 없음"() {

@@ -6,6 +6,7 @@ import com.modu.soccer.domain.ApiResponse
 import com.modu.soccer.domain.TeamDto
 import com.modu.soccer.domain.request.TeamRequest
 import com.modu.soccer.entity.Team
+import com.modu.soccer.entity.TeamRecord
 import com.modu.soccer.entity.User
 import com.modu.soccer.enums.TokenType
 import com.modu.soccer.exception.ErrorCode
@@ -57,6 +58,7 @@ class TeamControllerTest extends Specification{
                 .owner(user)
                 .location(GeoUtil.createPoint(request.getLongitude(), request.getLatitude()))
                 .name(request.getName())
+                .record(new TeamRecord())
                 .build();
         teamService.createTeam(_) >> team
 
@@ -78,6 +80,8 @@ class TeamControllerTest extends Specification{
         response.getContents().getLocation() != null
         response.getContents().getLocation().getLongitude() == request.getLongitude()
         response.getContents().getLocation().getLatitude() == request.getLatitude()
+        response.getContents().getRecord().getTotal() == 0
+        response.getContents().getRecord().getWinRate() == 0
     }
 
     def "postTeam - 토큰 지남"() {
