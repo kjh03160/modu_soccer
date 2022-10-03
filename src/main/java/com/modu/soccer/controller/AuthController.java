@@ -1,9 +1,9 @@
 package com.modu.soccer.controller;
 
 import com.modu.soccer.domain.ApiResponse;
-import com.modu.soccer.domain.UserDto;
 import com.modu.soccer.domain.request.OauthLoginRequest;
 import com.modu.soccer.domain.request.TokenRefreshRequest;
+import com.modu.soccer.domain.response.AuthenticateResponse;
 import com.modu.soccer.domain.response.KakaoUserInfoResponse;
 import com.modu.soccer.entity.User;
 import com.modu.soccer.enums.MDCKey;
@@ -39,7 +39,7 @@ public class AuthController {
 		KakaoUserInfoResponse userInfo = kakaoOauthService.getUserInfo(token);
 		User user = authService.oauthLogin(OauthLoginRequest.from(userInfo));
 		return ApiResponse.withBody(
-			UserDto.of(user, jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)));
+			AuthenticateResponse.of(user, jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)));
 	}
 
 	@PostMapping("/user/token")
@@ -53,7 +53,7 @@ public class AuthController {
 		Long userId = Long.valueOf(MDC.get(MDCKey.USER_ID.getKey()));
 		User user = authService.refreshUserToken(userId, request.getRefreshToken());
 		return ApiResponse.withBody(
-			UserDto.of(user, jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)));
+			AuthenticateResponse.of(user, jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)));
 	}
 }
 

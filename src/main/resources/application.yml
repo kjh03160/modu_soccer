@@ -2,6 +2,8 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
+    database: mysql
+    database-platform: org.hibernate.spatial.dialect.mysql.MySQL8SpatialDialect
   datasource:
     url: jdbc:mysql://modu-soccer.cln0znqbq7ya.ap-northeast-2.rds.amazonaws.com:13306/modu_soccer
     username: ${db_user}
