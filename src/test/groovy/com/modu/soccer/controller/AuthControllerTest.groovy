@@ -1,8 +1,7 @@
-package com.modu.soccer
+package com.modu.soccer.controller
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.modu.soccer.controller.AuthController
 import com.modu.soccer.domain.ApiResponse
 import com.modu.soccer.domain.request.OauthLoginRequest
 import com.modu.soccer.domain.request.TokenRefreshRequest
