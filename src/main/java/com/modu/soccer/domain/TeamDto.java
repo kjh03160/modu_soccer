@@ -18,6 +18,7 @@ public class TeamDto {
 	private String name;
 	@JsonProperty("logo_url")
 	private String logoUrl;
+	private TeamRecordDto record;
 	private PointResponse location;
 
 	@NoArgsConstructor
@@ -40,6 +41,7 @@ public class TeamDto {
 			.name(team.getName())
 			.logoUrl(team.getLogoUrl())
 			.owner(UserDto.fromEntity(team.getOwner()))
+			.record(TeamRecordDto.fromEntity(team.getRecord()))
 			.build();
 	}
 }

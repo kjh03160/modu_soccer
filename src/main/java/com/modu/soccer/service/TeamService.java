@@ -3,6 +3,7 @@ package com.modu.soccer.service;
 import com.modu.soccer.domain.request.TeamRequest;
 import com.modu.soccer.entity.Team;
 import com.modu.soccer.entity.TeamMember;
+import com.modu.soccer.entity.TeamRecord;
 import com.modu.soccer.entity.User;
 import com.modu.soccer.enums.MDCKey;
 import com.modu.soccer.enums.Permission;
@@ -10,6 +11,7 @@ import com.modu.soccer.enums.Role;
 import com.modu.soccer.exception.CustomException;
 import com.modu.soccer.exception.ErrorCode;
 import com.modu.soccer.repository.TeamMemberRepository;
+import com.modu.soccer.repository.TeamRecordRepository;
 import com.modu.soccer.repository.TeamRepository;
 import com.modu.soccer.repository.UserRepository;
 import com.modu.soccer.utils.GeoUtil;
@@ -26,6 +28,7 @@ public class TeamService {
 	private final UserRepository userRepository;
 	private final TeamRepository teamRepository;
 	private final TeamMemberRepository teamMemberRepository;
+	private final TeamRecordRepository recordRepository;
 
 	@Transactional
 	public Team createTeam(TeamRequest request) {
@@ -51,6 +54,8 @@ public class TeamService {
 			.build();
 		teamRepository.save(team);
 		teamMemberRepository.save(owner);
+		TeamRecord record = recordRepository.save(new TeamRecord(team));
+		team.setRecord(record);
 		return team;
 	}
 }
