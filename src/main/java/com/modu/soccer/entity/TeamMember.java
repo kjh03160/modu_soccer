@@ -21,7 +21,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Table(name = "team_members")
@@ -36,11 +35,11 @@ public class TeamMember extends BaseEntity{
 	private Long id;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id")
+	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "team_id")
+	@JoinColumn(name = "team_id", nullable = false)
 	private Team team;
 
 	@Enumerated(EnumType.STRING)
@@ -56,8 +55,7 @@ public class TeamMember extends BaseEntity{
 	private Permission permission;
 
 	@Column(name = "is_approved")
-	@ColumnDefault("false")
-	private Boolean isApproved;
+	private Boolean isApproved = false;
 
 	@Override
 	public boolean equals(Object o) {
