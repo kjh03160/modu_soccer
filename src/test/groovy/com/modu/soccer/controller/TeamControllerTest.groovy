@@ -9,6 +9,7 @@ import com.modu.soccer.entity.Team
 import com.modu.soccer.entity.TeamRecord
 import com.modu.soccer.entity.User
 import com.modu.soccer.enums.TokenType
+import com.modu.soccer.exception.CustomException
 import com.modu.soccer.exception.ErrorCode
 import com.modu.soccer.jwt.JwtProvider
 import com.modu.soccer.service.TeamService
@@ -44,6 +45,82 @@ class TeamControllerTest extends Specification{
 
     def setup() {
 
+    }
+
+    def "getTeam"() {
+        def user = new User();
+        user.setId(1l)
+        user.setEmail("email")
+
+        given:
+        def token = jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)
+        def team = Team.builder()
+                .id(1l)
+                .owner(user)
+                .record(new TeamRecord())
+                .build();
+        teamService.getTeam(_) >> team
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.get(TEAM_CREATE + "/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn()
+                .getResponse()
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<TeamDto>>(){})
+
+        then:
+        noExceptionThrown()
+        response.getCode() == 0
+        response.getContents() != null
+        response.getContents().getId() == team.getId()
+        response.getContents().getOwner().getEmail() == user.getEmail()
+    }
+
+    def "getTeam - 팀 미존재"() {
+        def user = new User();
+        user.setId(1l)
+        user.setEmail("email")
+
+        given:
+        def token = jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)
+        teamService.getTeam(_) >> {throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND)}
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.get(TEAM_CREATE + "/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andReturn()
+                .getResponse()
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<?>>(){})
+
+        then:
+        noExceptionThrown()
+        response.getCode() == 40400
+    }
+
+    def "getTeam - 팀 아이디 숫자 아님"() {
+        def user = new User();
+        user.setId(1l)
+        user.setEmail("email")
+
+        given:
+        def token = jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.get(TEAM_CREATE + "/asd")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andReturn()
+                .getResponse()
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<?>>(){})
+
+        then:
+        noExceptionThrown()
+        response.getCode() == 40000
     }
 
     def "postTeam"() {

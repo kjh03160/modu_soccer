@@ -2,6 +2,7 @@ package com.modu.soccer.service
 
 
 import com.modu.soccer.domain.request.TeamRequest
+import com.modu.soccer.entity.Team
 import com.modu.soccer.entity.TeamRecord
 import com.modu.soccer.entity.User
 import com.modu.soccer.enums.MDCKey
@@ -78,4 +79,31 @@ class TeamServiceTest extends Specification {
         e.getErrorCode() == ErrorCode.USER_NOT_REGISTERED
     }
 
+    def "getTeam"() {
+        given:
+        def teamId = 1l
+        1 * teamRepository.findByIdWithOwner(1l) >> Optional.of(new Team())
+
+
+        when:
+        def team = service.getTeam(teamId)
+
+        then:
+        noExceptionThrown()
+        team != null
+    }
+
+    def "getTeam - not found"() {
+        given:
+        def teamId = 1l
+        1 * teamRepository.findByIdWithOwner(1l) >> Optional.empty()
+
+
+        when:
+        def team = service.getTeam(teamId)
+
+        then:
+        def e = thrown(CustomException)
+        e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
+    }
 }
