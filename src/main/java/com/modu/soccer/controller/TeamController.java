@@ -7,7 +7,10 @@ import com.modu.soccer.entity.Team;
 import com.modu.soccer.service.TeamService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +23,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/team")
 public class TeamController {
 	private final TeamService teamService;
+
+	@GetMapping("/{id}")
+	public ApiResponse<?> getTeam(@PathVariable String id) {
+		if (!StringUtils.isNumeric(id)) {
+			throw new IllegalArgumentException(String.format("%s is not number", id));
+		}
+		Team team = teamService.getTeam(Long.valueOf(id));
+		return ApiResponse.withBody(TeamDto.fromEntity(team));
+	}
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
