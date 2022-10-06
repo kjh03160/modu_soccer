@@ -21,37 +21,38 @@ class TeamRepositoryTest extends Specification {
     @PersistenceContext
     private EntityManager entityManager;
     private int i = 0;
+    private User user
+    private Team team
 
 
     def setup() {
-        def user = new User()
-        user.setEmail("test" + i)
+        def u = new User()
+        u.setEmail("test" + i)
         def record = new TeamRecord()
         def t = Team.builder()
         .record(record)
-        .owner(user)
+        .owner(u)
         .name("name").build()
         record.team = t
 
-        userRepository.save(user)
-        teamRepository.save(t)
+        user = userRepository.save(u)
+        team = teamRepository.save(t)
         teamRecordRepository.save(record)
         entityManager.clear()
     }
 
     def "findByIdWithOwner"() {
         given:
-        Long id = i + 1
 
         when:
-        def team = teamRepository.findByIdWithOwner(id)
+        def result = teamRepository.findByIdWithOwner(team.getId())
 
         then:
         noExceptionThrown()
-        team.isPresent()
-        team.get().getId() == id
-        team.get().getOwner() != null
-        team.get().getRecord() != null
+        result.isPresent()
+        result.get().getId() == team.getId()
+        result.get().getOwner() == team.getOwner()
+        result.get().getRecord() == team.getRecord()
     }
 
 }
