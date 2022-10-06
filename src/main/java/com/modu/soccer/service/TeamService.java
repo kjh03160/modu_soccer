@@ -5,7 +5,6 @@ import com.modu.soccer.entity.Team;
 import com.modu.soccer.entity.TeamMember;
 import com.modu.soccer.entity.TeamRecord;
 import com.modu.soccer.entity.User;
-import com.modu.soccer.enums.MDCKey;
 import com.modu.soccer.enums.Permission;
 import com.modu.soccer.enums.Role;
 import com.modu.soccer.exception.CustomException;
@@ -17,7 +16,6 @@ import com.modu.soccer.repository.UserRepository;
 import com.modu.soccer.utils.GeoUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,12 +29,8 @@ public class TeamService {
 	private final TeamRecordRepository recordRepository;
 
 	@Transactional
-	public Team createTeam(TeamRequest request) {
-		String userId = MDC.get(MDCKey.USER_ID.getKey());
-		if (userId == null) {
-			throw new CustomException(ErrorCode.AUTHENTICATION_FAILED);
-		}
-		User user = userRepository.findById(Long.valueOf(userId))
+	public Team createTeam(Long userId, TeamRequest request) {
+		User user = userRepository.findById(userId)
 			.orElseThrow(() -> {throw new CustomException(ErrorCode.USER_NOT_REGISTERED);});
 
 		Team team = Team.builder()
