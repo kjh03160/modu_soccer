@@ -34,7 +34,7 @@ import spock.lang.Specification
         "jwt.expire_in.refresh_token=86400000"]
 )
 class TeamControllerTest extends Specification{
-    private final String TEAM_CREATE = "/api/v1/team";
+    private final String TEAM_CREATE = "/api/v1/teams";
     private ObjectMapper objectMapper = new ObjectMapper();
     @Autowired
     protected MockMvc mvc
@@ -137,7 +137,7 @@ class TeamControllerTest extends Specification{
                 .name(request.getName())
                 .record(new TeamRecord())
                 .build();
-        teamService.createTeam(_) >> team
+        teamService.createTeam(_, _) >> team
 
         when:
         def result = mvc.perform(MockMvcRequestBuilders.post(TEAM_CREATE)
@@ -174,7 +174,7 @@ class TeamControllerTest extends Specification{
                 .location(GeoUtil.createPoint(request.getLongitude(), request.getLatitude()))
                 .name(request.getName())
                 .build();
-        teamService.createTeam(_) >> team
+        teamService.createTeam(_, _) >> team
 
         when:
         def result = mvc.perform(MockMvcRequestBuilders.post(TEAM_CREATE)
@@ -202,7 +202,7 @@ class TeamControllerTest extends Specification{
                 .location(GeoUtil.createPoint(request.getLongitude(), request.getLatitude()))
                 .name(request.getName())
                 .build();
-        teamService.createTeam(_) >> team
+        teamService.createTeam(_, _) >> team
 
         when:
         def result = mvc.perform(MockMvcRequestBuilders.post(TEAM_CREATE)
