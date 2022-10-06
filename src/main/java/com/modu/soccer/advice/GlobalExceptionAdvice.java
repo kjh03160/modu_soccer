@@ -38,6 +38,9 @@ public class GlobalExceptionAdvice {
 		if (e.getErrorCode().getHttpStatus().value() >= 500) {
 			log.error("handleCustomException throw CustomException : {}", e.getErrorCode());
 		}
+		if (e.getParam() != null) {
+			return ErrorResponse.toResponseEntity(e.getErrorCode(), e.getParam());
+		}
 		return ErrorResponse.toResponseEntity(e.getErrorCode());
 	}
 

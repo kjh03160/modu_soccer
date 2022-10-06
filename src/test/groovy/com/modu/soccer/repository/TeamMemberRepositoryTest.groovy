@@ -1,6 +1,7 @@
 package com.modu.soccer.repository
 
 import com.modu.soccer.entity.Team
+import com.modu.soccer.entity.TeamMember
 import com.modu.soccer.entity.TeamRecord
 import com.modu.soccer.entity.User
 import org.springframework.beans.factory.annotation.Autowired
@@ -11,48 +12,51 @@ import javax.persistence.EntityManager
 import javax.persistence.PersistenceContext
 
 @DataJpaTest
-class TeamRepositoryTest extends Specification {
+class TeamMemberRepositoryTest extends Specification {
     @Autowired
-    private TeamRepository teamRepository;
+    private TeamMemberRepository repository
     @Autowired
-    private UserRepository userRepository;
+    private UserRepository userRepository
+    @Autowired
+    private TeamRepository teamRepository
     @Autowired
     private TeamRecordRepository teamRecordRepository;
     @PersistenceContext
-    private EntityManager entityManager;
-    private int i = 0;
-    private User user
-    private Team team
+    private EntityManager entityManager
 
+    private int i = 0;
+    private Team team
+    private User user
+    private TeamMember member
 
     def setup() {
         def u = new User()
         u.setEmail("test" + i)
         def record = new TeamRecord()
         def t = Team.builder()
-        .record(record)
-        .owner(u)
-        .name("name").build()
+                .record(record)
+                .owner(u)
+                .name("name").build()
         record.team = t
 
         user = userRepository.save(u)
         team = teamRepository.save(t)
         teamRecordRepository.save(record)
+
+        def m = TeamMember.builder().team(team).user(user).build()
+        member = repository.save(m)
         entityManager.clear()
     }
 
-    def "findByIdWithOwner"() {
-        given:
 
+    def "findByTeamAndUser"() {
         when:
-        def result = teamRepository.findByIdWithOwner(team.getId())
-
+        def m = repository.findByTeamAndUser(team, user)
         then:
         noExceptionThrown()
-        result.isPresent()
-        result.get().getId() == team.getId()
-        result.get().getOwner() == team.getOwner()
-        result.get().getRecord() == team.getRecord()
+        m.isPresent()
+        m.get().getId() == member.getId()
+        m.get().getTeam().getId() == member.getTeam().getId()
+        m.get().getUser().getId() == member.getUser().getId()
     }
-
 }

@@ -6,14 +6,13 @@ import com.modu.soccer.domain.request.TokenRefreshRequest;
 import com.modu.soccer.domain.response.AuthenticateResponse;
 import com.modu.soccer.domain.response.KakaoUserInfoResponse;
 import com.modu.soccer.entity.User;
-import com.modu.soccer.enums.MDCKey;
 import com.modu.soccer.enums.TokenType;
 import com.modu.soccer.jwt.JwtProvider;
 import com.modu.soccer.service.AuthService;
 import com.modu.soccer.service.KakaoOauthService;
+import com.modu.soccer.utils.MDCUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -50,7 +49,7 @@ public class AuthController {
 		if (!jwtProvider.isTokenExpired(jwtProvider.getJwtTokenFromHeader(header))) {
 			throw new IllegalArgumentException("token is not expired.");
 		}
-		Long userId = Long.valueOf(MDC.get(MDCKey.USER_ID.getKey()));
+		Long userId = MDCUtil.getUserIdFromMDC();
 		User user = authService.refreshUserToken(userId, request.getRefreshToken());
 		return ApiResponse.withBody(
 			AuthenticateResponse.of(user, jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)));

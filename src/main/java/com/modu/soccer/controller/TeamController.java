@@ -5,6 +5,7 @@ import com.modu.soccer.domain.TeamDto;
 import com.modu.soccer.domain.request.TeamRequest;
 import com.modu.soccer.entity.Team;
 import com.modu.soccer.service.TeamService;
+import com.modu.soccer.utils.MDCUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -20,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/team")
+@RequestMapping("/api/v1/teams")
 public class TeamController {
 	private final TeamService teamService;
 
@@ -36,7 +37,8 @@ public class TeamController {
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
 	public ApiResponse<?> postTeam(@RequestBody TeamRequest request) {
-		Team result = teamService.createTeam(request);
+		Long userId = MDCUtil.getUserIdFromMDC();
+		Team result = teamService.createTeam(userId, request);
 		return ApiResponse.withBody(TeamDto.fromEntity(result));
 	}
 }
