@@ -15,6 +15,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,7 +24,14 @@ import lombok.Setter;
 import org.hibernate.Hibernate;
 
 @Entity
-@Table(name = "team_members")
+@Table(
+	name = "team_members",
+	uniqueConstraints={
+	@UniqueConstraint(
+		name= "team_user_unique",
+		columnNames={"team_id", "user_id"}
+	)
+})
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -49,12 +57,15 @@ public class TeamMember extends BaseEntity{
 	private Integer backNumber;
 
 	@Enumerated(EnumType.STRING)
-	private Role role;
+	@Builder.Default
+	private Role role = Role.NONE;
 
 	@Enumerated(EnumType.STRING)
-	private Permission permission;
+	@Builder.Default
+	private Permission permission = Permission.MEMBER;
 
 	@Column(name = "is_approved")
+	@Builder.Default
 	private Boolean isApproved = false;
 
 	@Override
