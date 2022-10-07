@@ -1,5 +1,6 @@
 package com.modu.soccer.entity;
 
+import com.modu.soccer.enums.AcceptStatus;
 import com.modu.soccer.enums.Permission;
 import com.modu.soccer.enums.Position;
 import com.modu.soccer.enums.Role;
@@ -37,18 +38,24 @@ import org.hibernate.Hibernate;
 @Builder
 @Getter
 @Setter
-public class TeamMember extends BaseEntity{
+public class TeamMember extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id", nullable = false)
+	@JoinColumn(name = "user_id", insertable = false, updatable = false, nullable = false)
 	private User user;
 
+	@Column(name = "user_id")
+	private Long userId;
+
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "team_id", nullable = false)
+	@JoinColumn(name = "team_id", insertable = false, updatable = false, nullable = false)
 	private Team team;
+
+	@Column(name = "team_id")
+	private Long teamId;
 
 	@Enumerated(EnumType.STRING)
 	private Position position;
@@ -64,9 +71,10 @@ public class TeamMember extends BaseEntity{
 	@Builder.Default
 	private Permission permission = Permission.MEMBER;
 
-	@Column(name = "is_approved")
+	@Column(name = "accpet_status")
+	@Enumerated(EnumType.STRING)
 	@Builder.Default
-	private Boolean isApproved = false;
+	private AcceptStatus acceptStatus = AcceptStatus.WAITING;
 
 	@Override
 	public boolean equals(Object o) {
