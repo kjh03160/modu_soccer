@@ -44,18 +44,12 @@ public class TeamMember extends BaseEntity {
 	private Long id;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id", insertable = false, updatable = false, nullable = false)
+	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 
-	@Column(name = "user_id")
-	private Long userId;
-
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "team_id", insertable = false, updatable = false, nullable = false)
+	@JoinColumn(name = "team_id", nullable = false)
 	private Team team;
-
-	@Column(name = "team_id")
-	private Long teamId;
 
 	@Enumerated(EnumType.STRING)
 	private Position position;

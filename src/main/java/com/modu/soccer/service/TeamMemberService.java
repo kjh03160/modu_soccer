@@ -51,7 +51,9 @@ public class TeamMemberService {
 
 	@Transactional
 	public void approveTeamJoin(Long userId, Long teamId, Long memberId, TeamJoinApproveRequest request) {
-		TeamMember approver = memberRepository.findByTeamIdAndUserId(teamId, userId)
+		User user = userRepository.getReferenceById(userId);
+		Team team = teamRepository.getReferenceById(teamId);
+		TeamMember approver = memberRepository.findByTeamAndUser(team, user)
 			.orElseThrow(() -> {
 				throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "team member");
 			});

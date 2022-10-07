@@ -31,11 +31,9 @@ public class Team extends BaseEntity{
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "owner_id", insertable = false, updatable = false, nullable = false)
+	@JoinColumn(name = "owner_id", nullable = false)
 	private User owner;
 
-	@Column(name = "owner_id")
-	private Long ownerId;
 	private String name;
 	@Column(name = "logo_url")
 	private String logoUrl;
