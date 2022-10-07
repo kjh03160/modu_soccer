@@ -67,6 +67,11 @@ public class TeamMemberService {
 			.orElseThrow(() -> {
 				throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "request member");
 			});
+
+		if (requestMember.getAcceptStatus() != AcceptStatus.WAITING) {
+			throw new IllegalArgumentException("invalid request for member accept status");
+		}
+
 		if (request.isAccept()) {
 			requestMember.setAcceptStatus(AcceptStatus.ACCEPTED);
 		} else {
