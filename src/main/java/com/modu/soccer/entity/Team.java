@@ -33,6 +33,7 @@ public class Team extends BaseEntity{
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "owner_id", nullable = false)
 	private User owner;
+
 	private String name;
 	@Column(name = "logo_url")
 	private String logoUrl;

@@ -2,6 +2,7 @@ package com.modu.soccer.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.modu.soccer.entity.TeamMember;
+import com.modu.soccer.enums.AcceptStatus;
 import com.modu.soccer.enums.Position;
 import com.modu.soccer.enums.Role;
 import lombok.AllArgsConstructor;
@@ -23,6 +24,8 @@ public class TeamMemberDto {
 	private Position position;
 	@JsonProperty("back_number")
 	private Integer backNumber;
+	@JsonProperty("accept_status")
+	private AcceptStatus acceptStatus;
 	private Role role;
 
 	public static TeamMemberDto fromEntity(TeamMember entity) {
@@ -33,6 +36,7 @@ public class TeamMemberDto {
 			.role(entity.getRole())
 			.backNumber(entity.getBackNumber())
 			.position(entity.getPosition())
+			.acceptStatus(entity.getAcceptStatus())
 			.build();
 	}
 }

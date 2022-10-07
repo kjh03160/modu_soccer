@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.modu.soccer.domain.ApiResponse
 import com.modu.soccer.domain.TeamMemberDto
+import com.modu.soccer.domain.request.TeamJoinApproveRequest
 import com.modu.soccer.domain.request.TeamJoinRequest
 import com.modu.soccer.entity.Team
 import com.modu.soccer.entity.TeamMember
@@ -26,6 +27,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import spock.lang.Specification
+import spock.lang.Unroll
 
 @WebMvcTest(controllers = [TeamMemberController, JwtProvider])
 @AutoConfigureMockMvc
@@ -101,6 +103,63 @@ class TeamMemberControllerTest extends Specification {
         then:
         noExceptionThrown()
         response.getCode() == ErrorCode.INVALID_PARAM.getCode()
+    }
+
+    def "acceptOrDenyJoin"() {
+        given:
+        MDC.put(MDCKey.USER_ID.getKey(), "1")
+        def token = jwtProvider.createTokenOfType(getUser(1l, ""), TokenType.AUTH_ACCESS_TOKEN)
+        def url = String.format(TEAM_MEMBER_URL + "/%s/approval", String.valueOf(1l), String.valueOf(1l))
+        def request = new TeamJoinApproveRequest()
+        request.setAccept(true)
+
+        service.approveTeamJoin(_, _, _, request) >> null
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.put(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn()
+                .getResponse()
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<?>>(){})
+
+        then:
+        noExceptionThrown()
+        response.getCode() == 0
+    }
+
+    @Unroll
+    def "acceptOrDenyJoin - team id: #teamId member id: #memberId"() {
+        given:
+        MDC.put(MDCKey.USER_ID.getKey(), "1")
+
+        def token = jwtProvider.createTokenOfType(getUser(1l, ""), TokenType.AUTH_ACCESS_TOKEN)
+        def url = String.format(TEAM_MEMBER_URL + "/%s/approval", String.valueOf(teamId), String.valueOf(memberId))
+        def request = new TeamJoinApproveRequest()
+        request.setAccept(true)
+
+        service.approveTeamJoin(_, _, _, request) >> null
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.put(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andReturn()
+                .getResponse()
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<?>>(){})
+
+        then:
+        noExceptionThrown()
+        response.getCode() == ErrorCode.INVALID_PARAM.getCode()
+
+        where:
+        teamId | memberId
+        1l | "asd"
+        "asd" | 1l
     }
 
     def getUser(userId, email) {

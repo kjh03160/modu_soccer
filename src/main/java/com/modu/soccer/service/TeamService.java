@@ -5,6 +5,7 @@ import com.modu.soccer.entity.Team;
 import com.modu.soccer.entity.TeamMember;
 import com.modu.soccer.entity.TeamRecord;
 import com.modu.soccer.entity.User;
+import com.modu.soccer.enums.AcceptStatus;
 import com.modu.soccer.enums.Permission;
 import com.modu.soccer.enums.Role;
 import com.modu.soccer.exception.CustomException;
@@ -44,7 +45,7 @@ public class TeamService {
 			.team(team)
 			.permission(Permission.ADMIN)
 			.role(Role.NONE)
-			.isApproved(true)
+			.acceptStatus(AcceptStatus.ACCEPTED)
 			.build();
 		teamRepository.save(team);
 		teamMemberRepository.save(owner);

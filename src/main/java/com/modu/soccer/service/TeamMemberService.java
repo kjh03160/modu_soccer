@@ -1,9 +1,12 @@
 package com.modu.soccer.service;
 
+import com.modu.soccer.domain.request.TeamJoinApproveRequest;
 import com.modu.soccer.domain.request.TeamJoinRequest;
 import com.modu.soccer.entity.Team;
 import com.modu.soccer.entity.TeamMember;
 import com.modu.soccer.entity.User;
+import com.modu.soccer.enums.AcceptStatus;
+import com.modu.soccer.enums.Permission;
 import com.modu.soccer.exception.CustomException;
 import com.modu.soccer.exception.ErrorCode;
 import com.modu.soccer.repository.TeamMemberRepository;
@@ -12,6 +15,7 @@ import com.modu.soccer.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -31,7 +35,7 @@ public class TeamMemberService {
 		});
 
 		memberRepository.findByTeamAndUser(team, user).ifPresent((m) -> {
-			if (m.getIsApproved()) {
+			if (m.getAcceptStatus() == AcceptStatus.ACCEPTED) {
 				throw new CustomException(ErrorCode.ALREADY_EXIST_MEMBER);
 			}
 			throw new CustomException(ErrorCode.ALREADY_REQUESTED_JOIN);
@@ -43,5 +47,30 @@ public class TeamMemberService {
 			.build();
 
 		return memberRepository.save(member);
+	}
+
+	@Transactional
+	public void approveTeamJoin(Long userId, Long teamId, Long memberId, TeamJoinApproveRequest request) {
+		User user = userRepository.getReferenceById(userId);
+		Team team = teamRepository.getReferenceById(teamId);
+		TeamMember approver = memberRepository.findByTeamAndUser(team, user)
+			.orElseThrow(() -> {
+				throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "team member");
+			});
+
+		// TODO: extract to function
+		if (approver.getPermission() != Permission.MANAGER && approver.getPermission() != Permission.ADMIN) {
+			throw new CustomException(ErrorCode.NO_PERMISSION_ON_TEAM);
+		}
+
+		TeamMember requestMember = memberRepository.findById(memberId)
+			.orElseThrow(() -> {
+				throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "request member");
+			});
+		if (request.isAccept()) {
+			requestMember.setAcceptStatus(AcceptStatus.ACCEPTED);
+		} else {
+			requestMember.setAcceptStatus(AcceptStatus.DENIED);
+		}
 	}
 }

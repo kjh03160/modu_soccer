@@ -1,9 +1,11 @@
 package com.modu.soccer.service
 
+import com.modu.soccer.domain.request.TeamJoinApproveRequest
 import com.modu.soccer.domain.request.TeamJoinRequest
 import com.modu.soccer.entity.Team
 import com.modu.soccer.entity.TeamMember
 import com.modu.soccer.entity.User
+import com.modu.soccer.enums.AcceptStatus
 import com.modu.soccer.enums.Permission
 import com.modu.soccer.enums.Role
 import com.modu.soccer.exception.CustomException
@@ -27,7 +29,7 @@ class TeamMemberServiceTest extends Specification {
         given:
         def user = getUser(1l, "email")
         def team = getTeam(1l, "team1", user)
-        def member = getTeamMember(user, team)
+        def member = getTeamMember(1l, user, team)
         def request = new TeamJoinRequest()
         request.setTeamId(team.getId())
 
@@ -43,7 +45,7 @@ class TeamMemberServiceTest extends Specification {
         noExceptionThrown()
         result.getTeam().getId() == team.getId()
         result.getUser().getId() == user.getId()
-        result.getIsApproved() == false
+        result.getAcceptStatus() == AcceptStatus.WAITING
         result.getPermission() == Permission.MEMBER
         result.getRole() == Role.NONE
     }
@@ -52,8 +54,8 @@ class TeamMemberServiceTest extends Specification {
         given:
         def user = getUser(1l, "email")
         def team = getTeam(1l, "team1", user)
-        def member = getTeamMember(user, team)
-        member.setIsApproved(true)
+        def member = getTeamMember(1l, user, team)
+        member.setAcceptStatus(AcceptStatus.ACCEPTED)
         def request = new TeamJoinRequest()
         request.setTeamId(team.getId())
 
@@ -74,7 +76,7 @@ class TeamMemberServiceTest extends Specification {
         given:
         def user = getUser(1l, "email")
         def team = getTeam(1l, "team1", user)
-        def member = getTeamMember(user, team)
+        def member = getTeamMember(1l, user, team)
         def request = new TeamJoinRequest()
         request.setTeamId(team.getId())
 
@@ -130,6 +132,95 @@ class TeamMemberServiceTest extends Specification {
         e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
     }
 
+    def "approveTeamJoin"() {
+        given:
+        def approveUser = getUser(1l, "email")
+        def team = getTeam(1l, "name", approveUser)
+        def approveMember = getTeamMember(1l, approveUser, team)
+        approveMember.setPermission(Permission.MANAGER)
+        def memberId = 2l
+        def request = new TeamJoinApproveRequest()
+        request.setAccept(true)
+
+        1 * userRepository.getReferenceById(approveUser.getId()) >> getUser(approveUser.getId(), null)
+        1 * teamRepository.getReferenceById(team.getId()) >> getTeam(team.getId(), null, null)
+        1 * memberRepository.findByTeamAndUser(_, _) >> Optional.of(approveMember)
+        1 * memberRepository.findById(memberId) >> Optional.of(getTeamMember(1l, null, null))
+        when:
+        service.approveTeamJoin(approveUser.getId(), team.getId(), memberId, request)
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "approveTeamJoin - 승인자 팀 멤버 미존재"() {
+        given:
+        def approveUser = getUser(1l, "email")
+        def team = getTeam(1l, "name", approveUser)
+        def approveMember = getTeamMember(1l, approveUser, team)
+        approveMember.setPermission(Permission.MANAGER)
+        def memberId = 2l
+        def request = new TeamJoinApproveRequest()
+        request.setAccept(true)
+
+        1 * userRepository.getReferenceById(approveUser.getId()) >> getUser(approveUser.getId(), null)
+        1 * teamRepository.getReferenceById(team.getId()) >> getTeam(team.getId(), null, null)
+        1 * memberRepository.findByTeamAndUser(_, _) >> Optional.empty()
+
+        when:
+        service.approveTeamJoin(approveUser.getId(), team.getId(), memberId, request)
+
+        then:
+        def e = thrown(CustomException)
+        e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
+    }
+
+    def "approveTeamJoin - 승인자 팀 권한 없음"() {
+        given:
+        def approveUser = getUser(1l, "email")
+        def team = getTeam(1l, "name", approveUser)
+        def approveMember = getTeamMember(1l, approveUser, team)
+        approveMember.setPermission(Permission.MEMBER)
+        def memberId = 2l
+        def request = new TeamJoinApproveRequest()
+        request.setAccept(true)
+
+        1 * userRepository.getReferenceById(approveUser.getId()) >> getUser(approveUser.getId(), null)
+        1 * teamRepository.getReferenceById(team.getId()) >> getTeam(team.getId(), null, null)
+        1 * memberRepository.findByTeamAndUser(team, approveUser) >> Optional.of(approveMember)
+
+        when:
+        service.approveTeamJoin(approveUser.getId(), team.getId(), memberId, request)
+
+        then:
+        def e = thrown(CustomException)
+        e.getErrorCode() == ErrorCode.NO_PERMISSION_ON_TEAM
+    }
+
+    def "approveTeamJoin - 승인 대상 팀 가입 리스트에 없음"() {
+        given:
+        def approveUser = getUser(1l, "email")
+        def team = getTeam(1l, "name", approveUser)
+        def approveMember = getTeamMember(1l, approveUser, team)
+        approveMember.setPermission(Permission.MANAGER)
+        def memberId = 2l
+        def request = new TeamJoinApproveRequest()
+        request.setAccept(true)
+
+        1 * userRepository.getReferenceById(approveUser.getId()) >> getUser(approveUser.getId(), null)
+        1 * teamRepository.getReferenceById(team.getId()) >> getTeam(team.getId(), null, null)
+        1 * memberRepository.findByTeamAndUser(team, approveUser) >> Optional.of(approveMember)
+        1 * memberRepository.findById(memberId) >> Optional.empty()
+
+        when:
+        service.approveTeamJoin(approveUser.getId(), team.getId(), memberId, request)
+
+        then:
+        def e = thrown(CustomException)
+        e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
+    }
+
+
     def getTeam(teamId, name, owner){
         def team = new Team()
         team.setId(teamId)
@@ -145,8 +236,9 @@ class TeamMemberServiceTest extends Specification {
         return user
     }
 
-    def getTeamMember(user, team) {
+    def getTeamMember(id, user, team) {
         return TeamMember.builder()
+        .id(id)
         .user(user)
         .team(team)
         .build()
