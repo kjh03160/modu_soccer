@@ -142,7 +142,9 @@ class TeamMemberServiceTest extends Specification {
         def request = new TeamJoinApproveRequest()
         request.setAccept(true)
 
-        1 * memberRepository.findByTeamIdAndUserId(team.getId(), approveUser.getId()) >> Optional.of(approveMember)
+        1 * userRepository.getReferenceById(approveUser.getId()) >> getUser(approveUser.getId(), null)
+        1 * teamRepository.getReferenceById(team.getId()) >> getTeam(team.getId(), null, null)
+        1 * memberRepository.findByTeamAndUser(_, _) >> Optional.of(approveMember)
         1 * memberRepository.findById(memberId) >> Optional.of(getTeamMember(1l, null, null))
         when:
         service.approveTeamJoin(approveUser.getId(), team.getId(), memberId, request)
@@ -161,7 +163,9 @@ class TeamMemberServiceTest extends Specification {
         def request = new TeamJoinApproveRequest()
         request.setAccept(true)
 
-        1 * memberRepository.findByTeamIdAndUserId(team.getId(), approveUser.getId()) >> Optional.empty()
+        1 * userRepository.getReferenceById(approveUser.getId()) >> getUser(approveUser.getId(), null)
+        1 * teamRepository.getReferenceById(team.getId()) >> getTeam(team.getId(), null, null)
+        1 * memberRepository.findByTeamAndUser(_, _) >> Optional.empty()
 
         when:
         service.approveTeamJoin(approveUser.getId(), team.getId(), memberId, request)
@@ -181,7 +185,9 @@ class TeamMemberServiceTest extends Specification {
         def request = new TeamJoinApproveRequest()
         request.setAccept(true)
 
-        1 * memberRepository.findByTeamIdAndUserId(team.getId(), approveUser.getId()) >> Optional.of(approveMember)
+        1 * userRepository.getReferenceById(approveUser.getId()) >> getUser(approveUser.getId(), null)
+        1 * teamRepository.getReferenceById(team.getId()) >> getTeam(team.getId(), null, null)
+        1 * memberRepository.findByTeamAndUser(team, approveUser) >> Optional.of(approveMember)
 
         when:
         service.approveTeamJoin(approveUser.getId(), team.getId(), memberId, request)
@@ -201,7 +207,9 @@ class TeamMemberServiceTest extends Specification {
         def request = new TeamJoinApproveRequest()
         request.setAccept(true)
 
-        1 * memberRepository.findByTeamIdAndUserId(team.getId(), approveUser.getId()) >> Optional.of(approveMember)
+        1 * userRepository.getReferenceById(approveUser.getId()) >> getUser(approveUser.getId(), null)
+        1 * teamRepository.getReferenceById(team.getId()) >> getTeam(team.getId(), null, null)
+        1 * memberRepository.findByTeamAndUser(team, approveUser) >> Optional.of(approveMember)
         1 * memberRepository.findById(memberId) >> Optional.empty()
 
         when:

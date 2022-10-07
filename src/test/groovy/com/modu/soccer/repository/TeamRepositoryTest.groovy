@@ -54,5 +54,4 @@ class TeamRepositoryTest extends Specification {
         result.get().getOwner() == team.getOwner()
         result.get().getRecord() == team.getRecord()
     }
-
 }

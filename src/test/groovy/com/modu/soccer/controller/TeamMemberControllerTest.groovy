@@ -108,7 +108,6 @@ class TeamMemberControllerTest extends Specification {
     def "acceptOrDenyJoin"() {
         given:
         MDC.put(MDCKey.USER_ID.getKey(), "1")
-
         def token = jwtProvider.createTokenOfType(getUser(1l, ""), TokenType.AUTH_ACCESS_TOKEN)
         def url = String.format(TEAM_MEMBER_URL + "/%s/approval", String.valueOf(1l), String.valueOf(1l))
         def request = new TeamJoinApproveRequest()
