@@ -10,4 +10,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
 	Optional<TeamMember> findByTeamAndUser(Team team, User user);
+	Optional<TeamMember> findByTeamIdAndUserId(Long team, Long user);
 }
