@@ -14,6 +14,7 @@ import com.modu.soccer.repository.TeamMemberRepository
 import com.modu.soccer.repository.TeamRepository
 import com.modu.soccer.repository.UserRepository
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class TeamMemberServiceTest extends Specification {
     private TeamMemberRepository memberRepository = Mock();
@@ -220,6 +221,33 @@ class TeamMemberServiceTest extends Specification {
         e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
     }
 
+    @Unroll
+    def "approveTeamJoin - 승인 대상 이미 #status"() {
+        given:
+        def approveUser = getUser(1l, "email")
+        def team = getTeam(1l, "name", approveUser)
+        def approveMember = getTeamMember(1l, approveUser, team)
+        approveMember.setPermission(Permission.MANAGER)
+        def member = getTeamMember(2l, null, null)
+        member.setAcceptStatus(status)
+        def request = new TeamJoinApproveRequest()
+        request.setAccept(true)
+
+
+        1 * userRepository.getReferenceById(approveUser.getId()) >> getUser(approveUser.getId(), null)
+        1 * teamRepository.getReferenceById(team.getId()) >> getTeam(team.getId(), null, null)
+        1 * memberRepository.findByTeamAndUser(_, _) >> Optional.of(approveMember)
+        1 * memberRepository.findById(member.getId()) >> Optional.of(member)
+
+        when:
+        service.approveTeamJoin(approveUser.getId(), team.getId(), member.getId(), request)
+
+        then:
+        thrown(IllegalArgumentException)
+
+        where:
+        status << [AcceptStatus.ACCEPTED, AcceptStatus.DENIED]
+    }
 
     def getTeam(teamId, name, owner){
         def team = new Team()
