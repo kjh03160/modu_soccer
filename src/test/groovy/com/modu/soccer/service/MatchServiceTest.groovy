@@ -1,0 +1,74 @@
+package com.modu.soccer.service
+
+import com.modu.soccer.domain.request.MatchRequest
+import com.modu.soccer.entity.Match
+import com.modu.soccer.entity.Team
+import com.modu.soccer.exception.CustomException
+import com.modu.soccer.exception.ErrorCode
+import com.modu.soccer.repository.MatchRepository
+import com.modu.soccer.repository.TeamRepository
+import com.modu.soccer.utils.LocalDateTimeUtil
+import spock.lang.Specification
+
+class MatchServiceTest extends Specification {
+    private MatchService service
+    private MatchRepository matchRepository = Mock()
+    private TeamRepository teamRepository = Mock()
+
+    def setup() {
+        service = new MatchService(matchRepository, teamRepository)
+    }
+
+    def "createMatch"() {
+        given:
+        def teamA = getTeam(2l, "teamA", null)
+        def teamB = getTeam(1l, "teamA", null)
+        def request = getMatchRequest(teamA.getId(), teamB.getId())
+
+        1 * teamRepository.findAllByIdIn(_) >> Arrays.asList(teamA, teamB)
+        1 * matchRepository.save(_) >> new Match(1l, teamB, teamA, request.getMatchDate())
+
+        when:
+        def result = service.createMatch(request)
+
+        then:
+        noExceptionThrown()
+        result.getMatchDateTime() == request.getMatchDate()
+        // id sorting
+        result.getTeamA().getId() == teamB.getId()
+        result.getTeamB().getId() == teamA.getId()
+    }
+
+    def "createMatch - 팀이 없음"() {
+        given:
+        def teamA = getTeam(2l, "teamA", null)
+        def teamB = getTeam(1l, "teamA", null)
+        def request = getMatchRequest(teamA.getId(), teamB.getId())
+
+        1 * teamRepository.findAllByIdIn(_) >> Arrays.asList(teamA)
+        0 * matchRepository.save(_)
+
+        when:
+        def result = service.createMatch(request)
+
+        then:
+        def e = thrown(CustomException)
+        e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
+    }
+
+    def getMatchRequest(teamA, teamB) {
+        def request = new MatchRequest()
+        request.setTeamAId(teamA)
+        request.setTeamBId(teamB)
+        request.setMatchDate(LocalDateTimeUtil.now())
+        return request
+    }
+
+    def getTeam(teamId, name, owner){
+        def team = new Team()
+        team.setId(teamId)
+        team.setName(name)
+        team.setOwner(owner)
+        return team
+    }
+}
