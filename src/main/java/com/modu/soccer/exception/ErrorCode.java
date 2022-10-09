@@ -18,8 +18,8 @@ public enum ErrorCode {
 	AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, 40103, "authentication failed"),
 
 	// 403
-	NOT_AUTHORIZED(HttpStatus.NOT_FOUND, 40300, "not authorized"),
-	NO_PERMISSION_ON_TEAM(HttpStatus.NOT_FOUND, 40301, "not permitted action on team"),
+	FORBIDDEN(HttpStatus.FORBIDDEN, 40300, "action forbidden"),
+	NO_PERMISSION_ON_TEAM(HttpStatus.FORBIDDEN, 40301, "not permitted action on team"),
 
 	// 404
 	RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, 40400, "%s not found"),
