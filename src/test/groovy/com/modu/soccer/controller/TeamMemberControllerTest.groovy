@@ -45,6 +45,16 @@ class TeamMemberControllerTest extends Specification {
     private final TeamMemberService service = Stub();
     @Autowired
     private JwtProvider jwtProvider;
+    private String token;
+    private User user
+
+    def setup() {
+        user = new User();
+        user.setId(1l)
+        user.setEmail("email")
+        token = jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)
+        MDC.put(MDCKey.USER_ID.getKey(), "1")
+    }
 
     def cleanup() {
         MDC.clear()
@@ -53,11 +63,8 @@ class TeamMemberControllerTest extends Specification {
     @Unroll
     def "getTeamMembers - status param #status"() {
         given:
-        MDC.put(MDCKey.USER_ID.getKey(), "1")
         def team = new Team()
         team.setId(1l)
-        def user = getUser(1l, "email")
-        def token = jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)
         def url = String.format(TEAM_MEMBER_URL + "?accept-status=%s", String.valueOf(team.getId()), status)
         def member = getTeamMember(user, team)
 
@@ -85,13 +92,10 @@ class TeamMemberControllerTest extends Specification {
 
     def "getTeamMembers - status param 잘못됨"() {
         given:
-        MDC.put(MDCKey.USER_ID.getKey(), "1")
         def team = new Team()
         team.setId(1l)
-        def user = getUser(1l, "email")
-        def token = jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)
         def url = String.format(TEAM_MEMBER_URL + "?accept-status=%s", String.valueOf(team.getId()), "ads")
-        def t = 1
+
         when:
         def result = mvc.perform(MockMvcRequestBuilders.get(url)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -108,9 +112,6 @@ class TeamMemberControllerTest extends Specification {
 
     def "getTeamMembers - team id 숫자 아님"() {
         given:
-        MDC.put(MDCKey.USER_ID.getKey(), "1")
-        def user = getUser(1l, "email")
-        def token = jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)
         def url = String.format(TEAM_MEMBER_URL, String.valueOf("asd"))
 
         when:
@@ -129,11 +130,8 @@ class TeamMemberControllerTest extends Specification {
 
     def "joinTeam"() {
         given:
-        MDC.put(MDCKey.USER_ID.getKey(), "1")
         def team = new Team()
         team.setId(1l)
-        def user = getUser(1l, "email")
-        def token = jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)
         def url = String.format(TEAM_MEMBER_URL, String.valueOf(team.getId()))
         def request = new TeamJoinRequest()
         def member = getTeamMember(user, team)
@@ -160,9 +158,6 @@ class TeamMemberControllerTest extends Specification {
 
     def "joinTeam - path team id 숫자 아님"() {
         given:
-        MDC.put(MDCKey.USER_ID.getKey(), "1")
-        def user = getUser(1l, "email")
-        def token = jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)
         def url = String.format(TEAM_MEMBER_URL, "ad1s")
         def request = new TeamJoinRequest()
         request.setTeamId(1l)
@@ -182,10 +177,58 @@ class TeamMemberControllerTest extends Specification {
         response.getCode() == ErrorCode.INVALID_PARAM.getCode()
     }
 
+    def "getTeamMember"() {
+        given:
+        def team = new Team()
+        team.setId(1l)
+        def member = getTeamMember(user, team)
+        member.setId(1l)
+        def url = String.format(TEAM_MEMBER_URL + "/%s", String.valueOf(team.getId()), String.valueOf(member.getId()))
+
+        service.getTeamMemberInfo(team.getId(), member.getId()) >> member
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.get(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn()
+                .getResponse()
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<TeamMemberInfo>>(){})
+
+        then:
+        noExceptionThrown()
+        response.getContents().getTeamId() == team.getId()
+        response.getContents().getUserId() == user.getId()
+        response.getContents().getMemberId() == member.getId()
+
+    }
+
+    def "getTeamMember - invalid path teamId: #teamId memberId: #memberId"() {
+        given:
+        def url = String.format(TEAM_MEMBER_URL + "/%s", String.valueOf(teamId), String.valueOf(memberId))
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.get(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andReturn()
+                .getResponse()
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<TeamMemberInfo>>(){})
+
+        then:
+        noExceptionThrown()
+        response.getCode() == ErrorCode.INVALID_PARAM.getCode()
+
+        where:
+        teamId | memberId
+        1l | "asd"
+        "asd" | 1l
+    }
+
     def "acceptOrDenyJoin - accept #accept"() {
         given:
-        MDC.put(MDCKey.USER_ID.getKey(), "1")
-        def token = jwtProvider.createTokenOfType(getUser(1l, ""), TokenType.AUTH_ACCESS_TOKEN)
         def url = String.format(TEAM_MEMBER_URL + "/%s/accept-status", String.valueOf(1l), String.valueOf(1l))
         def request = new TeamJoinApproveRequest()
         request.setAccept(true)
@@ -213,9 +256,6 @@ class TeamMemberControllerTest extends Specification {
     @Unroll
     def "acceptOrDenyJoin - team id: #teamId member id: #memberId"() {
         given:
-        MDC.put(MDCKey.USER_ID.getKey(), "1")
-
-        def token = jwtProvider.createTokenOfType(getUser(1l, ""), TokenType.AUTH_ACCESS_TOKEN)
         def url = String.format(TEAM_MEMBER_URL + "/%s/accept-status", String.valueOf(teamId), String.valueOf(memberId))
         def request = new TeamJoinApproveRequest()
         request.setAccept(true)

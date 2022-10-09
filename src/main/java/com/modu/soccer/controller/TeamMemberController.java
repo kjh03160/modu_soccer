@@ -57,6 +57,24 @@ public class TeamMemberController {
 		return ApiResponse.withBody(TeamMemberInfo.fromEntity(member));
 	}
 
+	@GetMapping("/{member_id}")
+	public ApiResponse<?> getTeamMember(
+		@PathVariable("team_id") String teamId,
+		@PathVariable("member_id") String memberId
+	) {
+		if (!StringUtils.isNumeric(teamId)) {
+			throw new IllegalArgumentException(String.format("%s is not number", teamId));
+		}
+		if (!StringUtils.isNumeric(memberId)) {
+			throw new IllegalArgumentException(String.format("%s is not number", memberId));
+		}
+
+		TeamMember teamMember = memberService
+			.getTeamMemberInfo(Long.valueOf(teamId), Long.valueOf(memberId));
+
+		return ApiResponse.withBody(TeamMemberInfo.fromEntity(teamMember));
+	}
+
 	@PutMapping("/{member_id}/accept-status")
 	public ApiResponse<?> acceptOrDenyJoin(
 		@PathVariable("team_id") String teamId,

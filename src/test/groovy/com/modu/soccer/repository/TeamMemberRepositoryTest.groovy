@@ -46,10 +46,19 @@ class TeamMemberRepositoryTest extends Specification {
         teamRecordRepository.save(record)
 
         def m = TeamMember.builder().team(team).user(user).build()
-        member = repository.save(m)
+        this.member = repository.save(m)
         entityManager.clear()
     }
 
+    def "findByIdAndTeamAndAcceptStatus"() {
+        when:
+        def result = repository.findByIdAndTeamAndAcceptStatus(member.getId(), team, AcceptStatus.WAITING)
+
+        then:
+        noExceptionThrown()
+        result.isPresent()
+        result.get().getId() == member.getId()
+    }
 
     def "findByTeamAndUser"() {
         when:
@@ -57,9 +66,9 @@ class TeamMemberRepositoryTest extends Specification {
         then:
         noExceptionThrown()
         m.isPresent()
-        m.get().getId() == member.getId()
-        m.get().getTeam().getId() == member.getTeam().getId()
-        m.get().getUser().getId() == member.getUser().getId()
+        m.get().getId() == this.member.getId()
+        m.get().getTeam().getId() == this.member.getTeam().getId()
+        m.get().getUser().getId() == this.member.getUser().getId()
     }
 
     def "findAllByTeamAndAcceptStatus"() {
@@ -68,10 +77,10 @@ class TeamMemberRepositoryTest extends Specification {
 
         then:
         noExceptionThrown()
-        m.get(0).getId() == member.getId()
-        m.get(0).getTeam().getId() == member.getTeam().getId()
-        m.get(0).getUser().getId() == member.getUser().getId()
-        m.get(0).getUser().getName() == member.getUser().getName()
+        m.get(0).getId() == this.member.getId()
+        m.get(0).getTeam().getId() == this.member.getTeam().getId()
+        m.get(0).getUser().getId() == this.member.getUser().getId()
+        m.get(0).getUser().getName() == this.member.getUser().getName()
     }
 
     @Unroll

@@ -40,6 +40,16 @@ public class TeamMemberService {
 		throw new CustomException(ErrorCode.NO_PERMISSION_ON_TEAM);
 	}
 
+	@Transactional(readOnly = true)
+	public TeamMember getTeamMemberInfo(Long teamId, Long memberId) {
+		Team team = teamRepository.getReferenceById(teamId);
+		return memberRepository
+			.findByIdAndTeamAndAcceptStatus(memberId, team, AcceptStatus.ACCEPTED)
+			.orElseThrow(() -> {
+				throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "team member");
+			});
+	}
+
 	public TeamMember createMember(Long userId, TeamJoinRequest request) {
 		Team team = teamRepository.findById(request.getTeamId()).orElseThrow(() -> {
 			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "team");
