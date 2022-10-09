@@ -12,6 +12,7 @@ import com.modu.soccer.exception.ErrorCode;
 import com.modu.soccer.repository.TeamMemberRepository;
 import com.modu.soccer.repository.TeamRepository;
 import com.modu.soccer.repository.UserRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,9 +22,18 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class TeamMemberService {
+
 	private final TeamMemberRepository memberRepository;
 	private final TeamRepository teamRepository;
 	private final UserRepository userRepository;
+
+	@Transactional(readOnly = true)
+	public List<TeamMember> getTeamMembers(Long teamId) {
+		Team team = teamRepository.findById(teamId).orElseThrow(() -> {
+			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "team");
+		});
+		return memberRepository.findAllByTeamAndAcceptStatus(team, AcceptStatus.ACCEPTED);
+	}
 
 	public TeamMember createMember(Long userId, TeamJoinRequest request) {
 		Team team = teamRepository.findById(request.getTeamId()).orElseThrow(() -> {
@@ -50,7 +60,8 @@ public class TeamMemberService {
 	}
 
 	@Transactional
-	public void approveTeamJoin(Long userId, Long teamId, Long memberId, TeamJoinApproveRequest request) {
+	public void approveTeamJoin(Long userId, Long teamId, Long memberId,
+		TeamJoinApproveRequest request) {
 		User user = userRepository.getReferenceById(userId);
 		Team team = teamRepository.getReferenceById(teamId);
 		TeamMember approver = memberRepository.findByTeamAndUser(team, user)
@@ -59,7 +70,8 @@ public class TeamMemberService {
 			});
 
 		// TODO: extract to function
-		if (approver.getPermission() != Permission.MANAGER && approver.getPermission() != Permission.ADMIN) {
+		if (approver.getPermission() != Permission.MANAGER
+			&& approver.getPermission() != Permission.ADMIN) {
 			throw new CustomException(ErrorCode.NO_PERMISSION_ON_TEAM);
 		}
 

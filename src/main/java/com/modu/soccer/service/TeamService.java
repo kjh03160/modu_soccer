@@ -56,7 +56,7 @@ public class TeamService {
 
 	public Team getTeam(Long teamId) {
 		return teamRepository.findByIdWithOwner(teamId).orElseThrow(() -> {
-			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND);
+			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "team");
 		});
 	}
 }

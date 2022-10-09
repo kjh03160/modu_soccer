@@ -4,6 +4,7 @@ import com.modu.soccer.entity.Team
 import com.modu.soccer.entity.TeamMember
 import com.modu.soccer.entity.TeamRecord
 import com.modu.soccer.entity.User
+import com.modu.soccer.enums.AcceptStatus
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import spock.lang.Specification
@@ -58,5 +59,17 @@ class TeamMemberRepositoryTest extends Specification {
         m.get().getId() == member.getId()
         m.get().getTeam().getId() == member.getTeam().getId()
         m.get().getUser().getId() == member.getUser().getId()
+    }
+
+    def "findAllByTeamAndAcceptStatus"() {
+        when:
+        def m = repository.findAllByTeamAndAcceptStatus(team, AcceptStatus.WAITING)
+
+        then:
+        noExceptionThrown()
+        m.get(0).getId() == member.getId()
+        m.get(0).getTeam().getId() == member.getTeam().getId()
+        m.get(0).getUser().getId() == member.getUser().getId()
+        m.get(0).getUser().getName() == member.getUser().getName()
     }
 }

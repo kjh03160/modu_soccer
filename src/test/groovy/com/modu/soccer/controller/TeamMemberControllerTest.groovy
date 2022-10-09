@@ -3,9 +3,9 @@ package com.modu.soccer.controller
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.modu.soccer.domain.ApiResponse
-import com.modu.soccer.domain.TeamMemberDto
 import com.modu.soccer.domain.request.TeamJoinApproveRequest
 import com.modu.soccer.domain.request.TeamJoinRequest
+import com.modu.soccer.domain.TeamMemberInfo
 import com.modu.soccer.entity.Team
 import com.modu.soccer.entity.TeamMember
 import com.modu.soccer.entity.User
@@ -50,6 +50,56 @@ class TeamMemberControllerTest extends Specification {
         MDC.clear()
     }
 
+    def "getTeamMembers"() {
+        given:
+        MDC.put(MDCKey.USER_ID.getKey(), "1")
+        def team = new Team()
+        team.setId(1l)
+        def user = getUser(1l, "email")
+        def token = jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)
+        def url = String.format(TEAM_MEMBER_URL, String.valueOf(team.getId()))
+        def member = getTeamMember(user, team)
+
+        service.getTeamMembers(team.getId()) >> List.of(member)
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.get(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn()
+                .getResponse()
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<List<TeamMemberInfo>>>(){})
+
+        then:
+        noExceptionThrown()
+        response.getCode() == 0
+        response.getContents() != null
+        response.getContents().get(0).getUserId() == user.getId()
+        response.getContents().get(0).getTeamId() == team.getId()
+    }
+
+    def "getTeamMembers - team id 숫자 아님"() {
+        given:
+        MDC.put(MDCKey.USER_ID.getKey(), "1")
+        def user = getUser(1l, "email")
+        def token = jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)
+        def url = String.format(TEAM_MEMBER_URL, String.valueOf("asd"))
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.get(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andReturn()
+                .getResponse()
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<List<TeamMemberInfo>>>(){})
+
+        then:
+        noExceptionThrown()
+        response.getCode() == ErrorCode.INVALID_PARAM.getCode()
+    }
+
     def "joinTeam"() {
         given:
         MDC.put(MDCKey.USER_ID.getKey(), "1")
@@ -72,7 +122,7 @@ class TeamMemberControllerTest extends Specification {
                 .andExpect(MockMvcResultMatchers.status().isCreated())
                 .andReturn()
                 .getResponse()
-        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<TeamMemberDto>>(){})
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<TeamMemberInfo>>(){})
 
         then:
         noExceptionThrown()
@@ -98,14 +148,14 @@ class TeamMemberControllerTest extends Specification {
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andReturn()
                 .getResponse()
-        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<TeamMemberDto>>(){})
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<TeamMemberInfo>>(){})
 
         then:
         noExceptionThrown()
         response.getCode() == ErrorCode.INVALID_PARAM.getCode()
     }
 
-    def "acceptOrDenyJoin"() {
+    def "acceptOrDenyJoin - accept #accept"() {
         given:
         MDC.put(MDCKey.USER_ID.getKey(), "1")
         def token = jwtProvider.createTokenOfType(getUser(1l, ""), TokenType.AUTH_ACCESS_TOKEN)
@@ -128,6 +178,9 @@ class TeamMemberControllerTest extends Specification {
         then:
         noExceptionThrown()
         response.getCode() == 0
+
+        where:
+        accept << [true, false]
     }
 
     @Unroll

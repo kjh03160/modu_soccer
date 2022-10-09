@@ -13,6 +13,7 @@ import com.modu.soccer.exception.ErrorCode
 import com.modu.soccer.repository.TeamMemberRepository
 import com.modu.soccer.repository.TeamRepository
 import com.modu.soccer.repository.UserRepository
+import org.assertj.core.util.Lists
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -24,6 +25,36 @@ class TeamMemberServiceTest extends Specification {
 
     def setup() {
         service = new TeamMemberService(memberRepository, teamRepository, userRepository)
+    }
+
+    def "getTeamMembers"() {
+        given:
+        def team = getTeam(1l, "team1", null)
+
+        1 * teamRepository.findById(team.getId()) >> Optional.of(team)
+        1 * memberRepository.findAllByTeamAndAcceptStatus(team, AcceptStatus.ACCEPTED) >> Lists.newArrayList()
+
+        when:
+        service.getTeamMembers(team.getId())
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "getTeamMembers - team 미존재"() {
+        given:
+        def teamId = 1l
+
+        1 * teamRepository.findById(teamId) >> Optional.empty()
+        0 * memberRepository.findAllByTeamAndAcceptStatus(_, AcceptStatus.ACCEPTED)
+
+        when:
+        service.getTeamMembers(teamId)
+
+        then:
+        def e = thrown(CustomException)
+        e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
+        e.getParam() == "team"
     }
 
     def "createMember"() {
