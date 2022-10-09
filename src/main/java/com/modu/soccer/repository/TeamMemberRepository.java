@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
+	Optional<TeamMember> findByIdAndTeamAndAcceptStatus(Long id, Team team, AcceptStatus status);
 	Optional<TeamMember> findByTeamAndUser(Team team, User user);
 	List<TeamMember> findByUserAndTeamIn(User user, List<Team> teams);
 	@EntityGraph(attributePaths = {"user"})

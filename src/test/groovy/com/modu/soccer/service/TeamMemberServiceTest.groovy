@@ -226,6 +226,40 @@ class TeamMemberServiceTest extends Specification {
         e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
     }
 
+    def "getTeamMemberInfo"() {
+        given:
+        def team = getTeam(1l, "team1", null)
+        def member = getTeamMember(1l, null, team)
+        member.setAcceptStatus(AcceptStatus.ACCEPTED)
+
+        1 * teamRepository.getReferenceById(team.getId()) >> team
+        1 * memberRepository.findByIdAndTeamAndAcceptStatus(member.getId(), team, AcceptStatus.ACCEPTED) >> Optional.of(member)
+
+        when:
+        def result = service.getTeamMemberInfo(team.getId(), member.getId())
+
+        then:
+        noExceptionThrown()
+        result.getId() == member.getId()
+        result.getTeam().getId() == team.getId()
+        result.getAcceptStatus() == AcceptStatus.ACCEPTED
+    }
+
+    def "getTeamMemberInfo - 멤버 없음"() {
+        given:
+        def team = getTeam(1l, "team1", null)
+
+        1 * teamRepository.getReferenceById(team.getId()) >> team
+        1 * memberRepository.findByIdAndTeamAndAcceptStatus(_, _, AcceptStatus.ACCEPTED) >> Optional.empty()
+
+        when:
+        def result = service.getTeamMemberInfo(team.getId(), 2l)
+
+        then:
+        def e = thrown(CustomException)
+        e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
+    }
+
     @Unroll
     def "approveTeamJoin #permission"() {
         given:
