@@ -13,10 +13,10 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,12 +27,12 @@ import org.hibernate.Hibernate;
 @Entity
 @Table(
 	name = "team_members",
-	uniqueConstraints={
-	@UniqueConstraint(
-		name= "team_user_unique",
-		columnNames={"team_id", "user_id"}
-	)
-})
+	indexes = {
+		@Index(name = "idx_team_user_id", columnList = "team_id, user_id", unique = true),
+		@Index(name = "idx_team_id", columnList = "team_id"),
+		@Index(name = "idx_user_id", columnList = "user_id"),
+	}
+)
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

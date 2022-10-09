@@ -7,6 +7,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -15,7 +16,12 @@ import lombok.NoArgsConstructor;
 import org.hibernate.Hibernate;
 
 @Entity
-@Table(name = "team_records")
+@Table(
+	name = "team_records",
+	indexes = {
+		@Index(name = "idx_team_id", columnList = "team_id", unique = true)
+	}
+)
 @NoArgsConstructor
 @Getter
 public class TeamRecord extends BaseEntity {

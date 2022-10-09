@@ -7,6 +7,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
@@ -20,7 +21,12 @@ import org.hibernate.Hibernate;
 import org.locationtech.jts.geom.Point;
 
 @Entity
-@Table(name = "teams")
+@Table(
+	name = "teams",
+	indexes = {
+		@Index(name = "idx_owner_id", columnList = "owner_id")
+	}
+)
 @Getter
 @Setter
 @Builder
