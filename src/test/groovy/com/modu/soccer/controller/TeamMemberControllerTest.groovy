@@ -50,17 +50,18 @@ class TeamMemberControllerTest extends Specification {
         MDC.clear()
     }
 
-    def "getTeamMembers"() {
+    @Unroll
+    def "getTeamMembers - status param #status"() {
         given:
         MDC.put(MDCKey.USER_ID.getKey(), "1")
         def team = new Team()
         team.setId(1l)
         def user = getUser(1l, "email")
         def token = jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)
-        def url = String.format(TEAM_MEMBER_URL, String.valueOf(team.getId()))
+        def url = String.format(TEAM_MEMBER_URL + "?accept-status=%s", String.valueOf(team.getId()), status)
         def member = getTeamMember(user, team)
 
-        service.getTeamMembers(team.getId()) >> List.of(member)
+        service.getTeamMembers(team.getId(), _) >> List.of(member)
 
         when:
         def result = mvc.perform(MockMvcRequestBuilders.get(url)
@@ -77,6 +78,32 @@ class TeamMemberControllerTest extends Specification {
         response.getContents() != null
         response.getContents().get(0).getUserId() == user.getId()
         response.getContents().get(0).getTeamId() == team.getId()
+
+        where:
+        status << ["", "ACCEPTED", "DENIED", "WAITING"]
+    }
+
+    def "getTeamMembers - status param 잘못됨"() {
+        given:
+        MDC.put(MDCKey.USER_ID.getKey(), "1")
+        def team = new Team()
+        team.setId(1l)
+        def user = getUser(1l, "email")
+        def token = jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)
+        def url = String.format(TEAM_MEMBER_URL + "?accept-status=%s", String.valueOf(team.getId()), "ads")
+        def t = 1
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.get(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andReturn()
+                .getResponse()
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<List<TeamMemberInfo>>>(){})
+
+        then:
+        noExceptionThrown()
+        response.getCode() == ErrorCode.INVALID_PARAM.getCode()
     }
 
     def "getTeamMembers - team id 숫자 아님"() {
