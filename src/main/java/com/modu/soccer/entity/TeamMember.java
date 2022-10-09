@@ -71,8 +71,8 @@ public class TeamMember extends BaseEntity {
 	private AcceptStatus acceptStatus = AcceptStatus.WAITING;
 
 	public boolean hasManagePermission() {
-		return this.getPermission() != Permission.MANAGER
-			&& this.getPermission() != Permission.ADMIN;
+		return this.getPermission() == Permission.MANAGER
+			|| this.getPermission() == Permission.ADMIN;
 	}
 
 	@Override

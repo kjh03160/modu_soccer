@@ -5,6 +5,7 @@ import com.modu.soccer.domain.TeamMemberInfo;
 import com.modu.soccer.domain.request.TeamJoinApproveRequest;
 import com.modu.soccer.domain.request.TeamJoinRequest;
 import com.modu.soccer.entity.TeamMember;
+import com.modu.soccer.enums.AcceptStatus;
 import com.modu.soccer.service.TeamMemberService;
 import com.modu.soccer.utils.MDCUtil;
 import java.util.List;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,12 +32,16 @@ public class TeamMemberController {
 	private final TeamMemberService memberService;
 
 	@GetMapping()
-	public ApiResponse<?> getTeamMembers(@PathVariable("team_id") String team_id) {
-		if (!StringUtils.isNumeric(team_id)) {
-			throw new IllegalArgumentException(String.format("%s is not number", team_id));
+	public ApiResponse<?> getTeamMembers(
+		@PathVariable("team_id") String teamId,
+		@RequestParam(name = "accept-status", defaultValue = "ACCEPTED") AcceptStatus status
+	) {
+		if (!StringUtils.isNumeric(teamId)) {
+			throw new IllegalArgumentException(String.format("%s is not number", teamId));
 		}
-		List<TeamMemberInfo> teamMembers = memberService.getTeamMembers(Long.valueOf(team_id))
-			.stream().map(TeamMemberInfo::fromEntity).toList();
+		List<TeamMemberInfo> teamMembers = memberService.getTeamMembers(Long.valueOf(teamId),
+			status).stream().map(TeamMemberInfo::fromEntity).toList();
+
 		return ApiResponse.withBody(teamMembers);
 	}
 
