@@ -14,6 +14,7 @@ import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -29,9 +30,18 @@ public class GlobalExceptionAdvice {
 		return ErrorResponse.toResponseEntity(DUPLICATE_RESOURCE);
 	}
 
-	@ExceptionHandler(value = {IllegalArgumentException.class, MethodArgumentTypeMismatchException.class})
-	protected ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
+	@ExceptionHandler(value = {IllegalArgumentException.class,
+		MethodArgumentTypeMismatchException.class})
+	protected ResponseEntity<ErrorResponse> handleIllegalArgumentException(
+		IllegalArgumentException e) {
 		return ErrorResponse.toResponseEntity(INVALID_PARAM, e.getMessage());
+	}
+
+	@ExceptionHandler(value = {HttpMessageNotReadableException.class})
+	protected ResponseEntity<ErrorResponse> handleHttpMessageNotReadable(
+		HttpMessageNotReadableException e) {
+		log.warn(e.getMessage());
+		return ErrorResponse.toResponseEntity(INVALID_PARAM, "invalid request");
 	}
 
 	@ExceptionHandler(value = {CustomException.class})

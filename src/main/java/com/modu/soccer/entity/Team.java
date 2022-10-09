@@ -26,7 +26,7 @@ import org.locationtech.jts.geom.Point;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Team extends BaseEntity{
+public class Team extends BaseEntity implements Comparable<Team> {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -60,4 +60,8 @@ public class Team extends BaseEntity{
 		return Objects.hash(id);
 	}
 
+	@Override
+	public int compareTo(Team o) {
+		return this.id.compareTo(o.getId());
+	}
 }
