@@ -70,6 +70,11 @@ public class TeamMember extends BaseEntity {
 	@Builder.Default
 	private AcceptStatus acceptStatus = AcceptStatus.WAITING;
 
+	public boolean hasManagePermission() {
+		return this.getPermission() == Permission.MANAGER
+			|| this.getPermission() == Permission.ADMIN;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {

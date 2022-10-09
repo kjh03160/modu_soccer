@@ -6,6 +6,7 @@ import com.modu.soccer.entity.Team
 import com.modu.soccer.entity.TeamMember
 import com.modu.soccer.entity.User
 import com.modu.soccer.enums.AcceptStatus
+import com.modu.soccer.enums.MDCKey
 import com.modu.soccer.enums.Permission
 import com.modu.soccer.enums.Role
 import com.modu.soccer.exception.CustomException
@@ -14,6 +15,7 @@ import com.modu.soccer.repository.TeamMemberRepository
 import com.modu.soccer.repository.TeamRepository
 import com.modu.soccer.repository.UserRepository
 import org.assertj.core.util.Lists
+import org.slf4j.MDC
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -27,19 +29,35 @@ class TeamMemberServiceTest extends Specification {
         service = new TeamMemberService(memberRepository, teamRepository, userRepository)
     }
 
-    def "getTeamMembers"() {
+    def cleanup() {
+        MDC.clear()
+    }
+
+    @Unroll
+    def "getTeamMembers #permission #status"() {
         given:
         def team = getTeam(1l, "team1", null)
+        def member = getTeamMember(1l, null, team)
+        member.setPermission(permission)
+        MDC.put(MDCKey.USER_ID.getKey(), "1")
 
         1 * teamRepository.findById(team.getId()) >> Optional.of(team)
-        1 * memberRepository.findAllByTeamAndAcceptStatus(team, AcceptStatus.ACCEPTED) >> Lists.newArrayList()
+        memberRepository.findByTeamAndUser(_, _) >> Optional.of(member)
+        1 * memberRepository.findAllByTeamAndAcceptStatus(team, status) >> Lists.newArrayList()
 
         when:
-        service.getTeamMembers(team.getId())
+        service.getTeamMembers(team.getId(), status)
 
         then:
         noExceptionThrown()
+
+        where:
+        permission | status
+        Permission.MEMBER | AcceptStatus.ACCEPTED
+        Permission.MANAGER | AcceptStatus.WAITING
+        Permission.ADMIN | AcceptStatus.WAITING
     }
+
 
     def "getTeamMembers - team 미존재"() {
         given:
@@ -49,12 +67,56 @@ class TeamMemberServiceTest extends Specification {
         0 * memberRepository.findAllByTeamAndAcceptStatus(_, AcceptStatus.ACCEPTED)
 
         when:
-        service.getTeamMembers(teamId)
+        service.getTeamMembers(teamId, AcceptStatus.ACCEPTED)
 
         then:
         def e = thrown(CustomException)
         e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
         e.getParam() == "team"
+    }
+
+    def "getTeamMembers - 권한 없음 #permission #status"() {
+        given:
+        def team = getTeam(1l, "team1", null)
+        def member = getTeamMember(1l, null, team)
+        member.setPermission(permission)
+        MDC.put(MDCKey.USER_ID.getKey(), "1")
+
+        1 * teamRepository.findById(team.getId()) >> Optional.of(team)
+        memberRepository.findByTeamAndUser(_, _) >> Optional.of(member)
+        0 * memberRepository.findAllByTeamAndAcceptStatus(_, status)
+
+        when:
+        service.getTeamMembers(team.getId(), status)
+
+        then:
+        def e = thrown(CustomException)
+        e.getErrorCode() == ErrorCode.NO_PERMISSION_ON_TEAM
+
+        where:
+        permission | status
+        Permission.MEMBER | AcceptStatus.WAITING
+        Permission.MEMBER | AcceptStatus.DENIED
+    }
+
+    def "getTeamMembers - #status 조회 but 해당 팀에 속하지 않음"() {
+        given:
+        def team = getTeam(1l, "team1", null)
+        MDC.put(MDCKey.USER_ID.getKey(), "1")
+
+        1 * teamRepository.findById(team.getId()) >> Optional.of(team)
+        memberRepository.findByTeamAndUser(_, _) >> Optional.empty()
+        0 * memberRepository.findAllByTeamAndAcceptStatus(_, status)
+
+        when:
+        service.getTeamMembers(team.getId(), status)
+
+        then:
+        def e = thrown(CustomException)
+        e.getErrorCode() == ErrorCode.FORBIDDEN
+
+        where:
+        status << [AcceptStatus.DENIED, AcceptStatus.WAITING]
     }
 
     def "createMember"() {
@@ -164,12 +226,13 @@ class TeamMemberServiceTest extends Specification {
         e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
     }
 
-    def "approveTeamJoin"() {
+    @Unroll
+    def "approveTeamJoin #permission"() {
         given:
         def approveUser = getUser(1l, "email")
         def team = getTeam(1l, "name", approveUser)
         def approveMember = getTeamMember(1l, approveUser, team)
-        approveMember.setPermission(Permission.MANAGER)
+        approveMember.setPermission(permission)
         def memberId = 2l
         def request = new TeamJoinApproveRequest()
         request.setAccept(true)
@@ -183,6 +246,9 @@ class TeamMemberServiceTest extends Specification {
 
         then:
         noExceptionThrown()
+
+        where:
+        permission << [Permission.ADMIN, Permission.MANAGER]
     }
 
     def "approveTeamJoin - 승인자 팀 멤버 미존재"() {
@@ -207,12 +273,12 @@ class TeamMemberServiceTest extends Specification {
         e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
     }
 
-    def "approveTeamJoin - 승인자 팀 권한 없음"() {
+    def "approveTeamJoin - 승인자 팀 권한 없음 #permission"() {
         given:
         def approveUser = getUser(1l, "email")
         def team = getTeam(1l, "name", approveUser)
         def approveMember = getTeamMember(1l, approveUser, team)
-        approveMember.setPermission(Permission.MEMBER)
+        approveMember.setPermission(permission)
         def memberId = 2l
         def request = new TeamJoinApproveRequest()
         request.setAccept(true)
@@ -227,6 +293,9 @@ class TeamMemberServiceTest extends Specification {
         then:
         def e = thrown(CustomException)
         e.getErrorCode() == ErrorCode.NO_PERMISSION_ON_TEAM
+
+        where:
+        permission << [Permission.MEMBER]
     }
 
     def "approveTeamJoin - 승인 대상 팀 가입 리스트에 없음"() {

@@ -6,12 +6,12 @@ import com.modu.soccer.entity.Team;
 import com.modu.soccer.entity.TeamMember;
 import com.modu.soccer.entity.User;
 import com.modu.soccer.enums.AcceptStatus;
-import com.modu.soccer.enums.Permission;
 import com.modu.soccer.exception.CustomException;
 import com.modu.soccer.exception.ErrorCode;
 import com.modu.soccer.repository.TeamMemberRepository;
 import com.modu.soccer.repository.TeamRepository;
 import com.modu.soccer.repository.UserRepository;
+import com.modu.soccer.utils.MDCUtil;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,11 +28,16 @@ public class TeamMemberService {
 	private final UserRepository userRepository;
 
 	@Transactional(readOnly = true)
-	public List<TeamMember> getTeamMembers(Long teamId) {
+	public List<TeamMember> getTeamMembers(Long teamId, AcceptStatus status) {
 		Team team = teamRepository.findById(teamId).orElseThrow(() -> {
 			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "team");
 		});
-		return memberRepository.findAllByTeamAndAcceptStatus(team, AcceptStatus.ACCEPTED);
+
+		User user = userRepository.getReferenceById(MDCUtil.getUserIdFromMDC());
+		if (status == AcceptStatus.ACCEPTED || canMemberManage(team, user)) {
+			return memberRepository.findAllByTeamAndAcceptStatus(team, status);
+		}
+		throw new CustomException(ErrorCode.NO_PERMISSION_ON_TEAM);
 	}
 
 	public TeamMember createMember(Long userId, TeamJoinRequest request) {
@@ -69,9 +74,7 @@ public class TeamMemberService {
 				throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "team member");
 			});
 
-		// TODO: extract to function
-		if (approver.getPermission() != Permission.MANAGER
-			&& approver.getPermission() != Permission.ADMIN) {
+		if (!approver.hasManagePermission()) {
 			throw new CustomException(ErrorCode.NO_PERMISSION_ON_TEAM);
 		}
 
@@ -89,5 +92,12 @@ public class TeamMemberService {
 		} else {
 			requestMember.setAcceptStatus(AcceptStatus.DENIED);
 		}
+	}
+
+	private boolean canMemberManage(Team team, User user) {
+		TeamMember member = memberRepository.findByTeamAndUser(team, user).orElseThrow(() -> {
+			throw new CustomException(ErrorCode.FORBIDDEN);
+		});
+		return member.hasManagePermission();
 	}
 }
