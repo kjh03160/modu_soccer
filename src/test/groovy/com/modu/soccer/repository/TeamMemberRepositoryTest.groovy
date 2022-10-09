@@ -8,6 +8,7 @@ import com.modu.soccer.enums.AcceptStatus
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import javax.persistence.EntityManager
 import javax.persistence.PersistenceContext
@@ -72,4 +73,34 @@ class TeamMemberRepositoryTest extends Specification {
         m.get(0).getUser().getId() == member.getUser().getId()
         m.get(0).getUser().getName() == member.getUser().getName()
     }
+
+    @Unroll
+    def "findByUserAndTeamIn - team"() {
+        given:
+        def team2 =  teamRepository.getReferenceById(100l)
+
+        when:
+        def members = repository.findByUserAndTeamIn(user, Arrays.asList(team, team2))
+
+        then:
+        noExceptionThrown()
+        members.size() == 1
+        members.get(0).getUser().getId() == user.getId()
+        members.get(0).getTeam().getId() == team.getId()
+    }
+
+    @Unroll
+    def "findByUserAndTeamIn - no matching team"() {
+        given:
+        def team2 =  teamRepository.getReferenceById(100l)
+        def team3 =  teamRepository.getReferenceById(101l)
+
+        when:
+        def members = repository.findByUserAndTeamIn(user, Arrays.asList(team3, team2))
+
+        then:
+        noExceptionThrown()
+        members.size() == 0
+    }
+
 }
