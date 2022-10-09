@@ -164,12 +164,13 @@ class TeamMemberServiceTest extends Specification {
         e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
     }
 
-    def "approveTeamJoin"() {
+    @Unroll
+    def "approveTeamJoin #permission"() {
         given:
         def approveUser = getUser(1l, "email")
         def team = getTeam(1l, "name", approveUser)
         def approveMember = getTeamMember(1l, approveUser, team)
-        approveMember.setPermission(Permission.MANAGER)
+        approveMember.setPermission(permission)
         def memberId = 2l
         def request = new TeamJoinApproveRequest()
         request.setAccept(true)
@@ -183,6 +184,9 @@ class TeamMemberServiceTest extends Specification {
 
         then:
         noExceptionThrown()
+
+        where:
+        permission << [Permission.ADMIN, Permission.MANAGER]
     }
 
     def "approveTeamJoin - 승인자 팀 멤버 미존재"() {
@@ -207,12 +211,12 @@ class TeamMemberServiceTest extends Specification {
         e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
     }
 
-    def "approveTeamJoin - 승인자 팀 권한 없음"() {
+    def "approveTeamJoin - 승인자 팀 권한 없음 #permission"() {
         given:
         def approveUser = getUser(1l, "email")
         def team = getTeam(1l, "name", approveUser)
         def approveMember = getTeamMember(1l, approveUser, team)
-        approveMember.setPermission(Permission.MEMBER)
+        approveMember.setPermission(permission)
         def memberId = 2l
         def request = new TeamJoinApproveRequest()
         request.setAccept(true)
@@ -227,6 +231,9 @@ class TeamMemberServiceTest extends Specification {
         then:
         def e = thrown(CustomException)
         e.getErrorCode() == ErrorCode.NO_PERMISSION_ON_TEAM
+
+        where:
+        permission << [Permission.MEMBER]
     }
 
     def "approveTeamJoin - 승인 대상 팀 가입 리스트에 없음"() {

@@ -3,9 +3,9 @@ package com.modu.soccer.controller
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.modu.soccer.domain.ApiResponse
+import com.modu.soccer.domain.TeamMemberInfo
 import com.modu.soccer.domain.request.TeamJoinApproveRequest
 import com.modu.soccer.domain.request.TeamJoinRequest
-import com.modu.soccer.domain.TeamMemberInfo
 import com.modu.soccer.entity.Team
 import com.modu.soccer.entity.TeamMember
 import com.modu.soccer.entity.User
@@ -159,7 +159,7 @@ class TeamMemberControllerTest extends Specification {
         given:
         MDC.put(MDCKey.USER_ID.getKey(), "1")
         def token = jwtProvider.createTokenOfType(getUser(1l, ""), TokenType.AUTH_ACCESS_TOKEN)
-        def url = String.format(TEAM_MEMBER_URL + "/%s/approval", String.valueOf(1l), String.valueOf(1l))
+        def url = String.format(TEAM_MEMBER_URL + "/%s/accept-status", String.valueOf(1l), String.valueOf(1l))
         def request = new TeamJoinApproveRequest()
         request.setAccept(true)
 
@@ -189,7 +189,7 @@ class TeamMemberControllerTest extends Specification {
         MDC.put(MDCKey.USER_ID.getKey(), "1")
 
         def token = jwtProvider.createTokenOfType(getUser(1l, ""), TokenType.AUTH_ACCESS_TOKEN)
-        def url = String.format(TEAM_MEMBER_URL + "/%s/approval", String.valueOf(teamId), String.valueOf(memberId))
+        def url = String.format(TEAM_MEMBER_URL + "/%s/accept-status", String.valueOf(teamId), String.valueOf(memberId))
         def request = new TeamJoinApproveRequest()
         request.setAccept(true)
 

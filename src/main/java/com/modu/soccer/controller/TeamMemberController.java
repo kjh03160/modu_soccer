@@ -1,9 +1,9 @@
 package com.modu.soccer.controller;
 
 import com.modu.soccer.domain.ApiResponse;
+import com.modu.soccer.domain.TeamMemberInfo;
 import com.modu.soccer.domain.request.TeamJoinApproveRequest;
 import com.modu.soccer.domain.request.TeamJoinRequest;
-import com.modu.soccer.domain.TeamMemberInfo;
 import com.modu.soccer.entity.TeamMember;
 import com.modu.soccer.service.TeamMemberService;
 import com.modu.soccer.utils.MDCUtil;
@@ -51,22 +51,21 @@ public class TeamMemberController {
 		return ApiResponse.withBody(TeamMemberInfo.fromEntity(member));
 	}
 
-	@PutMapping("/{member_id}/approval")
+	@PutMapping("/{member_id}/accept-status")
 	public ApiResponse<?> acceptOrDenyJoin(
-		@PathVariable("team_id") String team_id,
+		@PathVariable("team_id") String teamId,
 		@PathVariable("member_id") String memberId,
 		@RequestBody TeamJoinApproveRequest request
 	) {
-		if (!StringUtils.isNumeric(team_id)) {
-			throw new IllegalArgumentException(String.format("%s is not number", team_id));
+		if (!StringUtils.isNumeric(teamId)) {
+			throw new IllegalArgumentException(String.format("%s is not number", teamId));
 		}
 		if (!StringUtils.isNumeric(memberId)) {
 			throw new IllegalArgumentException(String.format("%s is not number", memberId));
 		}
 		Long userId = MDCUtil.getUserIdFromMDC();
-		memberService.approveTeamJoin(userId, Long.valueOf(team_id), Long.valueOf(memberId),
+		memberService.approveTeamJoin(userId, Long.valueOf(teamId), Long.valueOf(memberId),
 			request);
 		return ApiResponse.ok();
 	}
-
 }

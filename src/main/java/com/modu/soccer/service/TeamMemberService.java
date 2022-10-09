@@ -6,7 +6,6 @@ import com.modu.soccer.entity.Team;
 import com.modu.soccer.entity.TeamMember;
 import com.modu.soccer.entity.User;
 import com.modu.soccer.enums.AcceptStatus;
-import com.modu.soccer.enums.Permission;
 import com.modu.soccer.exception.CustomException;
 import com.modu.soccer.exception.ErrorCode;
 import com.modu.soccer.repository.TeamMemberRepository;
@@ -69,9 +68,7 @@ public class TeamMemberService {
 				throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "team member");
 			});
 
-		// TODO: extract to function
-		if (approver.getPermission() != Permission.MANAGER
-			&& approver.getPermission() != Permission.ADMIN) {
+		if (approver.hasManagePermission()) {
 			throw new CustomException(ErrorCode.NO_PERMISSION_ON_TEAM);
 		}
 
