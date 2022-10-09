@@ -7,6 +7,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
@@ -17,7 +18,15 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "matches")
+@Table(
+	name = "matches",
+	indexes = {
+		@Index(name = "idx_team_a", columnList = "team_a"),
+		@Index(name = "idx_team_b", columnList = "team_b"),
+		@Index(name = "idx_team_a_b", columnList = "team_a, team_b"),
+		@Index(name = "idx_match_dt", columnList = "match_dt"),
+	}
+)
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
