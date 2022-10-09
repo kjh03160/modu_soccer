@@ -23,7 +23,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class Match extends BaseEntity {
+public class Match extends BaseEntity implements Comparable<Match>{
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -38,4 +38,13 @@ public class Match extends BaseEntity {
 
 	@Column(name = "match_dt")
 	private LocalDateTime matchDateTime;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "create_by", nullable = false)
+	private TeamMember createBy;
+
+	@Override
+	public int compareTo(Match o) {
+		return -this.matchDateTime.compareTo(o.getMatchDateTime());
+	}
 }

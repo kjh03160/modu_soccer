@@ -13,6 +13,7 @@ import com.modu.soccer.repository.TeamRepository;
 import com.modu.soccer.repository.UserRepository;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,18 +27,28 @@ public class MatchService {
 	private final TeamMemberRepository memberRepository;
 	private final UserRepository userRepository;
 
-	public Match createMatch(Long userId, MatchRequest request) {
+	public List<Match> getMatches(Long teamId) {
+		Team team = teamRepository.findById(teamId).orElseThrow(() -> {
+			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "team");
+		});
+		List<Match> matches1 = matchRepository.findAllByTeamA(team);
+		List<Match> matches2 = matchRepository.findAllByTeamB(team);
+		return Stream.concat(matches1.stream(), matches2.stream()).sorted().toList();
+	}
+
+	public Match createMatch(Long userId, Long teamId, MatchRequest request) {
+		User user = userRepository.getReferenceById(userId);
+		Team userTeam = teamRepository.getReferenceById(teamId);
+		TeamMember member = memberRepository.findByTeamAndUser(userTeam, user)
+			.orElseThrow(() -> {
+				throw new CustomException(ErrorCode.FORBIDDEN);
+			});
+
 		List<Long> teamIds = List.of(request.getTeamAId(), request.getTeamBId());
 		List<Team> teams = teamRepository.findAllByIdIn(teamIds);
 
 		if (teams.size() != 2) {
 			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "team");
-		}
-
-		User user = userRepository.getReferenceById(userId);
-		List<TeamMember> creator = memberRepository.findByUserAndTeamIn(user, teams);
-		if (creator.size() == 0) {
-			throw new CustomException(ErrorCode.FORBIDDEN);
 		}
 
 		Collections.sort(teams);
@@ -46,6 +57,7 @@ public class MatchService {
 			.teamA(teams.get(0))
 			.teamB(teams.get(1))
 			.matchDateTime(request.getMatchDate())
+			.createBy(member)
 			.build();
 		return matchRepository.save(match);
 	}

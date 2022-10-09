@@ -33,13 +33,14 @@ class MatchServiceTest extends Specification {
         user.setId(1l)
         def request = getMatchRequest(teamA.getId(), teamB.getId())
 
-        1 * teamRepository.findAllByIdIn(_) >> Arrays.asList(teamA, teamB)
         1 * userRepository.getReferenceById(_) >> user
-        1 * memberRepository.findByUserAndTeamIn(user, _) >> ArrayList.of(getTeamMember(1l, user, teamA))
-        1 * matchRepository.save(_) >> new Match(1l, teamB, teamA, request.getMatchDate())
+        1 * teamRepository.getReferenceById(_) >> teamA
+        1 * memberRepository.findByTeamAndUser(_, _) >> Optional.of(getTeamMember(1l, user, teamA))
+        1 * teamRepository.findAllByIdIn(_) >> Arrays.asList(teamA, teamB)
+        1 * matchRepository.save(_) >> new Match(1l, teamB, teamA, request.getMatchDate(), getTeamMember(1l, user, teamA))
 
         when:
-        def result = service.createMatch(1l, request)
+        def result = service.createMatch(1l, teamA.getId(), request)
 
         then:
         noExceptionThrown()
@@ -51,15 +52,20 @@ class MatchServiceTest extends Specification {
 
     def "createMatch - 팀이 없음"() {
         given:
+        def user = new User()
+        user.setId(1l)
         def teamA = getTeam(2l, "teamA", null)
         def teamB = getTeam(1l, "teamA", null)
         def request = getMatchRequest(teamA.getId(), teamB.getId())
 
+        1 * userRepository.getReferenceById(_) >> user
+        1 * teamRepository.getReferenceById(_) >> teamA
+        1 * memberRepository.findByTeamAndUser(_, _) >> Optional.of(getTeamMember(1l, user, teamA))
         1 * teamRepository.findAllByIdIn(_) >> Arrays.asList(teamA)
         0 * matchRepository.save(_)
 
         when:
-        def result = service.createMatch(1l, request)
+        def result = service.createMatch(1l, teamA.getId(), request)
 
         then:
         def e = thrown(CustomException)
@@ -74,13 +80,16 @@ class MatchServiceTest extends Specification {
         user.setId(1l)
         def request = getMatchRequest(teamA.getId(), teamB.getId())
 
-        1 * teamRepository.findAllByIdIn(_) >> Arrays.asList(teamA, teamB)
         1 * userRepository.getReferenceById(_) >> user
-        1 * memberRepository.findByUserAndTeamIn(user, _) >> ArrayList.of()
+        1 * teamRepository.getReferenceById(_) >> teamA
+        1 * memberRepository.findByTeamAndUser(_, _) >> Optional.empty()
+        0 * teamRepository.findAllByIdIn(_)
+        0 * userRepository.getReferenceById(_)
+        0 * memberRepository.findByUserAndTeamIn(user, _)
         0 * matchRepository.save(_)
 
         when:
-        def result = service.createMatch(1l, request)
+        def result = service.createMatch(1l, 10l, request)
 
         then:
         def e = thrown(CustomException)
