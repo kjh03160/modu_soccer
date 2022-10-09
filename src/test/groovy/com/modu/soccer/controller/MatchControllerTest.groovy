@@ -8,6 +8,7 @@ import com.modu.soccer.domain.request.MatchRequest
 import com.modu.soccer.entity.Match
 import com.modu.soccer.entity.Team
 import com.modu.soccer.entity.User
+import com.modu.soccer.enums.MDCKey
 import com.modu.soccer.enums.TokenType
 import com.modu.soccer.exception.ErrorCode
 import com.modu.soccer.jwt.JwtProvider
@@ -44,6 +45,10 @@ class MatchControllerTest extends Specification {
     @Autowired
     private JwtProvider jwtProvider;
 
+    def setup() {
+        MDC.put(MDCKey.USER_ID.getKey(), "1")
+    }
+
     def cleanup() {
         MDC.clear()
     }
@@ -64,7 +69,7 @@ class MatchControllerTest extends Specification {
                 .matchDateTime(request.getMatchDate())
                 .build();
 
-        matchService.createMatch(_) >> match
+        matchService.createMatch(_, _) >> match
 
         when:
         def result = mvc.perform(MockMvcRequestBuilders.post(MATCH_BASE_URL)
