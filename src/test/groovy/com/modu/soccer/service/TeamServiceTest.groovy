@@ -65,7 +65,7 @@ class TeamServiceTest extends Specification {
 
 
         when:
-        def team = service.getTeam(teamId)
+        def team = service.getTeamWithOwner(teamId)
 
         then:
         noExceptionThrown()
@@ -79,7 +79,7 @@ class TeamServiceTest extends Specification {
 
 
         when:
-        def team = service.getTeam(teamId)
+        def team = service.getTeamWithOwner(teamId)
 
         then:
         def e = thrown(CustomException)

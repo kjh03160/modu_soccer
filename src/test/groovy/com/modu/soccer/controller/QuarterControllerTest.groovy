@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.modu.soccer.TestUtil
 import com.modu.soccer.domain.ApiResponse
-import com.modu.soccer.domain.QuarterDto
+import com.modu.soccer.domain.QuarterDetail
 import com.modu.soccer.entity.User
 import com.modu.soccer.enums.MDCKey
 import com.modu.soccer.enums.TokenType
@@ -72,7 +72,7 @@ class QuarterControllerTest extends Specification {
                 .andReturn()
                 .getResponse()
 
-        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<QuarterDto>>(){})
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<QuarterDetail>>(){})
 
         then:
         noExceptionThrown()
@@ -100,7 +100,7 @@ class QuarterControllerTest extends Specification {
                 .andReturn()
                 .getResponse()
 
-        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<QuarterDto>>(){})
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<QuarterDetail>>(){})
 
         then:
         noExceptionThrown()
