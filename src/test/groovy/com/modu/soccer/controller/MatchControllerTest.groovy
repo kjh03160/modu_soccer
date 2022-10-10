@@ -38,7 +38,7 @@ import java.time.LocalDateTime
         "jwt.expire_in.refresh_token=86400000"]
 )
 class MatchControllerTest extends Specification {
-    private final String MATCH_BASE_URL = "/api/v1/teams/%s/matches";
+    private final String MATCH_BASE_URL = "/api/v1/matches";
     @SpringBean
     private final MatchService matchService = Stub();
     @Autowired
@@ -71,7 +71,7 @@ class MatchControllerTest extends Specification {
                 .teamB(team2)
                 .matchDateTime(d)
                 .build();
-        def url = String.format(MATCH_BASE_URL, String.valueOf(team1.getId()))
+        def url = MATCH_BASE_URL + "?team_id=1"
 
         matchService.getMatches(_) >> Arrays.asList(match)
 
@@ -94,7 +94,7 @@ class MatchControllerTest extends Specification {
 
     def "getTeamMatches - team id 숫자 아님"() {
         given:
-        def url = String.format(MATCH_BASE_URL, String.valueOf("ads"))
+        def url = MATCH_BASE_URL + "?team_id=ads"
 
         when:
         def result = mvc.perform(MockMvcRequestBuilders.get(url)
@@ -120,9 +120,9 @@ class MatchControllerTest extends Specification {
                 .teamB(team2)
                 .matchDateTime(request.getMatchDate())
                 .build();
-        def url = String.format(MATCH_BASE_URL, String.valueOf(team1.getId()))
+        def url = MATCH_BASE_URL
 
-        matchService.createMatch(_, _, _) >> match
+        matchService.createMatch(_, _) >> match
 
         when:
         def result = mvc.perform(MockMvcRequestBuilders.post(url)
@@ -140,28 +140,6 @@ class MatchControllerTest extends Specification {
         response.getContents().getTeamA().getTeamId() == team1.getId()
         response.getContents().getTeamB().getTeamId() == team2.getId()
         response.getContents().getMatchDate() == request.getMatchDate()
-    }
-
-    def "createMatch - team id 숫자 아님"() {
-        given:
-        def team1 = getTeam(1l, "team1", null)
-        def team2 = getTeam(2l, "team2", null)
-        def request = getMatchRequest(team1.getId(), team2.getId())
-        def url = String.format(MATCH_BASE_URL, String.valueOf("asd"))
-
-        when:
-        def result = mvc.perform(MockMvcRequestBuilders.post(url)
-                .content(objectMapper.writeValueAsString(request))
-                .contentType(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
-                .andReturn()
-                .getResponse()
-        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<MatchDto>>(){})
-
-        then:
-        noExceptionThrown()
-        response.getCode() == ErrorCode.INVALID_PARAM.getCode()
     }
 
     def "createMatch - 시간 형식 맞지 않음"() {

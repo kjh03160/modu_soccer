@@ -36,13 +36,13 @@ class TestUtil {
                 .build()
     }
 
-    static def getMatch(id, teamA, teamB, member) {
+    static def getMatch(id, teamA, teamB, user) {
         return Match.builder()
                 .id(id)
                 .matchDateTime(LocalDateTime.now())
                 .teamA(teamA)
                 .teamB(teamB)
-                .createBy(member)
+                .createBy(user)
                 .build()
     }
 

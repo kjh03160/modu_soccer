@@ -50,9 +50,9 @@ class MatchRepositoryTest extends Specification {
         member = memberRepository.save(m)
         def m2 = createTeamMember(team2, user)
         member = memberRepository.save(m2)
-        def match = createMatch(team1, team2, member)
+        def match = createMatch(team1, team2, user)
         repository.saveAndFlush(match)
-        def match2 = createMatch(team2, team1, member)
+        def match2 = createMatch(team2, team1, user)
         repository.saveAndFlush(match2)
 
         def all = repository.findAll()
