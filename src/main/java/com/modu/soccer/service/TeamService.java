@@ -54,7 +54,7 @@ public class TeamService {
 		return team;
 	}
 
-	public Team getTeam(Long teamId) {
+	public Team getTeamWithOwner(Long teamId) {
 		return teamRepository.findByIdWithOwner(teamId).orElseThrow(() -> {
 			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "team");
 		});
