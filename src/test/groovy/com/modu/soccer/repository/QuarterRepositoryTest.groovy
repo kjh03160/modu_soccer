@@ -44,7 +44,7 @@ class QuarterRepositoryTest extends Specification {
         teamRepository.saveAll(List.of(team1, team2))
         teamRecordRepository.saveAll(List.of(team1Record, team2Record))
         memberRepository.save(team1Member)
-        def m = TestUtil.getMatch(null, team1, team2, team1Member)
+        def m = TestUtil.getMatch(null, team1, team2, user)
         this.match = matchRepository.save(m)
 
         def quarter = TestUtil.getQuarter(null, this.match, team1, team2, 1, 2, 1)

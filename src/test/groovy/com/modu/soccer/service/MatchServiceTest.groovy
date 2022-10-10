@@ -26,18 +26,17 @@ class MatchServiceTest extends Specification {
         given:
         def teamA = TestUtil.getTeam(2l, "teamA", null)
         def teamB = TestUtil.getTeam(1l, "teamA", null)
-        def user = new User()
-        user.setId(1l)
+        def user = TestUtil.getUser(1l, "email")
+        def m = TestUtil.getTeamMember(1l, user, teamA)
         def request = TestUtil.getMatchRequest(teamA.getId(), teamB.getId())
 
-        1 * userRepository.getReferenceById(_) >> user
-        1 * teamRepository.getReferenceById(_) >> teamA
-        1 * memberRepository.findByTeamAndUser(_, _) >> Optional.of(TestUtil.getTeamMember(1l, user, teamA))
         1 * teamRepository.findAllByIdIn(_) >> Arrays.asList(teamA, teamB)
-        1 * matchRepository.save(_) >> new Match(1l, teamB, teamA, request.getMatchDate(), TestUtil.getTeamMember(1l, user, teamA))
+        1 * userRepository.getReferenceById(_) >> user
+        1 * memberRepository.findByUserAndTeamIn(user, _) >> ArrayList.of(m)
+        1 * matchRepository.save(_) >> new Match(1l, teamB, teamA, request.getMatchDate(), user)
 
         when:
-        def result = service.createMatch(1l, teamA.getId(), request)
+        def result = service.createMatch(1l, request)
 
         then:
         noExceptionThrown()
@@ -55,14 +54,13 @@ class MatchServiceTest extends Specification {
         def teamB = TestUtil.getTeam(1l, "teamA", null)
         def request = TestUtil.getMatchRequest(teamA.getId(), teamB.getId())
 
-        1 * userRepository.getReferenceById(_) >> user
-        1 * teamRepository.getReferenceById(_) >> teamA
-        1 * memberRepository.findByTeamAndUser(_, _) >> Optional.of(TestUtil.getTeamMember(1l, user, teamA))
         1 * teamRepository.findAllByIdIn(_) >> Arrays.asList(teamA)
+        0 * userRepository.getReferenceById(_)
+        0 * memberRepository.findByUserAndTeamIn(_, _)
         0 * matchRepository.save(_)
 
         when:
-        def result = service.createMatch(1l, teamA.getId(), request)
+        def result = service.createMatch(1l, request)
 
         then:
         def e = thrown(CustomException)
@@ -77,16 +75,13 @@ class MatchServiceTest extends Specification {
         user.setId(1l)
         def request = TestUtil.getMatchRequest(teamA.getId(), teamB.getId())
 
+        1 * teamRepository.findAllByIdIn(_) >> Arrays.asList(teamA, teamB)
         1 * userRepository.getReferenceById(_) >> user
-        1 * teamRepository.getReferenceById(_) >> teamA
-        1 * memberRepository.findByTeamAndUser(_, _) >> Optional.empty()
-        0 * teamRepository.findAllByIdIn(_)
-        0 * userRepository.getReferenceById(_)
-        0 * memberRepository.findByUserAndTeamIn(user, _)
+        1 * memberRepository.findByUserAndTeamIn(user, _) >> ArrayList.of()
         0 * matchRepository.save(_)
 
         when:
-        def result = service.createMatch(1l, 10l, request)
+        def result = service.createMatch(1l, request)
 
         then:
         def e = thrown(CustomException)

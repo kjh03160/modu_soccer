@@ -46,19 +46,18 @@ public class MatchService {
 		});
 	}
 
-	public Match createMatch(Long userId, Long teamId, MatchRequest request) {
-		User user = userRepository.getReferenceById(userId);
-		Team userTeam = teamRepository.getReferenceById(teamId);
-		TeamMember member = memberRepository.findByTeamAndUser(userTeam, user)
-			.orElseThrow(() -> {
-				throw new CustomException(ErrorCode.FORBIDDEN);
-			});
-
+	public Match createMatch(Long userId, MatchRequest request) {
 		List<Long> teamIds = List.of(request.getTeamAId(), request.getTeamBId());
 		List<Team> teams = teamRepository.findAllByIdIn(teamIds);
 
 		if (teams.size() != 2) {
 			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "team");
+		}
+
+		User user = userRepository.getReferenceById(userId);
+		List<TeamMember> teamMembers = memberRepository.findByUserAndTeamIn(user, teams);
+		if (teamMembers.size() == 0) {
+			throw new CustomException(ErrorCode.FORBIDDEN);
 		}
 
 		Collections.sort(teams);
@@ -67,7 +66,7 @@ public class MatchService {
 			.teamA(teams.get(0))
 			.teamB(teams.get(1))
 			.matchDateTime(request.getMatchDate())
-			.createBy(member)
+			.createBy(user)
 			.build();
 		return matchRepository.save(match);
 	}
