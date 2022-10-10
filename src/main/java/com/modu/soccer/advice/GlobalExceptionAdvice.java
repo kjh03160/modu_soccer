@@ -10,6 +10,7 @@ import com.modu.soccer.exception.ErrorResponse;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.hibernate.PropertyValueException;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -24,16 +25,32 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 @RestControllerAdvice
 public class GlobalExceptionAdvice {
 
-	@ExceptionHandler(value = {ConstraintViolationException.class,
-		DataIntegrityViolationException.class})
-	protected ResponseEntity<ErrorResponse> handleDataException() {
+	@ExceptionHandler(value = {DataIntegrityViolationException.class})
+	protected ResponseEntity<ErrorResponse> handleDataException(DataIntegrityViolationException e) {
+		if (e.getCause().getClass() == ConstraintViolationException.class) {
+			return handleConstraintException((ConstraintViolationException) e.getCause());
+		} else if (e.getCause().getClass() == PropertyValueException.class) {
+			return handlePropertyValueException((PropertyValueException) e.getCause());
+		}
+		return handleUnKnownException(e);
+	}
+
+	@ExceptionHandler(value = {ConstraintViolationException.class})
+	protected ResponseEntity<ErrorResponse> handleConstraintException(ConstraintViolationException e) {
+		log.warn("ConstraintViolationException: {}", e.getMessage());
 		return ErrorResponse.toResponseEntity(DUPLICATE_RESOURCE);
+	}
+
+	@ExceptionHandler(value = {PropertyValueException.class})
+	protected ResponseEntity<ErrorResponse> handlePropertyValueException(PropertyValueException e) {
+		log.warn("PropertyValueException: {}", e.getMessage());
+		return ErrorResponse.toResponseEntity(INVALID_PARAM, "invalid param");
 	}
 
 	@ExceptionHandler(value = {IllegalArgumentException.class,
 		MethodArgumentTypeMismatchException.class})
 	protected ResponseEntity<ErrorResponse> handleIllegalArgumentException(
-		IllegalArgumentException e) {
+		Exception e) {
 		return ErrorResponse.toResponseEntity(INVALID_PARAM, e.getMessage());
 	}
 
