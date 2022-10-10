@@ -4,12 +4,14 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.modu.soccer.TestUtil
 import com.modu.soccer.domain.ApiResponse
-import com.modu.soccer.domain.QuarterDto
+import com.modu.soccer.domain.QuarterDetail
+import com.modu.soccer.domain.QuarterSummary
 import com.modu.soccer.entity.User
 import com.modu.soccer.enums.MDCKey
 import com.modu.soccer.enums.TokenType
 import com.modu.soccer.exception.ErrorCode
 import com.modu.soccer.jwt.JwtProvider
+import com.modu.soccer.service.MatchService
 import com.modu.soccer.service.QuarterService
 import org.slf4j.MDC
 import org.spockframework.spring.SpringBean
@@ -38,7 +40,9 @@ class QuarterControllerTest extends Specification {
     @Autowired
     protected MockMvc mvc
     @SpringBean
-    private final QuarterService quarterService = Stub();
+    private final QuarterService quarterService = Stub()
+    @SpringBean
+    private final MatchService matchService = Stub()
     @Autowired
     private JwtProvider jwtProvider;
     private User user
@@ -61,7 +65,9 @@ class QuarterControllerTest extends Specification {
         def teamB = TestUtil.getTeam(2l, "teamB", null)
         def match = TestUtil.getMatch(1l, teamA, teamB, null)
         def url = String.format(QUARTER_API, String.valueOf(match.getId()))
-        quarterService.createQuarter(match.getId(), _) >> TestUtil.getQuarter(1l, match, match.getTeamA(), match.getTeamB(), request.getQuarter(), request.getTeamAScore(), request.getTeamBScore())
+
+        matchService.getMatchById(match.getId()) >> match
+        quarterService.createQuarterOfMatch(match, _) >> TestUtil.getQuarter(1l, match, match.getTeamA(), match.getTeamB(), request.getQuarter(), request.getTeamAScore(), request.getTeamBScore())
 
         when:
         def result = mvc.perform(MockMvcRequestBuilders.post(url)
@@ -72,16 +78,16 @@ class QuarterControllerTest extends Specification {
                 .andReturn()
                 .getResponse()
 
-        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<QuarterDto>>(){})
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<QuarterDetail>>(){})
 
         then:
         noExceptionThrown()
         response.getCode() == 0
         response.getContents() != null
-        response.getContents().getMatchId() == match.getId()
-        response.getContents().getQuarter() == request.getQuarter()
-        response.getContents().getTeamAScore() == request.getTeamAScore()
-        response.getContents().getTeamBScore() == request.getTeamBScore()
+        response.getContents().getSummary().getMatchId() == match.getId()
+        response.getContents().getSummary().getQuarter() == request.getQuarter()
+        response.getContents().getSummary().getTeamA().getTeamScore() == request.getTeamAScore()
+        response.getContents().getSummary().getTeamB().getTeamScore() == request.getTeamBScore()
         response.getContents().getFormation().getTeamA().getTeamId() == match.getTeamA().getId()
         response.getContents().getFormation().getTeamB().getTeamId() == match.getTeamB().getId()
     }
@@ -100,7 +106,56 @@ class QuarterControllerTest extends Specification {
                 .andReturn()
                 .getResponse()
 
-        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<QuarterDto>>(){})
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<QuarterDetail>>(){})
+
+        then:
+        noExceptionThrown()
+        response.getCode() == ErrorCode.INVALID_PARAM.getCode()
+    }
+
+    def "getQuarters"() {
+        given:
+        def teamA = TestUtil.getTeam(1l, "teamA", null)
+        def teamB = TestUtil.getTeam(2l, "teamB", null)
+        def match = TestUtil.getMatch(1l, teamA, teamB, null)
+        def url = String.format(QUARTER_API, String.valueOf(match.getId()))
+
+        matchService.getMatchById(match.getId()) >> match
+        quarterService.getQuartersOfMatch(match) >> List.of(TestUtil.getQuarter(1l, match, match.getTeamA(), match.getTeamB(), 1, 2, 3))
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.get(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn()
+                .getResponse()
+
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<List<QuarterSummary>>>(){})
+
+        then:
+        noExceptionThrown()
+        response.getCode() == 0
+        response.getContents() != null
+        response.getContents().get(0).getMatchId() == match.getId()
+        response.getContents().get(0).getQuarter() == 1
+        response.getContents().get(0).getTeamA().getTeamScore() == 2
+        response.getContents().get(0).getTeamB().getTeamScore() == 3
+    }
+
+    def "getQuarters - match id 숫자 아님"() {
+        given:
+        def url = String.format(QUARTER_API, String.valueOf("sad"))
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.get(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andReturn()
+                .getResponse()
+
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<QuarterDetail>>(){})
 
         then:
         noExceptionThrown()

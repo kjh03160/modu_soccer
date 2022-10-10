@@ -17,16 +17,19 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class MatchService {
+
 	private final MatchRepository matchRepository;
 	private final TeamRepository teamRepository;
 	private final TeamMemberRepository memberRepository;
 	private final UserRepository userRepository;
 
+	@Transactional(readOnly = true)
 	public List<Match> getMatches(Long teamId) {
 		Team team = teamRepository.findById(teamId).orElseThrow(() -> {
 			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "team");
@@ -34,6 +37,13 @@ public class MatchService {
 		List<Match> matches1 = matchRepository.findAllByTeamA(team);
 		List<Match> matches2 = matchRepository.findAllByTeamB(team);
 		return Stream.concat(matches1.stream(), matches2.stream()).sorted().toList();
+	}
+
+	@Transactional(readOnly = true)
+	public Match getMatchById(Long matchId) {
+		return matchRepository.findMatchById(matchId).orElseThrow(() -> {
+			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND);
+		});
 	}
 
 	public Match createMatch(Long userId, Long teamId, MatchRequest request) {

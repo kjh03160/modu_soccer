@@ -30,7 +30,7 @@ public class TeamController {
 		if (!StringUtils.isNumeric(id)) {
 			throw new IllegalArgumentException(String.format("%s is not number", id));
 		}
-		Team team = teamService.getTeam(Long.valueOf(id));
+		Team team = teamService.getTeamWithOwner(Long.valueOf(id));
 		return ApiResponse.withBody(TeamDto.fromEntity(team));
 	}
 

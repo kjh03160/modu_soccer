@@ -59,7 +59,7 @@ class TeamControllerTest extends Specification{
                 .owner(user)
                 .record(new TeamRecord())
                 .build();
-        teamService.getTeam(_) >> team
+        teamService.getTeamWithOwner(_) >> team
 
         when:
         def result = mvc.perform(MockMvcRequestBuilders.get(TEAM_CREATE + "/1")
@@ -85,7 +85,7 @@ class TeamControllerTest extends Specification{
 
         given:
         def token = jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)
-        teamService.getTeam(_) >> {throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND)}
+        teamService.getTeamWithOwner(_) >> {throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND)}
 
         when:
         def result = mvc.perform(MockMvcRequestBuilders.get(TEAM_CREATE + "/1")
