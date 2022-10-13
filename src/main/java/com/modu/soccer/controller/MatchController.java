@@ -25,9 +25,9 @@ public class MatchController {
 
 	@GetMapping
 	public ApiResponse<?> getTeamMatches(
-		@RequestParam(value = "team_id", required = false) String teamId
+		@RequestParam(value = "team_id", required = false) long teamId
 	) {
-		List<MatchDto> matchDtos = matchService.getMatches(Long.valueOf(teamId)).stream()
+		List<MatchDto> matchDtos = matchService.getMatches(teamId).stream()
 			.map(MatchDto::fromEntity).toList();
 		return ApiResponse.withBody(matchDtos);
 	}

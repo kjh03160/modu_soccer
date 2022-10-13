@@ -8,7 +8,6 @@ import com.modu.soccer.service.TeamService;
 import com.modu.soccer.utils.MDCUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,11 +25,8 @@ public class TeamController {
 	private final TeamService teamService;
 
 	@GetMapping("/{id}")
-	public ApiResponse<?> getTeam(@PathVariable String id) {
-		if (!StringUtils.isNumeric(id)) {
-			throw new IllegalArgumentException(String.format("%s is not number", id));
-		}
-		Team team = teamService.getTeamWithOwner(Long.valueOf(id));
+	public ApiResponse<?> getTeam(@PathVariable long id) {
+		Team team = teamService.getTeamWithOwner(id);
 		return ApiResponse.withBody(TeamDto.fromEntity(team));
 	}
 

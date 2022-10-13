@@ -11,7 +11,6 @@ import com.modu.soccer.service.QuarterService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,23 +32,17 @@ public class QuarterController {
 	@PostMapping()
 	@ResponseStatus(HttpStatus.CREATED)
 	public ApiResponse<?> createQuarter(
-		@PathVariable("match_id") String matchId,
+		@PathVariable("match_id") long matchId,
 		@RequestBody QuarterRequest request
 	) {
-		if (!StringUtils.isNumeric(matchId)) {
-			throw new IllegalArgumentException("match id is not a number");
-		}
-		Match match = matchService.getMatchById(Long.valueOf(matchId));
+		Match match = matchService.getMatchById(matchId);
 		Quarter quarter = quarterService.createQuarterOfMatch(match, request);
 		return ApiResponse.withBody(QuarterDetail.fromMatchAndQuarter(match, quarter));
 	}
 
 	@GetMapping()
-	public ApiResponse<?> getQuarters(@PathVariable("match_id") String matchId) {
-		if (!StringUtils.isNumeric(matchId)) {
-			throw new IllegalArgumentException("match id is not a number");
-		}
-		Match match = matchService.getMatchById(Long.valueOf(matchId));
+	public ApiResponse<?> getQuarters(@PathVariable("match_id") long matchId) {
+		Match match = matchService.getMatchById(matchId);
 		List<QuarterSummary> quarters = quarterService.getQuartersOfMatch(match).stream()
 			.map((quarter -> QuarterSummary.fromMatchAndQuarter(match, quarter))
 			).toList();
@@ -58,11 +51,11 @@ public class QuarterController {
 
 	@GetMapping("/{quarter_id}")
 	public ApiResponse<?> getQuarterInfo(
-		@PathVariable("match_id") int matchId,
-		@PathVariable("quarter_id") int quarterId
+		@PathVariable("match_id") long matchId,
+		@PathVariable("quarter_id") long quarterId
 	) {
-		Match match = matchService.getMatchById((long) matchId);
-		Quarter quarter = quarterService.getQuarterInfoOfMatch(match, (long) quarterId);
+		Match match = matchService.getMatchById(matchId);
+		Quarter quarter = quarterService.getQuarterInfoOfMatch(match, quarterId);
 		return ApiResponse.withBody(QuarterDetail.fromMatchAndQuarter(match, quarter));
 	}
 }
