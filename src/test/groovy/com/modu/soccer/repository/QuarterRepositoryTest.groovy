@@ -47,7 +47,7 @@ class QuarterRepositoryTest extends Specification {
         def m = TestUtil.getMatch(null, team1, team2, user)
         this.match = matchRepository.save(m)
 
-        def quarter = TestUtil.getQuarter(null, this.match, team1, team2, 1, 2, 1)
+        quarter = TestUtil.getQuarter(null, this.match, team1, team2, 1, 2, 1)
         repository.save(quarter)
         def quarter2 = TestUtil.getQuarter(null, this.match, team1, team2, 2, 2, 3)
         repository.save(quarter2)
@@ -89,5 +89,31 @@ class QuarterRepositoryTest extends Specification {
         then:
         noExceptionThrown()
         quarters.size() == 0
+    }
+
+    def "findByIdAndMatch"() {
+        given:
+        def m = matchRepository.getReferenceById(this.match.getId())
+
+        when:
+        def result = repository.findByIdAndMatch(quarter.getId(), m)
+
+        then:
+        noExceptionThrown()
+        result.isPresent()
+        result.get().getId() == quarter.getId()
+        result.get().getMatch().getId() == match.getId()
+    }
+
+    def "findByIdAndMatch - 없는 쿼터 id"() {
+        given:
+        def m = matchRepository.getReferenceById(this.match.getId())
+
+        when:
+        def result = repository.findByIdAndMatch(100l, m)
+
+        then:
+        noExceptionThrown()
+        result.isEmpty()
     }
 }

@@ -11,7 +11,6 @@ import com.modu.soccer.utils.MDCUtil;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,25 +32,19 @@ public class TeamMemberController {
 
 	@GetMapping()
 	public ApiResponse<?> getTeamMembers(
-		@PathVariable("team_id") String teamId,
+		@PathVariable("team_id") long teamId,
 		@RequestParam(name = "accept-status", defaultValue = "ACCEPTED") AcceptStatus status
 	) {
-		if (!StringUtils.isNumeric(teamId)) {
-			throw new IllegalArgumentException(String.format("%s is not number", teamId));
-		}
-		List<TeamMemberInfo> teamMembers = memberService.getTeamMembers(Long.valueOf(teamId),
-			status).stream().map(TeamMemberInfo::fromEntity).toList();
+		List<TeamMemberInfo> teamMembers = memberService.getTeamMembers(teamId,status)
+			.stream().map(TeamMemberInfo::fromEntity).toList();
 
 		return ApiResponse.withBody(teamMembers);
 	}
 
 	@PostMapping()
 	@ResponseStatus(HttpStatus.CREATED)
-	public ApiResponse<?> joinTeam(@PathVariable("team_id") String team_id,
+	public ApiResponse<?> joinTeam(@PathVariable("team_id") long team_id,
 		@RequestBody TeamJoinRequest teamJoinRequest) {
-		if (!StringUtils.isNumeric(team_id)) {
-			throw new IllegalArgumentException(String.format("%s is not number", team_id));
-		}
 		Long userId = MDCUtil.getUserIdFromMDC();
 		TeamMember member = memberService.createMember(userId, teamJoinRequest);
 		return ApiResponse.withBody(TeamMemberInfo.fromEntity(member));
@@ -59,37 +52,23 @@ public class TeamMemberController {
 
 	@GetMapping("/{member_id}")
 	public ApiResponse<?> getTeamMember(
-		@PathVariable("team_id") String teamId,
-		@PathVariable("member_id") String memberId
+		@PathVariable("team_id") long teamId,
+		@PathVariable("member_id") long memberId
 	) {
-		if (!StringUtils.isNumeric(teamId)) {
-			throw new IllegalArgumentException(String.format("%s is not number", teamId));
-		}
-		if (!StringUtils.isNumeric(memberId)) {
-			throw new IllegalArgumentException(String.format("%s is not number", memberId));
-		}
-
 		TeamMember teamMember = memberService
-			.getTeamMemberInfo(Long.valueOf(teamId), Long.valueOf(memberId));
+			.getTeamMemberInfo(teamId, memberId);
 
 		return ApiResponse.withBody(TeamMemberInfo.fromEntity(teamMember));
 	}
 
 	@PutMapping("/{member_id}/accept-status")
 	public ApiResponse<?> acceptOrDenyJoin(
-		@PathVariable("team_id") String teamId,
-		@PathVariable("member_id") String memberId,
+		@PathVariable("team_id") long teamId,
+		@PathVariable("member_id") long memberId,
 		@RequestBody TeamJoinApproveRequest request
 	) {
-		if (!StringUtils.isNumeric(teamId)) {
-			throw new IllegalArgumentException(String.format("%s is not number", teamId));
-		}
-		if (!StringUtils.isNumeric(memberId)) {
-			throw new IllegalArgumentException(String.format("%s is not number", memberId));
-		}
 		Long userId = MDCUtil.getUserIdFromMDC();
-		memberService.approveTeamJoin(userId, Long.valueOf(teamId), Long.valueOf(memberId),
-			request);
+		memberService.approveTeamJoin(userId, teamId, memberId,	request);
 		return ApiResponse.ok();
 	}
 }

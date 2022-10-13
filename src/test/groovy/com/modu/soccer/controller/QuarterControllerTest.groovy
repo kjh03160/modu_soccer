@@ -25,6 +25,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import spock.lang.Specification
+import spock.lang.Unroll
 
 @WebMvcTest(controllers = [QuarterController, JwtProvider])
 @AutoConfigureMockMvc
@@ -160,5 +161,65 @@ class QuarterControllerTest extends Specification {
         then:
         noExceptionThrown()
         response.getCode() == ErrorCode.INVALID_PARAM.getCode()
+    }
+
+    def "getQuarterInfo"() {
+        given:
+        def teamA = TestUtil.getTeam(1l, "teamA", null)
+        def teamB = TestUtil.getTeam(2l, "teamB", null)
+        def match = TestUtil.getMatch(1l, teamA, teamB, null)
+        def quarter = TestUtil.getQuarter(1l, match, teamA, teamB, 1, 2, 3)
+        def url = String.format(QUARTER_API + "/%s", String.valueOf(match.getId()), String.valueOf(quarter.getId()))
+
+        matchService.getMatchById(match.getId()) >> match
+        quarterService.getQuarterInfoOfMatch(match, quarter.getId()) >> quarter
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.get(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn()
+                .getResponse()
+
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<QuarterDetail>>(){})
+
+        then:
+        noExceptionThrown()
+        response.getCode() == 0
+        response.getContents() != null
+        response.getContents().getSummary().getMatchId() == match.getId()
+        response.getContents().getSummary().getId() == quarter.getId()
+        response.getContents().getSummary().getQuarter() == quarter.getQuarter()
+        response.getContents().getSummary().getTeamA().getTeamScore() == quarter.getTeamAScore()
+        response.getContents().getSummary().getTeamB().getTeamScore() == quarter.getTeamBScore()
+        response.getContents().getFormation().getTeamA().getTeamId() == teamA.getId()
+        response.getContents().getFormation().getTeamB().getTeamId() == teamB.getId()
+    }
+
+    @Unroll
+    def "getQuarterInfo - path match_id #match_id / quarter_id #quarter_id 숫자 아님"() {
+        given:
+        def url = String.format(QUARTER_API + "/%s", String.valueOf(match_id), String.valueOf(quarter_id))
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.get(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andReturn()
+                .getResponse()
+
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<QuarterDetail>>(){})
+
+        then:
+        noExceptionThrown()
+        response.getCode() == ErrorCode.INVALID_PARAM.getCode()
+
+        where:
+        match_id | quarter_id
+        1 | "asd"
+        "asd" | 2
+        "ads" | "ads"
     }
 }

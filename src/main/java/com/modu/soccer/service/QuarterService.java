@@ -4,6 +4,8 @@ import com.modu.soccer.domain.request.QuarterRequest;
 import com.modu.soccer.entity.Formation;
 import com.modu.soccer.entity.Match;
 import com.modu.soccer.entity.Quarter;
+import com.modu.soccer.exception.CustomException;
+import com.modu.soccer.exception.ErrorCode;
 import com.modu.soccer.repository.QuarterRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class QuarterService {
+
 	private final QuarterRepository quarterRepository;
 	private final TeamRecordService recordService;
 
@@ -30,12 +33,19 @@ public class QuarterService {
 			.build();
 
 		Integer scoreDiff = request.getTeamAScore() - request.getTeamBScore();
-		recordService.updateTeamRecord(match.getTeamA().getId(), match.getTeamB().getId(), scoreDiff);
+		recordService.updateTeamRecord(match.getTeamA().getId(), match.getTeamB().getId(),
+			scoreDiff);
 		return quarterRepository.save(quarter);
 	}
 
 	@Transactional(readOnly = true)
 	public List<Quarter> getQuartersOfMatch(Match match) {
 		return quarterRepository.findByMatch(match);
+	}
+
+	public Quarter getQuarterInfoOfMatch(Match match, Long quarterId) {
+		return quarterRepository.findByIdAndMatch(quarterId, match).orElseThrow(() -> {
+			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "quarter");
+		});
 	}
 }
