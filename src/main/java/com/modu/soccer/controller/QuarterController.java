@@ -55,4 +55,14 @@ public class QuarterController {
 			).toList();
 		return ApiResponse.withBody(quarters);
 	}
+
+	@GetMapping("/{quarter_id}")
+	public ApiResponse<?> getQuarterInfo(
+		@PathVariable("match_id") int matchId,
+		@PathVariable("quarter_id") int quarterId
+	) {
+		Match match = matchService.getMatchById((long) matchId);
+		Quarter quarter = quarterService.getQuarterInfoOfMatch(match, (long) quarterId);
+		return ApiResponse.withBody(QuarterDetail.fromMatchAndQuarter(match, quarter));
+	}
 }
