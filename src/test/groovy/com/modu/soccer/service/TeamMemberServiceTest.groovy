@@ -3,10 +3,7 @@ package com.modu.soccer.service
 import com.modu.soccer.TestUtil
 import com.modu.soccer.domain.request.TeamJoinApproveRequest
 import com.modu.soccer.domain.request.TeamJoinRequest
-import com.modu.soccer.enums.AcceptStatus
-import com.modu.soccer.enums.MDCKey
-import com.modu.soccer.enums.Permission
-import com.modu.soccer.enums.Role
+import com.modu.soccer.enums.*
 import com.modu.soccer.exception.CustomException
 import com.modu.soccer.exception.ErrorCode
 import com.modu.soccer.repository.TeamMemberRepository
@@ -252,6 +249,87 @@ class TeamMemberServiceTest extends Specification {
 
         when:
         def result = service.getTeamMemberInfo(team.getId(), 2l)
+
+        then:
+        def e = thrown(CustomException)
+        e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
+    }
+
+    @Unroll
+    def "changeMemberPosition - #permission"() {
+        given:
+        def team = TestUtil.getTeam(1l, "team1", null)
+        def manager = TestUtil.getTeamMember(1l, null, team)
+        manager.setPermission(permission)
+        def member = TestUtil.getTeamMember(2l, null, team)
+        def request = TestUtil.getTeamMemberPutRequest(Position.CM, Role.NONE, 1, Permission.MANAGER)
+
+        1 * userRepository.getReferenceById(_) >> TestUtil.getUser(1l, "")
+        1 * memberRepository.findByTeamAndUser(team, _) >> Optional.of(manager)
+        1 * memberRepository.findById(member.getId()) >> Optional.of(member)
+
+        when:
+        def result = service.changeMemberPosition(1l, team, member.getId(), request)
+
+        then:
+        noExceptionThrown()
+
+        where:
+        permission << [Permission.ADMIN, Permission.MANAGER]
+    }
+
+    def "changeMemberPosition - #permission"() {
+        given:
+        def team = TestUtil.getTeam(1l, "team1", null)
+        def m1 = TestUtil.getTeamMember(1l, null, team)
+        m1.setPermission(permission)
+        def member = TestUtil.getTeamMember(2l, null, team)
+        def request = TestUtil.getTeamMemberPutRequest(Position.CM, Role.NONE, 1, Permission.MANAGER)
+
+        1 * userRepository.getReferenceById(_) >> TestUtil.getUser(1l, "")
+        1 * memberRepository.findByTeamAndUser(team, _) >> Optional.of(m1)
+        0 * memberRepository.findById(member.getId())
+
+        when:
+        def result = service.changeMemberPosition(1l, team, member.getId(), request)
+
+        then:
+        def e = thrown(CustomException)
+        e.getErrorCode() == ErrorCode.NO_PERMISSION_ON_TEAM
+
+        where:
+        permission << [Permission.MEMBER]
+    }
+
+    def "changeMemberPosition - requester member not found"() {
+        given:
+        def team = TestUtil.getTeam(1l, "team1", null)
+        def request = TestUtil.getTeamMemberPutRequest(Position.CM, Role.NONE, 1, Permission.MANAGER)
+
+        1 * userRepository.getReferenceById(_) >> TestUtil.getUser(1l, "")
+        1 * memberRepository.findByTeamAndUser(team, _) >> Optional.empty()
+        0 * memberRepository.findById(_)
+        when:
+        def result = service.changeMemberPosition(1l, team, 1l, request)
+
+        then:
+        def e = thrown(CustomException)
+        e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
+    }
+
+    def "changeMemberPosition - member not found"() {
+        given:
+        def team = TestUtil.getTeam(1l, "team1", null)
+        def manager = TestUtil.getTeamMember(1l, null, team)
+        manager.setPermission(Permission.ADMIN)
+        def request = TestUtil.getTeamMemberPutRequest(Position.CM, Role.NONE, 1, Permission.MANAGER)
+
+        1 * userRepository.getReferenceById(_) >> TestUtil.getUser(1l, "")
+        1 * memberRepository.findByTeamAndUser(team, _) >> Optional.of(manager)
+        1 * memberRepository.findById(_) >> Optional.empty()
+
+        when:
+        def result = service.changeMemberPosition(1l, team, 1l, request)
 
         then:
         def e = thrown(CustomException)

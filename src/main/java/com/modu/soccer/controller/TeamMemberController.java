@@ -4,9 +4,12 @@ import com.modu.soccer.domain.ApiResponse;
 import com.modu.soccer.domain.TeamMemberInfo;
 import com.modu.soccer.domain.request.TeamJoinApproveRequest;
 import com.modu.soccer.domain.request.TeamJoinRequest;
+import com.modu.soccer.domain.request.TeamMemberPutRequest;
+import com.modu.soccer.entity.Team;
 import com.modu.soccer.entity.TeamMember;
 import com.modu.soccer.enums.AcceptStatus;
 import com.modu.soccer.service.TeamMemberService;
+import com.modu.soccer.service.TeamService;
 import com.modu.soccer.utils.MDCUtil;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/teams/{team_id}/members")
 public class TeamMemberController {
-
+	private final TeamService teamService;
 	private final TeamMemberService memberService;
 
 	@GetMapping()
@@ -59,6 +62,18 @@ public class TeamMemberController {
 			.getTeamMemberInfo(teamId, memberId);
 
 		return ApiResponse.withBody(TeamMemberInfo.fromEntity(teamMember));
+	}
+
+	@PutMapping("/{member_id}")
+	public ApiResponse<?> putTeamMember(
+		@PathVariable("team_id") long teamId,
+		@PathVariable("member_id") long memberId,
+		@RequestBody TeamMemberPutRequest request
+	) {
+		Team team = teamService.getTeamById(teamId);
+		Long requestUserId = MDCUtil.getUserIdFromMDC();
+		memberService.changeMemberPosition(requestUserId, team, memberId, request);
+		return ApiResponse.ok();
 	}
 
 	@PutMapping("/{member_id}/accept-status")

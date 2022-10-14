@@ -3,6 +3,7 @@ package com.modu.soccer
 
 import com.modu.soccer.domain.request.MatchRequest
 import com.modu.soccer.domain.request.QuarterRequest
+import com.modu.soccer.domain.request.TeamMemberPutRequest
 import com.modu.soccer.entity.*
 import com.modu.soccer.utils.LocalDateTimeUtil
 
@@ -70,6 +71,15 @@ class TestUtil {
         request.setQuarter(quarter)
         request.setTeamAScore(teamAScore)
         request.setTeamBScore(teamBScore)
+        return request
+    }
+
+    static def getTeamMemberPutRequest(position, role, backNumber, permission) {
+        def request = new TeamMemberPutRequest()
+        request.setPermission(permission)
+        request.setBackNumber(backNumber)
+        request.setPosition(position)
+        request.setRole(role)
         return request
     }
 }

@@ -58,7 +58,7 @@ class TeamServiceTest extends Specification {
         e.getErrorCode() == ErrorCode.USER_NOT_REGISTERED
     }
 
-    def "getTeam"() {
+    def "getTeamWithOwner"() {
         given:
         def teamId = 1l
         1 * teamRepository.findByIdWithOwner(1l) >> Optional.of(new Team())
@@ -72,7 +72,7 @@ class TeamServiceTest extends Specification {
         team != null
     }
 
-    def "getTeam - not found"() {
+    def "getTeamWithOwner - not found"() {
         given:
         def teamId = 1l
         1 * teamRepository.findByIdWithOwner(1l) >> Optional.empty()
@@ -80,6 +80,32 @@ class TeamServiceTest extends Specification {
 
         when:
         def team = service.getTeamWithOwner(teamId)
+
+        then:
+        def e = thrown(CustomException)
+        e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
+    }
+
+    def "getTeamById"() {
+        given:
+        def teamId = 1l
+        1 * teamRepository.findById(1l) >> Optional.of(new Team())
+
+        when:
+        def team = service.getTeamById(teamId)
+
+        then:
+        noExceptionThrown()
+        team != null
+    }
+
+    def "getTeamById - not found"() {
+        given:
+        def teamId = 1l
+        1 * teamRepository.findById(1l) >> Optional.empty()
+
+        when:
+        def team = service.getTeamById(teamId)
 
         then:
         def e = thrown(CustomException)
