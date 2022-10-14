@@ -59,4 +59,10 @@ public class TeamService {
 			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "team");
 		});
 	}
+
+	public Team getTeamById(Long teamId) {
+		return teamRepository.findById(teamId).orElseThrow(() -> {
+			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "team");
+		});
+	}
 }

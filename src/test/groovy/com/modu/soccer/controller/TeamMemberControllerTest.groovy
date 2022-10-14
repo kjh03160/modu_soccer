@@ -2,6 +2,7 @@ package com.modu.soccer.controller
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.modu.soccer.TestUtil
 import com.modu.soccer.domain.ApiResponse
 import com.modu.soccer.domain.TeamMemberInfo
 import com.modu.soccer.domain.request.TeamJoinApproveRequest
@@ -10,11 +11,14 @@ import com.modu.soccer.entity.Team
 import com.modu.soccer.entity.TeamMember
 import com.modu.soccer.entity.User
 import com.modu.soccer.enums.MDCKey
+import com.modu.soccer.enums.Permission
+import com.modu.soccer.enums.Position
 import com.modu.soccer.enums.Role
 import com.modu.soccer.enums.TokenType
 import com.modu.soccer.exception.ErrorCode
 import com.modu.soccer.jwt.JwtProvider
 import com.modu.soccer.service.TeamMemberService
+import com.modu.soccer.service.TeamService
 import org.slf4j.MDC
 import org.spockframework.spring.SpringBean
 import org.springframework.beans.factory.annotation.Autowired
@@ -42,7 +46,9 @@ class TeamMemberControllerTest extends Specification {
     @Autowired
     protected MockMvc mvc
     @SpringBean
-    private final TeamMemberService service = Stub();
+    private final TeamMemberService service = Stub()
+    @SpringBean
+    private final TeamService teamService = Stub()
     @Autowired
     private JwtProvider jwtProvider;
     private String token;
@@ -201,7 +207,6 @@ class TeamMemberControllerTest extends Specification {
         response.getContents().getTeamId() == team.getId()
         response.getContents().getUserId() == user.getId()
         response.getContents().getMemberId() == member.getId()
-
     }
 
     def "getTeamMember - invalid path teamId: #teamId memberId: #memberId"() {
@@ -225,6 +230,31 @@ class TeamMemberControllerTest extends Specification {
         teamId | memberId
         1l | "asd"
         "asd" | 1l
+    }
+
+    def "putTeamMember"() {
+        given:
+        def team = TestUtil.getTeam(1l, "name", null)
+        def member = TestUtil.getTeamMember(1l, null, team)
+        def request = TestUtil.getTeamMemberPutRequest(Position.CM, Role.NONE, 1, Permission.ADMIN)
+        def url = String.format(TEAM_MEMBER_URL + "/%s", String.valueOf(team.getId()), String.valueOf(member.getId()))
+
+        teamService.getTeamById(team.getId()) >> team
+        service.changeMemberPosition(user.getId(), team, member.getId(), request) >> null
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.put(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn()
+                .getResponse()
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<?>>(){})
+
+        then:
+        noExceptionThrown()
+        response.getCode() == 0
     }
 
     def "acceptOrDenyJoin - accept #accept"() {

@@ -2,6 +2,7 @@ package com.modu.soccer.service;
 
 import com.modu.soccer.domain.request.TeamJoinApproveRequest;
 import com.modu.soccer.domain.request.TeamJoinRequest;
+import com.modu.soccer.domain.request.TeamMemberPutRequest;
 import com.modu.soccer.entity.Team;
 import com.modu.soccer.entity.TeamMember;
 import com.modu.soccer.entity.User;
@@ -72,6 +73,27 @@ public class TeamMemberService {
 			.build();
 
 		return memberRepository.save(member);
+	}
+
+	@Transactional
+	public void changeMemberPosition(Long requestUserId, Team team, Long memberId, TeamMemberPutRequest request) {
+		TeamMember requester = memberRepository
+			.findByTeamAndUser(team, userRepository.getReferenceById(requestUserId))
+			.orElseThrow(() -> {
+				throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "member");
+			});
+		if (!requester.hasManagePermission()) {
+			throw new CustomException(ErrorCode.NO_PERMISSION_ON_TEAM);
+		}
+
+		TeamMember member = memberRepository.findById(memberId).orElseThrow(() -> {
+			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "member");
+		});
+
+		member.setPosition(request.getPosition());
+		member.setRole(request.getRole());
+		member.setBackNumber(request.getBackNumber());
+		member.setPermission(request.getPermission());
 	}
 
 	@Transactional
