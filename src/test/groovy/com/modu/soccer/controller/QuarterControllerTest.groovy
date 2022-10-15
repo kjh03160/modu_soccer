@@ -7,6 +7,7 @@ import com.modu.soccer.domain.ApiResponse
 import com.modu.soccer.domain.QuarterDetail
 import com.modu.soccer.domain.QuarterSummary
 import com.modu.soccer.entity.User
+import com.modu.soccer.enums.FormationName
 import com.modu.soccer.enums.MDCKey
 import com.modu.soccer.enums.TokenType
 import com.modu.soccer.exception.ErrorCode
@@ -211,6 +212,65 @@ class QuarterControllerTest extends Specification {
                 .getResponse()
 
         def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<QuarterDetail>>(){})
+
+        then:
+        noExceptionThrown()
+        response.getCode() == ErrorCode.INVALID_PARAM.getCode()
+
+        where:
+        match_id | quarter_id
+        1 | "asd"
+        "asd" | 2
+        "ads" | "ads"
+    }
+
+    def "editQuarterFormation"() {
+        given:
+        def teamA = TestUtil.getTeam(1l, "teamA", null)
+        def teamB = TestUtil.getTeam(2l, "teamB", null)
+        def match = TestUtil.getMatch(1l, teamA, teamB, null)
+        def quarter = TestUtil.getQuarter(1l, match, teamA, teamB, 1, 2, 3)
+        def url = String.format(QUARTER_API + "/%s/formation", String.valueOf(match.getId()), String.valueOf(quarter.getId()))
+        def formation = TestUtil.getTeamFormation(3l, FormationName.FORMATION_1)
+        def request = TestUtil.getQuarterFormationRequest(formation)
+
+        matchService.getMatchById(match.getId()) >> match
+        quarterService.updateQuarterFormation(match, quarter.getId(), user.getId(), request)
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.put(url)
+                .content(objectMapper.writeValueAsString(request))
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn()
+                .getResponse()
+
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<?>>(){})
+
+
+        then:
+        noExceptionThrown()
+        response.getCode() == 0
+    }
+
+    @Unroll
+    def "editQuarterFormation - path match_id #match_id / quarter_id #quarter_id 숫자 아님"() {
+        given:
+        def url = String.format(QUARTER_API + "/%s/formation", String.valueOf(match_id), String.valueOf(quarter_id))
+        def formation = TestUtil.getTeamFormation(3l, FormationName.FORMATION_1)
+        def request = TestUtil.getQuarterFormationRequest(formation)
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.put(url)
+                .content(objectMapper.writeValueAsString(request))
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andReturn()
+                .getResponse()
+
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<?>>(){})
 
         then:
         noExceptionThrown()

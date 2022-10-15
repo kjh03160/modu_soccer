@@ -1,12 +1,19 @@
 package com.modu.soccer.service;
 
+import com.modu.soccer.domain.request.QuarterFormationRequest;
 import com.modu.soccer.domain.request.QuarterRequest;
 import com.modu.soccer.entity.Formation;
 import com.modu.soccer.entity.Match;
 import com.modu.soccer.entity.Quarter;
+import com.modu.soccer.entity.Team;
+import com.modu.soccer.entity.TeamMember;
+import com.modu.soccer.entity.User;
 import com.modu.soccer.exception.CustomException;
 import com.modu.soccer.exception.ErrorCode;
 import com.modu.soccer.repository.QuarterRepository;
+import com.modu.soccer.repository.TeamMemberRepository;
+import com.modu.soccer.repository.TeamRepository;
+import com.modu.soccer.repository.UserRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +26,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class QuarterService {
 
 	private final QuarterRepository quarterRepository;
+	private final TeamRepository teamRepository;
+	private final TeamMemberRepository memberRepository;
+	private final UserRepository userRepository;
 	private final TeamRecordService recordService;
 
 	@Transactional
@@ -43,9 +53,33 @@ public class QuarterService {
 		return quarterRepository.findByMatch(match);
 	}
 
+	@Transactional(readOnly = true)
 	public Quarter getQuarterInfoOfMatch(Match match, Long quarterId) {
 		return quarterRepository.findByIdAndMatch(quarterId, match).orElseThrow(() -> {
 			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "quarter");
 		});
+	}
+
+	@Transactional
+	public void updateQuarterFormation(Match match, Long quarterId, Long userId,  QuarterFormationRequest request) {
+		Quarter quarter = getQuarterInfoOfMatch(match, quarterId);
+		Team team = teamRepository.getReferenceById(request.getFormation().getTeamId());
+		User user = userRepository.getReferenceById(userId);
+		TeamMember member = memberRepository.findByTeamAndUser(team, user).orElseThrow(() -> {
+			throw new CustomException(ErrorCode.FORBIDDEN);
+		});
+
+		if (!member.hasManagePermission()) {
+			throw new CustomException(ErrorCode.NO_PERMISSION_ON_TEAM);
+		}
+
+		if (quarter.getFormation().getTeamA().getTeamId() == request.getFormation().getTeamId()) {
+			quarter.getFormation().setTeamA(request.getFormation());
+		} else if (quarter.getFormation().getTeamB().getTeamId() == request.getFormation()
+			.getTeamId()) {
+			quarter.getFormation().setTeamB(request.getFormation());
+		} else {
+			throw new IllegalArgumentException("invalid team id");
+		}
 	}
 }
