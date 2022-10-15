@@ -3,11 +3,13 @@ package com.modu.soccer.controller;
 import com.modu.soccer.domain.ApiResponse;
 import com.modu.soccer.domain.QuarterDetail;
 import com.modu.soccer.domain.QuarterSummary;
+import com.modu.soccer.domain.request.QuarterFormationRequest;
 import com.modu.soccer.domain.request.QuarterRequest;
 import com.modu.soccer.entity.Match;
 import com.modu.soccer.entity.Quarter;
 import com.modu.soccer.service.MatchService;
 import com.modu.soccer.service.QuarterService;
+import com.modu.soccer.utils.MDCUtil;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -57,5 +60,17 @@ public class QuarterController {
 		Match match = matchService.getMatchById(matchId);
 		Quarter quarter = quarterService.getQuarterInfoOfMatch(match, quarterId);
 		return ApiResponse.withBody(QuarterDetail.fromMatchAndQuarter(match, quarter));
+	}
+
+	@PutMapping("/{quarter_id}/formation")
+	public ApiResponse<?> editQuarterFormation(
+		@PathVariable("match_id") long matchId,
+		@PathVariable("quarter_id") long quarterId,
+		@RequestBody QuarterFormationRequest request
+	) {
+		Match match = matchService.getMatchById(matchId);
+		Long userId = MDCUtil.getUserIdFromMDC();
+		quarterService.updateQuarterFormation(match, quarterId, userId, request);
+		return ApiResponse.ok();
 	}
 }

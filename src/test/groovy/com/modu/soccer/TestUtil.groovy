@@ -2,9 +2,11 @@ package com.modu.soccer
 
 
 import com.modu.soccer.domain.request.MatchRequest
+import com.modu.soccer.domain.request.QuarterFormationRequest
 import com.modu.soccer.domain.request.QuarterRequest
 import com.modu.soccer.domain.request.TeamMemberPutRequest
 import com.modu.soccer.entity.*
+import com.modu.soccer.entity.Formation.TeamFormation
 import com.modu.soccer.utils.LocalDateTimeUtil
 
 import java.time.LocalDateTime
@@ -81,5 +83,29 @@ class TestUtil {
         request.setPosition(position)
         request.setRole(role)
         return request
+    }
+
+    static def getQuarterFormationRequest(TeamFormation formation) {
+        def request = new QuarterFormationRequest()
+        request.setFormation(formation)
+        return request
+    }
+
+    static def getTeamFormation(teamId, formationName) {
+        def formation = new TeamFormation()
+        formation.setTeamId(teamId)
+        formation.setFormationName(formationName)
+        formation.setMemberInfo(Map.of(
+                "1", new Formation.MemberInfo(),
+                "2", new Formation.MemberInfo(),
+                "3", new Formation.MemberInfo(),
+                "4", new Formation.MemberInfo(),
+                "5", new Formation.MemberInfo(),
+                "6", new Formation.MemberInfo(),
+                "7", new Formation.MemberInfo(),
+                "8", new Formation.MemberInfo(),
+                "9", new Formation.MemberInfo()
+        ))
+        return formation
     }
 }
