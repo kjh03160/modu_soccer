@@ -8,13 +8,13 @@ import com.modu.soccer.domain.QuarterDetail
 import com.modu.soccer.domain.QuarterSummary
 import com.modu.soccer.entity.User
 import com.modu.soccer.enums.FormationName
-import com.modu.soccer.enums.MDCKey
 import com.modu.soccer.enums.TokenType
 import com.modu.soccer.exception.ErrorCode
 import com.modu.soccer.jwt.JwtProvider
+import com.modu.soccer.repository.UserRepository
 import com.modu.soccer.service.MatchService
 import com.modu.soccer.service.QuarterService
-import org.slf4j.MDC
+import com.modu.soccer.utils.UserContextUtil
 import org.spockframework.spring.SpringBean
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -45,19 +45,24 @@ class QuarterControllerTest extends Specification {
     private final QuarterService quarterService = Stub()
     @SpringBean
     private final MatchService matchService = Stub()
+    @SpringBean
+    private UserRepository userRepository= Stub();
     @Autowired
     private JwtProvider jwtProvider;
+
     private User user
     private String token;
 
     def setup() {
         user = TestUtil.getUser(1l, "email")
+        UserContextUtil.setUser(user)
         token = jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)
-        MDC.put(MDCKey.USER_ID.getKey(), "1")
+
+        userRepository.findById(user.getId()) >> Optional.of(user)
     }
 
     def cleanup() {
-        MDC.clear()
+        UserContextUtil.clear()
     }
 
     def "createQuarter"() {
@@ -235,7 +240,7 @@ class QuarterControllerTest extends Specification {
         def request = TestUtil.getQuarterFormationRequest(formation)
 
         matchService.getMatchById(match.getId()) >> match
-        quarterService.updateQuarterFormation(match, quarter.getId(), user.getId(), request)
+        quarterService.updateQuarterFormation(match, quarter.getId(), request)
 
         when:
         def result = mvc.perform(MockMvcRequestBuilders.put(url)

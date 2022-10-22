@@ -13,7 +13,7 @@ import com.modu.soccer.exception.ErrorCode;
 import com.modu.soccer.repository.QuarterRepository;
 import com.modu.soccer.repository.TeamMemberRepository;
 import com.modu.soccer.repository.TeamRepository;
-import com.modu.soccer.repository.UserRepository;
+import com.modu.soccer.utils.UserContextUtil;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +28,6 @@ public class QuarterService {
 	private final QuarterRepository quarterRepository;
 	private final TeamRepository teamRepository;
 	private final TeamMemberRepository memberRepository;
-	private final UserRepository userRepository;
 	private final TeamRecordService recordService;
 
 	@Transactional
@@ -61,10 +60,10 @@ public class QuarterService {
 	}
 
 	@Transactional
-	public void updateQuarterFormation(Match match, Long quarterId, Long userId,  QuarterFormationRequest request) {
+	public void updateQuarterFormation(Match match, Long quarterId, QuarterFormationRequest request) {
 		Quarter quarter = getQuarterInfoOfMatch(match, quarterId);
 		Team team = teamRepository.getReferenceById(request.getFormation().getTeamId());
-		User user = userRepository.getReferenceById(userId);
+		User user = UserContextUtil.getCurrentUser();
 		TeamMember member = memberRepository.findByTeamAndUser(team, user).orElseThrow(() -> {
 			throw new CustomException(ErrorCode.FORBIDDEN);
 		});
