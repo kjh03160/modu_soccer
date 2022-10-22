@@ -48,10 +48,16 @@ public class AuthService {
 	}
 
 	@Transactional
-	public User refreshUserToken(Long userId, String refreshToken) {
-		User user = userRepository.findById(userId).orElseThrow(() -> {
+	public User refreshUserToken(String accessToken, String refreshToken) {
+		Long accessTokenUserId = jwtProvider.getUserId(accessToken);
+		Long refreshTokenUserId = jwtProvider.getUserId(refreshToken);
+		if (!accessTokenUserId.equals(refreshTokenUserId)) {
+			throw new IllegalArgumentException("different user token");
+		}
+		User user = userRepository.findById(refreshTokenUserId).orElseThrow(() -> {
 			throw new CustomException(ErrorCode.USER_NOT_REGISTERED);
 		});
+
 		if (!user.getRefreshToken().equals(refreshToken) || jwtProvider.isTokenExpired(refreshToken)) {
 			throw new CustomException(ErrorCode.REFRESH_TOKEN_EXPIRED);
 		}

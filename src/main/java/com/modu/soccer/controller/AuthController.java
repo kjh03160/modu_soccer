@@ -10,7 +10,6 @@ import com.modu.soccer.enums.TokenType;
 import com.modu.soccer.jwt.JwtProvider;
 import com.modu.soccer.service.AuthService;
 import com.modu.soccer.service.KakaoOauthService;
-import com.modu.soccer.utils.MDCUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -46,11 +45,11 @@ public class AuthController {
 		@RequestHeader(value = HttpHeaders.AUTHORIZATION) String header,
 		@RequestBody TokenRefreshRequest request
 	) {
-		if (!jwtProvider.isTokenExpired(jwtProvider.getJwtTokenFromHeader(header))) {
+		String accessToken = jwtProvider.getJwtTokenFromHeader(header);
+		if (!jwtProvider.isTokenExpired(accessToken)) {
 			throw new IllegalArgumentException("token is not expired.");
 		}
-		Long userId = MDCUtil.getUserIdFromMDC();
-		User user = authService.refreshUserToken(userId, request.getRefreshToken());
+		User user = authService.refreshUserToken(accessToken, request.getRefreshToken());
 		return ApiResponse.withBody(
 			AuthenticateResponse.of(user, jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)));
 	}

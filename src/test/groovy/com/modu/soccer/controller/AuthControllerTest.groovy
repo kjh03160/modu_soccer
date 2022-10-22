@@ -10,7 +10,9 @@ import com.modu.soccer.domain.response.KakaoUserInfoResponse
 import com.modu.soccer.entity.User
 import com.modu.soccer.enums.MDCKey
 import com.modu.soccer.enums.TokenType
+import com.modu.soccer.jwt.JwtInterceptor
 import com.modu.soccer.jwt.JwtProvider
+import com.modu.soccer.repository.UserRepository
 import com.modu.soccer.service.AuthService
 import com.modu.soccer.service.KakaoOauthService
 import org.slf4j.MDC
@@ -45,6 +47,10 @@ class AuthControllerTest extends Specification {
     private AuthService authService= Stub();
     @SpringBean
     private JwtProvider jwtProvider= Stub();
+    @SpringBean
+    private JwtInterceptor jwtInterceptor= Stub();
+    @SpringBean
+    private UserRepository userRepository= Stub();
     private ObjectMapper objectMapper = new ObjectMapper();
 
     def "kakaoCallback"() {
@@ -78,7 +84,7 @@ class AuthControllerTest extends Specification {
         def header = "Bearer token"
         def u = getBasicUser()
         jwtProvider.isTokenExpired(_ as String) >> {MDC.put(MDCKey.USER_ID.getKey(), u.getId().toString()); return true}
-        authService.refreshUserToken(u.getId(), request.getRefreshToken()) >> u
+        authService.refreshUserToken(_, request.getRefreshToken()) >> u
         jwtProvider.createTokenOfType(u, TokenType.AUTH_ACCESS_TOKEN) >> "access_token"
 
         when:
