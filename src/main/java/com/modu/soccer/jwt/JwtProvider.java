@@ -69,7 +69,8 @@ public class JwtProvider {
 		} catch (ExpiredJwtException e) {
 			return true;
 		} catch (MalformedJwtException | UnsupportedJwtException e) {
-			throw new IllegalArgumentException(e.getMessage());
+			log.warn(e.getMessage());
+			throw new IllegalArgumentException("invalid jwt token");
 		} catch (Exception e) {
 			log.error("token verifying error: {}", e.getMessage());
 			throw new CustomException(ErrorCode.UNKNOWN_ERROR);

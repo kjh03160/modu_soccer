@@ -10,7 +10,7 @@
     <!-- err log file name -->
     <property name="ERR_LOG_FILE_NAME" value="err_log"/>
     <!-- pattern -->
-    <property name="LOG_PATTERN" value="%-5level %d{yy-MM-dd HH:mm:ss}[%thread] [%logger{0}:%line] - %msg%n"/>
+    <property name="LOG_PATTERN" value="%-5level %d{yy-MM-dd HH:mm:ss}[%thread] [%logger{0}:%line] [requestId: %X{requestId}, client ip: %X{clientIp}, userId: %X{userId}] - %msg%n"/>
     <!-- log file path -->
     <springProperty name="LOG_PATH" source="log.config.path"/>
     <!-- log file name -->
