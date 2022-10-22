@@ -2,20 +2,20 @@ package com.modu.soccer.controller
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.modu.soccer.TestUtil
 import com.modu.soccer.domain.ApiResponse
 import com.modu.soccer.domain.MatchDto
 import com.modu.soccer.domain.request.MatchRequest
 import com.modu.soccer.entity.Match
 import com.modu.soccer.entity.Team
 import com.modu.soccer.entity.TeamRecord
-import com.modu.soccer.entity.User
-import com.modu.soccer.enums.MDCKey
 import com.modu.soccer.enums.TokenType
 import com.modu.soccer.exception.ErrorCode
 import com.modu.soccer.jwt.JwtProvider
+import com.modu.soccer.repository.UserRepository
 import com.modu.soccer.service.MatchService
 import com.modu.soccer.utils.LocalDateTimeUtil
-import org.slf4j.MDC
+import com.modu.soccer.utils.UserContextUtil
 import org.spockframework.spring.SpringBean
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -41,6 +41,8 @@ class MatchControllerTest extends Specification {
     private final String MATCH_BASE_URL = "/api/v1/matches";
     @SpringBean
     private final MatchService matchService = Stub();
+    @SpringBean
+    private UserRepository userRepository= Stub();
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
@@ -50,16 +52,17 @@ class MatchControllerTest extends Specification {
     private String token;
 
     def setup() {
-        def user = new User();
-        user.setId(1l)
-        user.setEmail("email")
+        def user = TestUtil.getUser(1l, "email")
+        UserContextUtil.setUser(user)
+
+        userRepository.findById(user.getId()) >> Optional.of(user)
         token = jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)
-        MDC.put(MDCKey.USER_ID.getKey(), "1")
     }
 
     def cleanup() {
-        MDC.clear()
+        UserContextUtil.clear()
     }
+
 
     def "getTeamMatches"() {
         given:
@@ -122,7 +125,7 @@ class MatchControllerTest extends Specification {
                 .build();
         def url = MATCH_BASE_URL
 
-        matchService.createMatch(_, _) >> match
+        matchService.createMatch(_) >> match
 
         when:
         def result = mvc.perform(MockMvcRequestBuilders.post(url)

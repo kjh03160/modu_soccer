@@ -10,7 +10,7 @@ import com.modu.soccer.exception.ErrorCode;
 import com.modu.soccer.repository.MatchRepository;
 import com.modu.soccer.repository.TeamMemberRepository;
 import com.modu.soccer.repository.TeamRepository;
-import com.modu.soccer.repository.UserRepository;
+import com.modu.soccer.utils.UserContextUtil;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
@@ -27,7 +27,6 @@ public class MatchService {
 	private final MatchRepository matchRepository;
 	private final TeamRepository teamRepository;
 	private final TeamMemberRepository memberRepository;
-	private final UserRepository userRepository;
 
 	@Transactional(readOnly = true)
 	public List<Match> getMatches(Long teamId) {
@@ -46,7 +45,7 @@ public class MatchService {
 		});
 	}
 
-	public Match createMatch(Long userId, MatchRequest request) {
+	public Match createMatch(MatchRequest request) {
 		List<Long> teamIds = List.of(request.getTeamAId(), request.getTeamBId());
 		List<Team> teams = teamRepository.findAllByIdIn(teamIds);
 
@@ -54,7 +53,7 @@ public class MatchService {
 			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "team");
 		}
 
-		User user = userRepository.getReferenceById(userId);
+		User user = UserContextUtil.getCurrentUser();
 		List<TeamMember> teamMembers = memberRepository.findByUserAndTeamIn(user, teams);
 		if (teamMembers.size() == 0) {
 			throw new CustomException(ErrorCode.FORBIDDEN);
