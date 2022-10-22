@@ -1,6 +1,7 @@
 package com.modu.soccer.jwt;
 
 import com.modu.soccer.entity.User;
+import com.modu.soccer.enums.MDCKey;
 import com.modu.soccer.exception.CustomException;
 import com.modu.soccer.exception.ErrorCode;
 import com.modu.soccer.repository.UserRepository;
@@ -9,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -27,7 +29,9 @@ public class JwtInterceptor implements HandlerInterceptor {
 		if (jwtProvider.isTokenExpired(token)) {
 			throw new CustomException(ErrorCode.ACCESS_TOKEN_EXPIRED);
 		}
-		User user = userRepository.findById(jwtProvider.getUserId(token)).orElseThrow(() -> {
+		Long userId = jwtProvider.getUserId(token);
+		MDC.put(MDCKey.USER_ID.getKey(), userId.toString());
+		User user = userRepository.findById(userId).orElseThrow(() -> {
 			throw new CustomException(ErrorCode.USER_NOT_REGISTERED);
 		});
 		UserContextUtil.setUser(user);
