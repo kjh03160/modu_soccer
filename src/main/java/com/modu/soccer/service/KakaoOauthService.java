@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 @Service
@@ -45,18 +46,23 @@ public class KakaoOauthService {
 
 		MultiValueMap<String, String> params = getTokenRequestParams(code);
 
-		ResponseEntity<KakaoTokenResponse> responseEntity = restTemplate.exchange(requestURI,
-			HttpMethod.POST, new HttpEntity<>(params, headers),
-			KakaoTokenResponse.class);
-
-		if (responseEntity.getStatusCode() == HttpStatus.OK) {
-			KakaoTokenResponse body = responseEntity.getBody();
-			assert body != null;
-			return body.getAccessToken();
-		} else {
-			log.error("Get kakao oauth token failed, response {}", responseEntity);
+		try{
+			ResponseEntity<KakaoTokenResponse> responseEntity = restTemplate.exchange(requestURI,
+				HttpMethod.POST, new HttpEntity<>(params, headers),
+				KakaoTokenResponse.class);
+			if (responseEntity.getStatusCode() == HttpStatus.OK) {
+				KakaoTokenResponse body = responseEntity.getBody();
+				assert body != null;
+				return body.getAccessToken();
+			} else {
+				log.error("Get kakao oauth token failed, response {}", responseEntity);
+				throw new CustomException(ErrorCode.KAKAO_AUTH_INTERNAL_ERROR);
+			}
+		} catch (HttpStatusCodeException e) {
+			log.error("Get kakao oauth token failed, response {}, {}", e.getStatusCode(), e.getResponseBodyAsString());
 			throw new CustomException(ErrorCode.KAKAO_AUTH_INTERNAL_ERROR);
 		}
+
 	}
 
 	public KakaoUserInfoResponse getUserInfo(String accessToken) throws CustomException {
