@@ -1,6 +1,7 @@
 package com.modu.soccer.entity;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -16,6 +17,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.Hibernate;
 
 @Entity
 @Table(
@@ -51,6 +53,23 @@ public class Match extends BaseEntity implements Comparable<Match>{
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "create_by", nullable = false)
 	private User createBy;
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
+			return false;
+		}
+		Match match = (Match) o;
+		return id != null && Objects.equals(id, match.id);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id);
+	}
 
 	@Override
 	public int compareTo(Match o) {
