@@ -11,8 +11,7 @@ import com.modu.soccer.exception.CustomException;
 import com.modu.soccer.exception.ErrorCode;
 import com.modu.soccer.repository.TeamMemberRepository;
 import com.modu.soccer.repository.TeamRepository;
-import com.modu.soccer.repository.UserRepository;
-import com.modu.soccer.utils.MDCUtil;
+import com.modu.soccer.utils.UserContextUtil;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +25,6 @@ public class TeamMemberService {
 
 	private final TeamMemberRepository memberRepository;
 	private final TeamRepository teamRepository;
-	private final UserRepository userRepository;
 
 	@Transactional(readOnly = true)
 	public List<TeamMember> getTeamMembers(Long teamId, AcceptStatus status) {
@@ -34,7 +32,7 @@ public class TeamMemberService {
 			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "team");
 		});
 
-		User user = userRepository.getReferenceById(MDCUtil.getUserIdFromMDC());
+		User user = UserContextUtil.getCurrentUser();
 		if (status == AcceptStatus.ACCEPTED || canMemberManage(team, user)) {
 			return memberRepository.findAllByTeamAndAcceptStatus(team, status);
 		}
@@ -51,13 +49,9 @@ public class TeamMemberService {
 			});
 	}
 
-	public TeamMember createMember(Long userId, TeamJoinRequest request) {
+	public TeamMember createMember(User user, TeamJoinRequest request) {
 		Team team = teamRepository.findById(request.getTeamId()).orElseThrow(() -> {
 			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "team");
-		});
-
-		User user = userRepository.findById(userId).orElseThrow(() -> {
-			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "user");
 		});
 
 		memberRepository.findByTeamAndUser(team, user).ifPresent((m) -> {
@@ -76,13 +70,8 @@ public class TeamMemberService {
 	}
 
 	@Transactional
-	public void changeMemberPosition(Long requestUserId, Team team, Long memberId, TeamMemberPutRequest request) {
-		TeamMember requester = memberRepository
-			.findByTeamAndUser(team, userRepository.getReferenceById(requestUserId))
-			.orElseThrow(() -> {
-				throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "member");
-			});
-		if (!requester.hasManagePermission()) {
+	public void changeMemberPosition(Team team, Long memberId, TeamMemberPutRequest request) {
+		if (!canMemberManage(team, UserContextUtil.getCurrentUser())) {
 			throw new CustomException(ErrorCode.NO_PERMISSION_ON_TEAM);
 		}
 
@@ -97,16 +86,10 @@ public class TeamMemberService {
 	}
 
 	@Transactional
-	public void approveTeamJoin(Long userId, Long teamId, Long memberId,
-		TeamJoinApproveRequest request) {
-		User user = userRepository.getReferenceById(userId);
+	public void approveTeamJoin(Long teamId, Long memberId, TeamJoinApproveRequest request) {
 		Team team = teamRepository.getReferenceById(teamId);
-		TeamMember approver = memberRepository.findByTeamAndUser(team, user)
-			.orElseThrow(() -> {
-				throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "team member");
-			});
 
-		if (!approver.hasManagePermission()) {
+		if (!canMemberManage(team, UserContextUtil.getCurrentUser())) {
 			throw new CustomException(ErrorCode.NO_PERMISSION_ON_TEAM);
 		}
 

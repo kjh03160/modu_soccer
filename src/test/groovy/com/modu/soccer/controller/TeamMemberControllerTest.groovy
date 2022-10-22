@@ -10,16 +10,16 @@ import com.modu.soccer.domain.request.TeamJoinRequest
 import com.modu.soccer.entity.Team
 import com.modu.soccer.entity.TeamMember
 import com.modu.soccer.entity.User
-import com.modu.soccer.enums.MDCKey
 import com.modu.soccer.enums.Permission
 import com.modu.soccer.enums.Position
 import com.modu.soccer.enums.Role
 import com.modu.soccer.enums.TokenType
 import com.modu.soccer.exception.ErrorCode
 import com.modu.soccer.jwt.JwtProvider
+import com.modu.soccer.repository.UserRepository
 import com.modu.soccer.service.TeamMemberService
 import com.modu.soccer.service.TeamService
-import org.slf4j.MDC
+import com.modu.soccer.utils.UserContextUtil
 import org.spockframework.spring.SpringBean
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -49,21 +49,22 @@ class TeamMemberControllerTest extends Specification {
     private final TeamMemberService service = Stub()
     @SpringBean
     private final TeamService teamService = Stub()
+    @SpringBean
+    private UserRepository userRepository= Stub();
     @Autowired
     private JwtProvider jwtProvider;
     private String token;
     private User user
 
     def setup() {
-        user = new User();
-        user.setId(1l)
-        user.setEmail("email")
+        user = TestUtil.getUser(1l, "email")
+        UserContextUtil.setUser(user)
+        userRepository.findById(user.getId()) >> Optional.of(user)
         token = jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)
-        MDC.put(MDCKey.USER_ID.getKey(), "1")
     }
 
     def cleanup() {
-        MDC.clear()
+        UserContextUtil.clear()
     }
 
     @Unroll
@@ -240,7 +241,7 @@ class TeamMemberControllerTest extends Specification {
         def url = String.format(TEAM_MEMBER_URL + "/%s", String.valueOf(team.getId()), String.valueOf(member.getId()))
 
         teamService.getTeamById(team.getId()) >> team
-        service.changeMemberPosition(user.getId(), team, member.getId(), request) >> null
+        service.changeMemberPosition(team, member.getId(), request) >> null
 
         when:
         def result = mvc.perform(MockMvcRequestBuilders.put(url)

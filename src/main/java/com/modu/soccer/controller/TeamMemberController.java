@@ -7,10 +7,11 @@ import com.modu.soccer.domain.request.TeamJoinRequest;
 import com.modu.soccer.domain.request.TeamMemberPutRequest;
 import com.modu.soccer.entity.Team;
 import com.modu.soccer.entity.TeamMember;
+import com.modu.soccer.entity.User;
 import com.modu.soccer.enums.AcceptStatus;
 import com.modu.soccer.service.TeamMemberService;
 import com.modu.soccer.service.TeamService;
-import com.modu.soccer.utils.MDCUtil;
+import com.modu.soccer.utils.UserContextUtil;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,8 +49,8 @@ public class TeamMemberController {
 	@ResponseStatus(HttpStatus.CREATED)
 	public ApiResponse<?> joinTeam(@PathVariable("team_id") long team_id,
 		@RequestBody TeamJoinRequest teamJoinRequest) {
-		Long userId = MDCUtil.getUserIdFromMDC();
-		TeamMember member = memberService.createMember(userId, teamJoinRequest);
+		User user = UserContextUtil.getCurrentUser();
+		TeamMember member = memberService.createMember(user, teamJoinRequest);
 		return ApiResponse.withBody(TeamMemberInfo.fromEntity(member));
 	}
 
@@ -71,8 +72,7 @@ public class TeamMemberController {
 		@RequestBody TeamMemberPutRequest request
 	) {
 		Team team = teamService.getTeamById(teamId);
-		Long requestUserId = MDCUtil.getUserIdFromMDC();
-		memberService.changeMemberPosition(requestUserId, team, memberId, request);
+		memberService.changeMemberPosition(team, memberId, request);
 		return ApiResponse.ok();
 	}
 
@@ -82,8 +82,7 @@ public class TeamMemberController {
 		@PathVariable("member_id") long memberId,
 		@RequestBody TeamJoinApproveRequest request
 	) {
-		Long userId = MDCUtil.getUserIdFromMDC();
-		memberService.approveTeamJoin(userId, teamId, memberId,	request);
+		memberService.approveTeamJoin(teamId, memberId,	request);
 		return ApiResponse.ok();
 	}
 }
