@@ -30,10 +30,7 @@ public class TeamService {
 	private final TeamRecordRepository recordRepository;
 
 	@Transactional
-	public Team createTeam(Long userId, TeamRequest request) {
-		User user = userRepository.findById(userId)
-			.orElseThrow(() -> {throw new CustomException(ErrorCode.USER_NOT_REGISTERED);});
-
+	public Team createTeam(User user, TeamRequest request) {
 		Team team = Team.builder()
 			.owner(user)
 			.name(request.getName())

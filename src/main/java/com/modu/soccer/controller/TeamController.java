@@ -5,7 +5,7 @@ import com.modu.soccer.domain.TeamDto;
 import com.modu.soccer.domain.request.TeamRequest;
 import com.modu.soccer.entity.Team;
 import com.modu.soccer.service.TeamService;
-import com.modu.soccer.utils.MDCUtil;
+import com.modu.soccer.utils.UserContextUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -33,8 +33,7 @@ public class TeamController {
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
 	public ApiResponse<?> postTeam(@RequestBody TeamRequest request) {
-		Long userId = MDCUtil.getUserIdFromMDC();
-		Team result = teamService.createTeam(userId, request);
+		Team result = teamService.createTeam(UserContextUtil.getCurrentUser(), request);
 		return ApiResponse.withBody(TeamDto.fromEntity(result));
 	}
 }
