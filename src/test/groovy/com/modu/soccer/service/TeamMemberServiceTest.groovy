@@ -8,7 +8,7 @@ import com.modu.soccer.exception.CustomException
 import com.modu.soccer.exception.ErrorCode
 import com.modu.soccer.repository.TeamMemberRepository
 import com.modu.soccer.repository.TeamRepository
-import com.modu.soccer.repository.UserRepository
+import com.modu.soccer.utils.UserContextUtil
 import org.assertj.core.util.Lists
 import org.slf4j.MDC
 import spock.lang.Specification
@@ -17,15 +17,16 @@ import spock.lang.Unroll
 class TeamMemberServiceTest extends Specification {
     private TeamMemberRepository memberRepository = Mock();
     private TeamRepository teamRepository = Mock();
-    private UserRepository userRepository = Mock();
     private TeamMemberService service;
 
     def setup() {
-        service = new TeamMemberService(memberRepository, teamRepository, userRepository)
+        service = new TeamMemberService(memberRepository, teamRepository)
+        def u = TestUtil.getUser(1l, "email")
+        UserContextUtil.setUser(u)
     }
 
     def cleanup() {
-        MDC.clear()
+        UserContextUtil.clear()
     }
 
     @Unroll
@@ -34,7 +35,6 @@ class TeamMemberServiceTest extends Specification {
         def team = TestUtil.getTeam(1l, "team1", null)
         def member = TestUtil.getTeamMember(1l, null, team)
         member.setPermission(permission)
-        MDC.put(MDCKey.USER_ID.getKey(), "1")
 
         1 * teamRepository.findById(team.getId()) >> Optional.of(team)
         memberRepository.findByTeamAndUser(_, _) >> Optional.of(member)
@@ -97,7 +97,6 @@ class TeamMemberServiceTest extends Specification {
     def "getTeamMembers - #status 조회 but 해당 팀에 속하지 않음"() {
         given:
         def team = TestUtil.getTeam(1l, "team1", null)
-        MDC.put(MDCKey.USER_ID.getKey(), "1")
 
         1 * teamRepository.findById(team.getId()) >> Optional.of(team)
         memberRepository.findByTeamAndUser(_, _) >> Optional.empty()
@@ -116,19 +115,18 @@ class TeamMemberServiceTest extends Specification {
 
     def "createMember"() {
         given:
-        def user = TestUtil.getUser(1l, "email")
+        def user = UserContextUtil.getCurrentUser()
         def team = TestUtil.getTeam(1l, "team1", user)
         def member = TestUtil.getTeamMember(1l, user, team)
         def request = new TeamJoinRequest()
         request.setTeamId(team.getId())
 
         1 * teamRepository.findById(team.getId()) >> Optional.of(team)
-        1 * userRepository.findById(user.getId()) >> Optional.of(user)
         1 * memberRepository.findByTeamAndUser(team, user) >> Optional.empty()
         1 * memberRepository.save(_) >> member
 
         when:
-        def result = service.createMember(user.getId(), request)
+        def result = service.createMember(user, request)
 
         then:
         noExceptionThrown()
@@ -149,12 +147,11 @@ class TeamMemberServiceTest extends Specification {
         request.setTeamId(team.getId())
 
         1 * teamRepository.findById(team.getId()) >> Optional.of(team)
-        1 * userRepository.findById(user.getId()) >> Optional.of(user)
         1 * memberRepository.findByTeamAndUser(team, user) >> Optional.of(member)
         0 * memberRepository.save(_)
 
         when:
-        def result = service.createMember(user.getId(), request)
+        def result = service.createMember(user, request)
 
         then:
         def e = thrown(CustomException)
@@ -170,12 +167,11 @@ class TeamMemberServiceTest extends Specification {
         request.setTeamId(team.getId())
 
         1 * teamRepository.findById(team.getId()) >> Optional.of(team)
-        1 * userRepository.findById(user.getId()) >> Optional.of(user)
         1 * memberRepository.findByTeamAndUser(team, user) >> Optional.of(member)
         0 * memberRepository.save(_)
 
         when:
-        def result = service.createMember(user.getId(), request)
+        def result = service.createMember(user, request)
 
         then:
         def e = thrown(CustomException)
@@ -190,31 +186,11 @@ class TeamMemberServiceTest extends Specification {
         request.setTeamId(team.getId())
 
         1 * teamRepository.findById(team.getId()) >> Optional.empty()
-        0 * userRepository.findById(user.getId())
         0 * memberRepository.findByTeamAndUser(team, user)
         0 * memberRepository.save(_)
 
         when:
-        def result = service.createMember(user.getId(), request)
-
-        then:
-        def e = thrown(CustomException)
-        e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
-    }
-
-    def "createMember - 유저 미존재"() {
-        given:
-        def team = TestUtil.getTeam(1l, "team1", null)
-        def request = new TeamJoinRequest()
-        request.setTeamId(team.getId())
-
-        1 * teamRepository.findById(team.getId()) >> Optional.of(team)
-        1 * userRepository.findById(_) >> Optional.empty()
-        0 * memberRepository.findByTeamAndUser(team, _)
-        0 * memberRepository.save(_)
-
-        when:
-        def result = service.createMember(1l, request)
+        def result = service.createMember(user, request)
 
         then:
         def e = thrown(CustomException)
@@ -264,12 +240,11 @@ class TeamMemberServiceTest extends Specification {
         def member = TestUtil.getTeamMember(2l, null, team)
         def request = TestUtil.getTeamMemberPutRequest(Position.CM, Role.NONE, 1, Permission.MANAGER)
 
-        1 * userRepository.getReferenceById(_) >> TestUtil.getUser(1l, "")
         1 * memberRepository.findByTeamAndUser(team, _) >> Optional.of(manager)
         1 * memberRepository.findById(member.getId()) >> Optional.of(member)
 
         when:
-        def result = service.changeMemberPosition(1l, team, member.getId(), request)
+        def result = service.changeMemberPosition(team, member.getId(), request)
 
         then:
         noExceptionThrown()
@@ -286,12 +261,11 @@ class TeamMemberServiceTest extends Specification {
         def member = TestUtil.getTeamMember(2l, null, team)
         def request = TestUtil.getTeamMemberPutRequest(Position.CM, Role.NONE, 1, Permission.MANAGER)
 
-        1 * userRepository.getReferenceById(_) >> TestUtil.getUser(1l, "")
         1 * memberRepository.findByTeamAndUser(team, _) >> Optional.of(m1)
         0 * memberRepository.findById(member.getId())
 
         when:
-        def result = service.changeMemberPosition(1l, team, member.getId(), request)
+        def result = service.changeMemberPosition(team, member.getId(), request)
 
         then:
         def e = thrown(CustomException)
@@ -306,15 +280,14 @@ class TeamMemberServiceTest extends Specification {
         def team = TestUtil.getTeam(1l, "team1", null)
         def request = TestUtil.getTeamMemberPutRequest(Position.CM, Role.NONE, 1, Permission.MANAGER)
 
-        1 * userRepository.getReferenceById(_) >> TestUtil.getUser(1l, "")
         1 * memberRepository.findByTeamAndUser(team, _) >> Optional.empty()
         0 * memberRepository.findById(_)
         when:
-        def result = service.changeMemberPosition(1l, team, 1l, request)
+        def result = service.changeMemberPosition(team, 1l, request)
 
         then:
         def e = thrown(CustomException)
-        e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
+        e.getErrorCode() == ErrorCode.FORBIDDEN
     }
 
     def "changeMemberPosition - member not found"() {
@@ -324,12 +297,11 @@ class TeamMemberServiceTest extends Specification {
         manager.setPermission(Permission.ADMIN)
         def request = TestUtil.getTeamMemberPutRequest(Position.CM, Role.NONE, 1, Permission.MANAGER)
 
-        1 * userRepository.getReferenceById(_) >> TestUtil.getUser(1l, "")
         1 * memberRepository.findByTeamAndUser(team, _) >> Optional.of(manager)
         1 * memberRepository.findById(_) >> Optional.empty()
 
         when:
-        def result = service.changeMemberPosition(1l, team, 1l, request)
+        def result = service.changeMemberPosition(team, 1l, request)
 
         then:
         def e = thrown(CustomException)
@@ -347,12 +319,12 @@ class TeamMemberServiceTest extends Specification {
         def request = new TeamJoinApproveRequest()
         request.setAccept(true)
 
-        1 * userRepository.getReferenceById(approveUser.getId()) >> TestUtil.getUser(approveUser.getId(), null)
         1 * teamRepository.getReferenceById(team.getId()) >> TestUtil.getTeam(team.getId(), null, null)
         1 * memberRepository.findByTeamAndUser(_, _) >> Optional.of(approveMember)
         1 * memberRepository.findById(memberId) >> Optional.of(TestUtil.getTeamMember(1l, null, null))
+
         when:
-        service.approveTeamJoin(approveUser.getId(), team.getId(), memberId, request)
+        service.approveTeamJoin(team.getId(), memberId, request)
 
         then:
         noExceptionThrown()
@@ -371,16 +343,15 @@ class TeamMemberServiceTest extends Specification {
         def request = new TeamJoinApproveRequest()
         request.setAccept(true)
 
-        1 * userRepository.getReferenceById(approveUser.getId()) >> TestUtil.getUser(approveUser.getId(), null)
         1 * teamRepository.getReferenceById(team.getId()) >> TestUtil.getTeam(team.getId(), null, null)
         1 * memberRepository.findByTeamAndUser(_, _) >> Optional.empty()
 
         when:
-        service.approveTeamJoin(approveUser.getId(), team.getId(), memberId, request)
+        service.approveTeamJoin(team.getId(), memberId, request)
 
         then:
         def e = thrown(CustomException)
-        e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
+        e.getErrorCode() == ErrorCode.FORBIDDEN
     }
 
     def "approveTeamJoin - 승인자 팀 권한 없음 #permission"() {
@@ -393,12 +364,11 @@ class TeamMemberServiceTest extends Specification {
         def request = new TeamJoinApproveRequest()
         request.setAccept(true)
 
-        1 * userRepository.getReferenceById(approveUser.getId()) >> TestUtil.getUser(approveUser.getId(), null)
         1 * teamRepository.getReferenceById(team.getId()) >> TestUtil.getTeam(team.getId(), null, null)
         1 * memberRepository.findByTeamAndUser(team, approveUser) >> Optional.of(approveMember)
 
         when:
-        service.approveTeamJoin(approveUser.getId(), team.getId(), memberId, request)
+        service.approveTeamJoin(team.getId(), memberId, request)
 
         then:
         def e = thrown(CustomException)
@@ -418,13 +388,12 @@ class TeamMemberServiceTest extends Specification {
         def request = new TeamJoinApproveRequest()
         request.setAccept(true)
 
-        1 * userRepository.getReferenceById(approveUser.getId()) >> TestUtil.getUser(approveUser.getId(), null)
         1 * teamRepository.getReferenceById(team.getId()) >> TestUtil.getTeam(team.getId(), null, null)
         1 * memberRepository.findByTeamAndUser(team, approveUser) >> Optional.of(approveMember)
         1 * memberRepository.findById(memberId) >> Optional.empty()
 
         when:
-        service.approveTeamJoin(approveUser.getId(), team.getId(), memberId, request)
+        service.approveTeamJoin(team.getId(), memberId, request)
 
         then:
         def e = thrown(CustomException)
@@ -444,13 +413,12 @@ class TeamMemberServiceTest extends Specification {
         request.setAccept(true)
 
 
-        1 * userRepository.getReferenceById(approveUser.getId()) >> TestUtil.getUser(approveUser.getId(), null)
         1 * teamRepository.getReferenceById(team.getId()) >> TestUtil.getTeam(team.getId(), null, null)
         1 * memberRepository.findByTeamAndUser(_, _) >> Optional.of(approveMember)
         1 * memberRepository.findById(member.getId()) >> Optional.of(member)
 
         when:
-        service.approveTeamJoin(approveUser.getId(), team.getId(), member.getId(), request)
+        service.approveTeamJoin(team.getId(), member.getId(), request)
 
         then:
         thrown(IllegalArgumentException)

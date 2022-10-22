@@ -8,7 +8,7 @@ import com.modu.soccer.exception.ErrorCode
 import com.modu.soccer.repository.QuarterRepository
 import com.modu.soccer.repository.TeamMemberRepository
 import com.modu.soccer.repository.TeamRepository
-import com.modu.soccer.repository.UserRepository
+import com.modu.soccer.utils.UserContextUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -17,11 +17,16 @@ class QuarterServiceTest extends Specification {
     private TeamRecordService teamRecordService = Mock()
     private TeamRepository teamRepository = Mock()
     private TeamMemberRepository memberRepository = Mock()
-    private UserRepository userRepository = Mock()
     private QuarterService service;
 
     def setup() {
-        service = new QuarterService(quarterRepository, teamRepository, memberRepository, userRepository, teamRecordService)
+        service = new QuarterService(quarterRepository, teamRepository, memberRepository, teamRecordService)
+        def u = TestUtil.getUser(1l, "email")
+        UserContextUtil.setUser(u)
+    }
+
+    def cleanup() {
+        UserContextUtil.clear()
     }
 
     def "createQuarter"() {
@@ -95,7 +100,7 @@ class QuarterServiceTest extends Specification {
         given:
         def team1 = TestUtil.getTeam(1l, "name", null)
         def team2 = TestUtil.getTeam(2l, "name", null)
-        def user = TestUtil.getUser(1l, "email")
+        def user = UserContextUtil.getCurrentUser();
         def member = TestUtil.getTeamMember(1l, user, requestTeam)
         member.setPermission(permission)
         def match = TestUtil.getMatch(1l, team1, team2, user)
@@ -104,12 +109,11 @@ class QuarterServiceTest extends Specification {
         def request = TestUtil.getQuarterFormationRequest(formation)
 
         1 * quarterRepository.findByIdAndMatch(quarter.getId(), match) >> Optional.of(quarter)
-        1 * userRepository.getReferenceById(user.getId()) >> user
         1 * teamRepository.getReferenceById(request.getFormation().getTeamId()) >> requestTeam
         1 * memberRepository.findByTeamAndUser(requestTeam, user) >> Optional.of(member)
 
         when:
-        service.updateQuarterFormation(match, quarter.getId(), user.getId(), request)
+        service.updateQuarterFormation(match, quarter.getId(), request)
 
         then:
         noExceptionThrown()
@@ -126,7 +130,7 @@ class QuarterServiceTest extends Specification {
         given:
         def team1 = TestUtil.getTeam(1l, "name", null)
         def team2 = TestUtil.getTeam(2l, "name", null)
-        def user = TestUtil.getUser(1l, "email")
+        def user = UserContextUtil.getCurrentUser()
         def team3 = TestUtil.getTeam(3l, "name", null)
         def member = TestUtil.getTeamMember(1l, user, team3)
         member.setPermission(Permission.ADMIN)
@@ -136,12 +140,11 @@ class QuarterServiceTest extends Specification {
         def request = TestUtil.getQuarterFormationRequest(formation)
 
         1 * quarterRepository.findByIdAndMatch(quarter.getId(), match) >> Optional.of(quarter)
-        1 * userRepository.getReferenceById(user.getId()) >> user
         1 * teamRepository.getReferenceById(request.getFormation().getTeamId()) >> team3
         1 * memberRepository.findByTeamAndUser(team3, user) >> Optional.empty()
 
         when:
-        service.updateQuarterFormation(match, quarter.getId(), user.getId(), request)
+        service.updateQuarterFormation(match, quarter.getId(), request)
 
         then:
         def e = thrown(CustomException)
@@ -152,7 +155,7 @@ class QuarterServiceTest extends Specification {
         given:
         def team1 = TestUtil.getTeam(1l, "name", null)
         def team2 = TestUtil.getTeam(2l, "name", null)
-        def user = TestUtil.getUser(1l, "email")
+        def user = UserContextUtil.getCurrentUser()
         def member = TestUtil.getTeamMember(1l, user, team1)
         member.setPermission(Permission.MEMBER)
         def match = TestUtil.getMatch(1l, team1, team2, user)
@@ -161,12 +164,11 @@ class QuarterServiceTest extends Specification {
         def request = TestUtil.getQuarterFormationRequest(formation)
 
         1 * quarterRepository.findByIdAndMatch(quarter.getId(), match) >> Optional.of(quarter)
-        1 * userRepository.getReferenceById(user.getId()) >> user
         1 * teamRepository.getReferenceById(request.getFormation().getTeamId()) >> team1
         1 * memberRepository.findByTeamAndUser(team1, user) >> Optional.of(member)
 
         when:
-        service.updateQuarterFormation(match, quarter.getId(), user.getId(), request)
+        service.updateQuarterFormation(match, quarter.getId(), request)
 
         then:
         def e = thrown(CustomException)
@@ -177,7 +179,7 @@ class QuarterServiceTest extends Specification {
         given:
         def team1 = TestUtil.getTeam(1l, "name", null)
         def team2 = TestUtil.getTeam(2l, "name", null)
-        def user = TestUtil.getUser(1l, "email")
+        def user = UserContextUtil.getCurrentUser();
         def member = TestUtil.getTeamMember(1l, user, team1)
         member.setPermission(Permission.ADMIN)
         def match = TestUtil.getMatch(1l, team1, team2, user)
@@ -186,12 +188,11 @@ class QuarterServiceTest extends Specification {
         def request = TestUtil.getQuarterFormationRequest(formation)
 
         1 * quarterRepository.findByIdAndMatch(quarter.getId(), match) >> Optional.of(quarter)
-        1 * userRepository.getReferenceById(user.getId()) >> user
         1 * teamRepository.getReferenceById(request.getFormation().getTeamId()) >> team1
         1 * memberRepository.findByTeamAndUser(team1, user) >> Optional.of(member)
 
         when:
-        service.updateQuarterFormation(match, quarter.getId(), user.getId(), request)
+        service.updateQuarterFormation(match, quarter.getId(), request)
 
         then:
         thrown(IllegalArgumentException)

@@ -5,7 +5,6 @@ import com.modu.soccer.domain.MatchDto;
 import com.modu.soccer.domain.request.MatchRequest;
 import com.modu.soccer.entity.Match;
 import com.modu.soccer.service.MatchService;
-import com.modu.soccer.utils.MDCUtil;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,8 +33,7 @@ public class MatchController {
 
 	@PostMapping
 	public ApiResponse<?> createMatch(@RequestBody MatchRequest request){
-		Long userId = MDCUtil.getUserIdFromMDC();
-		Match match = matchService.createMatch(userId, request);
+		Match match = matchService.createMatch(request);
 		return ApiResponse.withBody(MatchDto.fromEntity(match));
 	}
 }

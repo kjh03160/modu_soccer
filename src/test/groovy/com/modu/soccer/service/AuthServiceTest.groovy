@@ -1,5 +1,6 @@
 package com.modu.soccer.service
 
+import com.modu.soccer.TestUtil
 import com.modu.soccer.domain.request.OauthLoginRequest
 import com.modu.soccer.entity.User
 import com.modu.soccer.enums.AuthProvider
@@ -17,7 +18,7 @@ class AuthServiceTest extends Specification {
     private AuthService service;
 
     def setup() {
-        service = new AuthService(jwtUtil, userRepository);
+        service = new AuthService(jwtUtil, userRepository)
     }
 
     def "registerUser"() {
@@ -123,33 +124,64 @@ class AuthServiceTest extends Specification {
 
     def "refreshUserToken"() {
         given:
-        def userId = 1l;
-        def prevToken = "token"
-        def newToken = "new_token"
-        def u = new User();
-        u.setId(userId)
-        u.setRefreshToken(prevToken)
-        1 * userRepository.findById(userId) >> Optional.of(u)
+        def accessToken = "access_token"
+        def prevRefreshToken = "token"
+        def newRefreshToken = "new_token"
+        def u = TestUtil.getUser(1l, "email")
+        u.setRefreshToken(prevRefreshToken)
+
+        1 * jwtUtil.getUserId(accessToken) >> u.getId()
+        1 * jwtUtil.getUserId(prevRefreshToken) >> u.getId()
+        1 * userRepository.findById(u.getId()) >> Optional.of(u)
         1 * jwtUtil.isTokenExpired(u.getRefreshToken()) >> false
-        1 * jwtUtil.createTokenOfType(u, TokenType.AUTH_REFRESH_TOKEN) >> newToken
+        1 * jwtUtil.createTokenOfType(u, TokenType.AUTH_REFRESH_TOKEN) >> newRefreshToken
 
         when:
-        def result = service.refreshUserToken(userId, prevToken)
+        def result = service.refreshUserToken(accessToken, prevRefreshToken)
 
         then:
         noExceptionThrown()
         result.getId() == u.getId()
-        result.getRefreshToken() == newToken
+        result.getRefreshToken() == newRefreshToken
     }
 
-    def "refreshUserToken - 미가입 유저"() {
+    def "refreshUserToken - 토큰 유저 미일치"() {
         given:
-        def userId = 1l;
-        def prevToken = "token"
-        1 * userRepository.findById(userId) >> Optional.empty()
+        def accessToken = "access_token"
+        def prevRefreshToken = "token"
+        def newRefreshToken = "new_token"
+        def u = TestUtil.getUser(1l, "email")
+        u.setRefreshToken(prevRefreshToken)
+
+        1 * jwtUtil.getUserId(accessToken) >> u.getId()
+        1 * jwtUtil.getUserId(prevRefreshToken) >> 2l
+        0 * userRepository.findById(u.getId())
+        0 * jwtUtil.isTokenExpired(u.getRefreshToken())
+        0 * jwtUtil.createTokenOfType(u, TokenType.AUTH_REFRESH_TOKEN)
 
         when:
-        service.refreshUserToken(userId, prevToken)
+        def result = service.refreshUserToken(accessToken, prevRefreshToken)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+    }
+
+    def "refreshUserToken - 유저 미존재"() {
+        given:
+        def accessToken = "access_token"
+        def prevRefreshToken = "token"
+        def newRefreshToken = "new_token"
+        def u = TestUtil.getUser(1l, "email")
+        u.setRefreshToken(prevRefreshToken)
+
+        1 * jwtUtil.getUserId(accessToken) >> u.getId()
+        1 * jwtUtil.getUserId(prevRefreshToken) >> u.getId()
+        1 * userRepository.findById(u.getId()) >> Optional.empty()
+        0 * jwtUtil.isTokenExpired(u.getRefreshToken())
+        0 * jwtUtil.createTokenOfType(u, TokenType.AUTH_REFRESH_TOKEN)
+
+        when:
+        def result = service.refreshUserToken(accessToken, prevRefreshToken)
 
         then:
         def e = thrown(CustomException)
@@ -158,16 +190,19 @@ class AuthServiceTest extends Specification {
 
     def "refreshUserToken - 토큰 미일치"() {
         given:
-        def userId = 1l;
-        def prevToken = "token"
-        def newToken = "new_token"
-        def u = new User();
-        u.setId(userId)
-        u.setRefreshToken(prevToken)
-        1 * userRepository.findById(userId) >> Optional.of(u)
+        def accessToken = "access_token"
+        def prevRefreshToken = "token"
+        def newRefreshToken = "new_token"
+        def u = TestUtil.getUser(1l, "email")
+        u.setRefreshToken(prevRefreshToken)
+
+        1 * jwtUtil.getUserId(accessToken) >> u.getId()
+        1 * jwtUtil.getUserId("other_token") >> u.getId()
+        1 * userRepository.findById(u.getId()) >> Optional.of(u)
+        0 * jwtUtil.isTokenExpired(u.getRefreshToken())
 
         when:
-        service.refreshUserToken(userId, "other_token")
+        service.refreshUserToken(accessToken, "other_token")
 
         then:
         def e = thrown(CustomException)
@@ -176,17 +211,19 @@ class AuthServiceTest extends Specification {
 
     def "refreshUserToken - 리프레시 토큰 만료"() {
         given:
-        def userId = 1l;
-        def prevToken = "token"
-        def newToken = "new_token"
-        def u = new User();
-        u.setId(userId)
-        u.setRefreshToken(prevToken)
-        1 * userRepository.findById(userId) >> Optional.of(u)
+        def accessToken = "access_token"
+        def prevRefreshToken = "token"
+        def newRefreshToken = "new_token"
+        def u = TestUtil.getUser(1l, "email")
+        u.setRefreshToken(prevRefreshToken)
+
+        1 * jwtUtil.getUserId(accessToken) >> u.getId()
+        1 * jwtUtil.getUserId(prevRefreshToken) >> u.getId()
+        1 * userRepository.findById(u.getId()) >> Optional.of(u)
         1 * jwtUtil.isTokenExpired(u.getRefreshToken()) >> true
 
         when:
-        def result = service.refreshUserToken(userId, prevToken)
+        def result = service.refreshUserToken(accessToken, prevRefreshToken)
 
         then:
         def e = thrown(CustomException)

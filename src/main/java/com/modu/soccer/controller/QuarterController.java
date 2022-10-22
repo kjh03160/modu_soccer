@@ -9,7 +9,6 @@ import com.modu.soccer.entity.Match;
 import com.modu.soccer.entity.Quarter;
 import com.modu.soccer.service.MatchService;
 import com.modu.soccer.service.QuarterService;
-import com.modu.soccer.utils.MDCUtil;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -69,8 +68,7 @@ public class QuarterController {
 		@RequestBody QuarterFormationRequest request
 	) {
 		Match match = matchService.getMatchById(matchId);
-		Long userId = MDCUtil.getUserIdFromMDC();
-		quarterService.updateQuarterFormation(match, quarterId, userId, request);
+		quarterService.updateQuarterFormation(match, quarterId, request);
 		return ApiResponse.ok();
 	}
 }

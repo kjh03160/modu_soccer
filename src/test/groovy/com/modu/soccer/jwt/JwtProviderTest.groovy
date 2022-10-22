@@ -1,7 +1,7 @@
 package com.modu.soccer.jwt
 
+import com.modu.soccer.TestUtil
 import com.modu.soccer.entity.User
-import com.modu.soccer.enums.MDCKey
 import com.modu.soccer.enums.TokenType
 import com.modu.soccer.exception.CustomException
 import com.modu.soccer.exception.ErrorCode
@@ -9,7 +9,6 @@ import com.modu.soccer.utils.LocalDateTimeUtil
 import io.jsonwebtoken.Jwts
 import org.apache.commons.lang3.time.DateUtils
 import org.junit.platform.commons.util.StringUtils
-import org.slf4j.MDC
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.TestPropertySource
@@ -77,30 +76,49 @@ class JwtProviderTest extends Specification {
 
     def "isTokenExpired - valid"() {
         given:
-        def u = new User();
-        u.setId(1l)
-        u.setEmail("foo@example.com")
+        def u = TestUtil.getUser(1l, "email")
         def validToken = provider.createTokenOfType(u, TokenType.AUTH_ACCESS_TOKEN)
+
         when:
         def expired = provider.isTokenExpired(validToken)
         then:
         noExceptionThrown()
         !expired
-        MDC.get(MDCKey.USER_ID.getKey()) == u.getId().toString()
     }
 
     def "isTokenExpired - expired"() {
         given:
-        def u = new User();
-        u.setId(1l)
-        u.setEmail("foo@example.com")
         def expiredToken = "eyJhbGciOiJIUzUxMiJ9.eyJ1c2VyX2lkIjoiMSIsImVtYWlsIjoia2lzMDMxNjBAZGF1bS5uZXQiLCJpc3MiOiJtb2R1X3NvY2NlciIsImV4cCI6MTY2NDcwNDkwMiwiaWF0IjoxNjY0NzA0MzAyfQ.rebzk8U0QIDM2un6GNW5CKGEr70-iHtJDS0hFdautZwCwpE7FibANMErVdwJy_DUwVe-i5kKBcryQIHqkrt1dw"
+
         when:
         def expired = provider.isTokenExpired(expiredToken)
         then:
         noExceptionThrown()
         expired
-        MDC.get(MDCKey.USER_ID.getKey()) == u.getId().toString()
+    }
+
+    def "getUserId"() {
+        given:
+        def u = TestUtil.getUser(1l, "email")
+        def token = provider.createTokenOfType(u, TokenType.AUTH_ACCESS_TOKEN)
+
+        when:
+        def id = provider.getUserId(token)
+        then:
+        noExceptionThrown()
+        id == u.getId()
+    }
+
+    def "getUserId - from expired token"() {
+        given:
+        def u = TestUtil.getUser(1l, "email")
+        def token = "eyJhbGciOiJIUzUxMiJ9.eyJ1c2VyX2lkIjoiMSIsImVtYWlsIjoia2lzMDMxNjBAZGF1bS5uZXQiLCJpc3MiOiJtb2R1X3NvY2NlciIsImV4cCI6MTY2NDcwNDkwMiwiaWF0IjoxNjY0NzA0MzAyfQ.rebzk8U0QIDM2un6GNW5CKGEr70-iHtJDS0hFdautZwCwpE7FibANMErVdwJy_DUwVe-i5kKBcryQIHqkrt1dw"
+
+        when:
+        def id = provider.getUserId(token)
+        then:
+        noExceptionThrown()
+        id == u.getId()
     }
 
     def "getJwtTokenFromHeader"() {
