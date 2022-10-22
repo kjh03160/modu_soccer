@@ -70,18 +70,23 @@ public class KakaoOauthService {
 		HttpHeaders headers = getKakaoDefaultHeader();
 		headers.setBearerAuth(accessToken);
 
-		ResponseEntity<KakaoUserInfoResponse> responseEntity = restTemplate.exchange(requestURI,
-			HttpMethod.GET, new HttpEntity<>(headers),
-			KakaoUserInfoResponse.class);
-		if (responseEntity.getStatusCode() == HttpStatus.OK) {
-			validateResponse(responseEntity);
-			log.info(responseEntity.getBody().toString());
-			return responseEntity.getBody();
-		}
+		try {
+			ResponseEntity<KakaoUserInfoResponse> responseEntity = restTemplate.exchange(requestURI,
+				HttpMethod.GET, new HttpEntity<>(headers),
+				KakaoUserInfoResponse.class);
+			if (responseEntity.getStatusCode() == HttpStatus.OK) {
+				validateResponse(responseEntity);
+				log.info(responseEntity.getBody().toString());
+				return responseEntity.getBody();
+			}
 
-		log.error("Get Kakao User Info Failed, status code: {}, body: {}",
-			responseEntity.getStatusCode(), responseEntity.getBody());
-		throw new CustomException(ErrorCode.KAKAO_AUTH_INTERNAL_ERROR);
+			log.error("Get Kakao User Info Failed, status code: {}, body: {}",
+				responseEntity.getStatusCode(), responseEntity.getBody());
+			throw new CustomException(ErrorCode.KAKAO_AUTH_INTERNAL_ERROR);
+		} catch (HttpStatusCodeException e) {
+			log.error("Get kakao user info failed, response {}, {}", e.getStatusCode(), e.getResponseBodyAsString());
+			throw new CustomException(ErrorCode.KAKAO_AUTH_INTERNAL_ERROR);
+		}
 	}
 
 	private static HttpHeaders getKakaoDefaultHeader() {
