@@ -1,7 +1,6 @@
 package com.modu.soccer.jwt;
 
 import com.modu.soccer.entity.User;
-import com.modu.soccer.enums.MDCKey;
 import com.modu.soccer.enums.TokenType;
 import com.modu.soccer.exception.CustomException;
 import com.modu.soccer.exception.ErrorCode;
@@ -20,7 +19,6 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
-import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -66,19 +64,22 @@ public class JwtProvider {
 
 	public boolean isTokenExpired(String token) {
 		try {
-			Claims claims = parseJwt(token);
-			MDC.put(MDCKey.USER_ID.getKey(), claims.get("user_id").toString());
+			parseJwt(token);
 			return false;
 		} catch (ExpiredJwtException e) {
-			MDC.put(MDCKey.USER_ID.getKey(), e.getClaims().get("user_id").toString());
+			return true;
 		} catch (MalformedJwtException | UnsupportedJwtException e) {
 			throw new IllegalArgumentException(e.getMessage());
 		} catch (Exception e) {
 			log.error("token verifying error: {}", e.getMessage());
 			throw new CustomException(ErrorCode.UNKNOWN_ERROR);
 		}
-		return true;
 	}
+
+	public Long getUserId(String token) {
+		return Long.valueOf((String) getClaimsFromToken(token).get("user_id"));
+	}
+
 
 	public String getJwtTokenFromHeader(String header) {
 		if (header == null || !header.startsWith("Bearer ")){
@@ -91,6 +92,7 @@ public class JwtProvider {
 	private Key getDecodedSecretKey() {
 		return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecretKeyString));
 	}
+
 	private Map<String, String> createClaimsFrom(User user) {
 		Map<String, String> claims = new HashMap<>();
 		claims.put("user_id", user.getId().toString());
@@ -104,5 +106,18 @@ public class JwtProvider {
 			.build()
 			.parseClaimsJws(token)
 			.getBody();
+	}
+
+	private Claims getClaimsFromToken(String token) {
+		try {
+			return parseJwt(token);
+		} catch (ExpiredJwtException e) {
+			return e.getClaims();
+		} catch (MalformedJwtException | UnsupportedJwtException e) {
+			throw new IllegalArgumentException(e.getMessage());
+		} catch (Exception e) {
+			log.error("token verifying error: {}", e.getMessage());
+			throw new CustomException(ErrorCode.UNKNOWN_ERROR);
+		}
 	}
 }
