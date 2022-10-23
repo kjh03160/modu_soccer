@@ -1,6 +1,7 @@
 package com.modu.soccer.filter;
 
 import com.modu.soccer.enums.MDCKey;
+import com.modu.soccer.utils.UserContextUtil;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Enumeration;
@@ -32,26 +33,31 @@ public class LoggingFilter extends OncePerRequestFilter {
 		ContentCachingRequestWrapper requestWrapper = new ContentCachingRequestWrapper(request);
 		ContentCachingResponseWrapper responseWrapper = new ContentCachingResponseWrapper(response);
 
-		setClientInfoOnMDC(request);
-		log.info("\n[REQUEST] {} {}\nHeaders : {}\nRequest : {}\n", request.getMethod(),
-			request.getRequestURI(),getHeaders(request), getRequestBody(requestWrapper)
-		);
-		long start = System.currentTimeMillis();
-		filterChain.doFilter(requestWrapper, responseWrapper);
-		long end = System.currentTimeMillis();
-		double elasped = (end - start) / 1000.0;
+		try {
+			setClientInfoOnMDC(request);
+			log.info("\n[REQUEST] {} {}\nHeaders : {}\nRequest : {}\n", request.getMethod(),
+				request.getRequestURI(),getHeaders(request), getRequestBody(requestWrapper)
+			);
+			long start = System.currentTimeMillis();
+			filterChain.doFilter(requestWrapper, responseWrapper);
+			long end = System.currentTimeMillis();
+			double elasped = (end - start) / 1000.0;
 
-		if (responseWrapper.getStatus() >= HttpStatusCode.INTERNAL_SERVER_ERROR) {
-			log.error("\n[RESPONSE] elasped: {}, requestId: {}, status code: {}, body: {}\n", elasped,
-				MDC.get(MDCKey.REQUEST_UUID.getKey()), responseWrapper.getStatus(),
-				getResponseBody(responseWrapper));
-		} else if (elasped > SLOW_API) {
-			log.error("\n[SLOW API RESPONSE] {}, requestId: {} status code: {}, body: {}\n", elasped,
-				MDC.get(MDCKey.REQUEST_UUID.getKey()), responseWrapper.getStatus(),
-				getResponseBody(responseWrapper));
-		} else {
-			log.info("\n[RESPONSE] elasped: {}, status code: {}, body: {}\n", elasped,
-				responseWrapper.getStatus(), getResponseBody(responseWrapper));
+			if (responseWrapper.getStatus() >= HttpStatusCode.INTERNAL_SERVER_ERROR) {
+				log.error("\n[RESPONSE] elasped: {}, requestId: {}, status code: {}, body: {}\n", elasped,
+					MDC.get(MDCKey.REQUEST_UUID.getKey()), responseWrapper.getStatus(),
+					getResponseBody(responseWrapper));
+			} else if (elasped > SLOW_API) {
+				log.error("\n[SLOW API RESPONSE] {}, requestId: {} status code: {}, body: {}\n", elasped,
+					MDC.get(MDCKey.REQUEST_UUID.getKey()), responseWrapper.getStatus(),
+					getResponseBody(responseWrapper));
+			} else {
+				log.info("\n[RESPONSE] elasped: {}, status code: {}, body: {}\n", elasped,
+					responseWrapper.getStatus(), getResponseBody(responseWrapper));
+			}
+		} finally {
+			MDC.clear();
+			UserContextUtil.clear();
 		}
 	}
 

@@ -24,23 +24,28 @@ public class JwtInterceptor implements HandlerInterceptor {
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
 		throws Exception {
-		String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-		String token = jwtProvider.getJwtTokenFromHeader(authorizationHeader);
-		if (jwtProvider.isTokenExpired(token)) {
-			throw new CustomException(ErrorCode.ACCESS_TOKEN_EXPIRED);
+		try {
+			String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+			String token = jwtProvider.getJwtTokenFromHeader(authorizationHeader);
+			if (jwtProvider.isTokenExpired(token)) {
+				throw new CustomException(ErrorCode.ACCESS_TOKEN_EXPIRED);
+			}
+			Long userId = jwtProvider.getUserId(token);
+			MDC.put(MDCKey.USER_ID.getKey(), userId.toString());
+			User user = userRepository.findById(userId).orElseThrow(() -> {
+				throw new CustomException(ErrorCode.USER_NOT_REGISTERED);
+			});
+			UserContextUtil.setUser(user);
+		} catch (Exception e) {
+			request.setAttribute("error", e);
+			request.getRequestDispatcher("/api/error").forward(request, response);
+			return false;
 		}
-		Long userId = jwtProvider.getUserId(token);
-		MDC.put(MDCKey.USER_ID.getKey(), userId.toString());
-		User user = userRepository.findById(userId).orElseThrow(() -> {
-			throw new CustomException(ErrorCode.USER_NOT_REGISTERED);
-		});
-		UserContextUtil.setUser(user);
 		return true;
 	}
 
 	@Override
 	public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
 		throws Exception {
-		UserContextUtil.clear();
 	}
 }

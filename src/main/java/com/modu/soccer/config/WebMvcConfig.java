@@ -14,6 +14,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 @RequiredArgsConstructor
 public class WebMvcConfig implements WebMvcConfigurer {
+
 	private final JwtProvider jwtProvider;
 	private final UserRepository userRepository;
 
@@ -29,7 +30,9 @@ public class WebMvcConfig implements WebMvcConfigurer {
 	public void addInterceptors(InterceptorRegistry registry) {
 		registry.addInterceptor(jwtInterceptor())
 			.order(1)
-			.excludePathPatterns("/api/v1/oauth/**", "/api/v1/user/token");
+			.excludePathPatterns("**/favicon.ico", "/**/error", "/error-page/**",
+				"/api/v1/oauth/**", "/api/v1/user/token",
+				"/api/health");
 	}
 
 	@Bean
