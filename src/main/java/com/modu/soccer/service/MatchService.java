@@ -41,7 +41,7 @@ public class MatchService {
 	@Transactional(readOnly = true)
 	public Match getMatchById(Long matchId) {
 		return matchRepository.findMatchById(matchId).orElseThrow(() -> {
-			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND);
+			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "match");
 		});
 	}
 
