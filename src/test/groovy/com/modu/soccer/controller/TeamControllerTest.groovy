@@ -179,18 +179,12 @@ class TeamControllerTest extends Specification{
                 .build();
         teamService.createTeam(_, _) >> team
 
-        when:
-        def result = mvc.perform(MockMvcRequestBuilders.post(TEAM_CREATE)
+        expect:
+         mvc.perform(MockMvcRequestBuilders.post(TEAM_CREATE)
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + expiredToken)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(MockMvcResultMatchers.status().isUnauthorized())
-                .andReturn()
-                .getResponse()
-        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<?>>(){})
-
-        then:
-        response.getCode() == ErrorCode.ACCESS_TOKEN_EXPIRED.getCode()
+                .andExpect(MockMvcResultMatchers.forwardedUrl("/api/error"))
     }
 
     def "postTeam - 토큰 없음"() {
@@ -206,16 +200,10 @@ class TeamControllerTest extends Specification{
                 .build();
         teamService.createTeam(_, _) >> team
 
-        when:
-        def result = mvc.perform(MockMvcRequestBuilders.post(TEAM_CREATE)
+        expect:
+        mvc.perform(MockMvcRequestBuilders.post(TEAM_CREATE)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andExpect(MockMvcResultMatchers.status().isUnauthorized())
-                .andReturn()
-                .getResponse()
-        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<?>>(){})
-
-        then:
-        response.getCode() == ErrorCode.AUTHENTICATION_FAILED.getCode()
+                .andExpect(MockMvcResultMatchers.forwardedUrl("/api/error"))
     }
 }

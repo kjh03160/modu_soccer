@@ -30,7 +30,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
 	public void addInterceptors(InterceptorRegistry registry) {
 		registry.addInterceptor(jwtInterceptor())
 			.order(1)
-			.excludePathPatterns("**/favicon.ico", "**/error", "/error-page/**",
+			.excludePathPatterns("**/favicon.ico", "/**/error", "/error-page/**",
 				"/api/v1/oauth/**", "/api/v1/user/token",
 				"/api/health");
 	}
