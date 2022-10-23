@@ -44,13 +44,11 @@ public class LoggingFilter extends OncePerRequestFilter {
 			double elasped = (end - start) / 1000.0;
 
 			if (responseWrapper.getStatus() >= HttpStatusCode.INTERNAL_SERVER_ERROR) {
-				log.error("\n[RESPONSE] elasped: {}, requestId: {}, status code: {}, body: {}\n", elasped,
-					MDC.get(MDCKey.REQUEST_UUID.getKey()), responseWrapper.getStatus(),
-					getResponseBody(responseWrapper));
+				log.error("\n[RESPONSE] elasped: {}, status code: {}, body: {}\n",
+					elasped, responseWrapper.getStatus(), getResponseBody(responseWrapper));
 			} else if (elasped > SLOW_API) {
-				log.error("\n[SLOW API RESPONSE] {}, requestId: {} status code: {}, body: {}\n", elasped,
-					MDC.get(MDCKey.REQUEST_UUID.getKey()), responseWrapper.getStatus(),
-					getResponseBody(responseWrapper));
+				log.error("\n[SLOW API RESPONSE] elasped: {}, status code: {}, body: {}\n",
+					elasped, responseWrapper.getStatus(), getResponseBody(responseWrapper));
 			} else {
 				log.info("\n[RESPONSE] elasped: {}, status code: {}, body: {}\n", elasped,
 					responseWrapper.getStatus(), getResponseBody(responseWrapper));
