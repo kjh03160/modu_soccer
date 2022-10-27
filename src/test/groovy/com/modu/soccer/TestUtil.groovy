@@ -1,6 +1,6 @@
 package com.modu.soccer
 
-
+import com.modu.soccer.domain.request.GoalRequest
 import com.modu.soccer.domain.request.MatchRequest
 import com.modu.soccer.domain.request.QuarterFormationRequest
 import com.modu.soccer.domain.request.QuarterRequest
@@ -9,6 +9,7 @@ import com.modu.soccer.entity.*
 import com.modu.soccer.entity.Formation.TeamFormation
 import com.modu.soccer.utils.LocalDateTimeUtil
 
+import java.sql.Time
 import java.time.LocalDateTime
 
 class TestUtil {
@@ -107,5 +108,25 @@ class TestUtil {
                 "9", new Formation.MemberInfo()
         ))
         return formation
+    }
+
+    static def getGoal(id, team, quarter, scorer, assister) {
+        return Goal.builder()
+        .team(team)
+        .quarter(quarter)
+        .scoringUser(scorer)
+        .assistUser(assister)
+        .eventTime(Time.valueOf("00:01:00"))
+        .build()
+    }
+
+    static def getGoalRequest(teamId, scorer, assister) {
+        def request = new GoalRequest()
+        request.setTeamId(teamId)
+        request.setScoringUserId(scorer)
+        request.setAssistUserId(assister)
+        request.setEventTime(Time.valueOf("00:01:00"))
+        request.setIsOwnGoal(false)
+        return request
     }
 }
