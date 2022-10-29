@@ -6,12 +6,12 @@ import com.modu.soccer.TestUtil
 import com.modu.soccer.domain.ApiResponse
 import com.modu.soccer.domain.GoalDto
 import com.modu.soccer.entity.User
-import com.modu.soccer.enums.MDCKey
 import com.modu.soccer.enums.TokenType
 import com.modu.soccer.exception.ErrorCode
 import com.modu.soccer.jwt.JwtProvider
+import com.modu.soccer.repository.UserRepository
 import com.modu.soccer.service.GoalService
-import org.slf4j.MDC
+import com.modu.soccer.utils.UserContextUtil
 import org.spockframework.spring.SpringBean
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -39,22 +39,23 @@ class GoalControllerTest extends Specification {
     protected MockMvc mvc
     @SpringBean
     private final GoalService service = Stub()
-
+    @SpringBean
+    private UserRepository userRepository= Stub()
     @Autowired
     private JwtProvider jwtProvider;
     private String token;
     private User user
 
     def setup() {
-        user = new User();
-        user.setId(1l)
-        user.setEmail("email")
+        user = TestUtil.getUser(1l, "email")
+        UserContextUtil.setUser(user)
+        userRepository.findById(user.getId()) >> Optional.of(user)
+
         token = jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)
-        MDC.put(MDCKey.USER_ID.getKey(), "1")
     }
 
     def cleanup() {
-        MDC.clear()
+        UserContextUtil.clear()
     }
 
     def "addGoal"() {

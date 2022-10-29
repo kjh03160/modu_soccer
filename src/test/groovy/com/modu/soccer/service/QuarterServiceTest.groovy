@@ -111,6 +111,11 @@ class QuarterServiceTest extends Specification {
         1 * quarterRepository.findByIdAndMatch(quarter.getId(), match) >> Optional.of(quarter)
         1 * teamRepository.getReferenceById(request.getFormation().getTeamId()) >> requestTeam
         1 * memberRepository.findByTeamAndUser(requestTeam, user) >> Optional.of(member)
+        if (requestTeam.getId() == team1.getId()) {
+            1 * quarterRepository.updateTeamAFormation(quarter.getId(), request.getFormation().toJsonString())
+        } else {
+            1 * quarterRepository.updateTeamBFormation(quarter.getId(), request.getFormation().toJsonString())
+        }
 
         when:
         service.updateQuarterFormation(match, quarter.getId(), request)

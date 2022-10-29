@@ -96,17 +96,7 @@ class TestUtil {
         def formation = new TeamFormation()
         formation.setTeamId(teamId)
         formation.setFormationName(formationName)
-        formation.setMemberInfo(Map.of(
-                "1", new Formation.MemberInfo(),
-                "2", new Formation.MemberInfo(),
-                "3", new Formation.MemberInfo(),
-                "4", new Formation.MemberInfo(),
-                "5", new Formation.MemberInfo(),
-                "6", new Formation.MemberInfo(),
-                "7", new Formation.MemberInfo(),
-                "8", new Formation.MemberInfo(),
-                "9", new Formation.MemberInfo()
-        ))
+        formation.setMemberInfo(Map.of())
         return formation
     }
 
