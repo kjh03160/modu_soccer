@@ -1,5 +1,6 @@
 package com.modu.soccer.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.modu.soccer.filter.LoggingFilter;
 import com.modu.soccer.jwt.JwtInterceptor;
 import com.modu.soccer.jwt.JwtProvider;
@@ -17,6 +18,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
 	private final JwtProvider jwtProvider;
 	private final UserRepository userRepository;
+	private final ObjectMapper mapper;
 
 	@Bean
 	public FilterRegistrationBean getFilterRegistrationBean() {
@@ -30,13 +32,13 @@ public class WebMvcConfig implements WebMvcConfigurer {
 	public void addInterceptors(InterceptorRegistry registry) {
 		registry.addInterceptor(jwtInterceptor())
 			.order(1)
-			.excludePathPatterns("**/favicon.ico", "/**/error", "/error-page/**",
+			.excludePathPatterns("**/favicon.ico", "/error-page/**",
 				"/api/v1/oauth/**", "/api/v1/user/token",
 				"/api/health");
 	}
 
 	@Bean
 	public JwtInterceptor jwtInterceptor() {
-		return new JwtInterceptor(userRepository, jwtProvider);
+		return new JwtInterceptor(userRepository, jwtProvider, mapper);
 	}
 }

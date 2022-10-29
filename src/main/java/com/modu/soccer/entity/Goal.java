@@ -47,6 +47,7 @@ public class Goal extends BaseEntity {
 	private User assistUser;
 
 	@Column(name = "is_own_goal")
+	@Builder.Default
 	private Boolean isOwnGoal = false;
 
 	@Column(name = "event_time")

@@ -70,7 +70,7 @@ public class JwtProvider {
 			return true;
 		} catch (MalformedJwtException | UnsupportedJwtException e) {
 			log.warn(e.getMessage());
-			throw new IllegalArgumentException("invalid jwt token");
+			throw new CustomException(ErrorCode.AUTHENTICATION_FAILED);
 		} catch (Exception e) {
 			log.error("token verifying error: {}", e.getMessage());
 			throw new CustomException(ErrorCode.UNKNOWN_ERROR);
