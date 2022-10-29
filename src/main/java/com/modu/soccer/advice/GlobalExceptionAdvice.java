@@ -44,14 +44,18 @@ public class GlobalExceptionAdvice {
 	@ExceptionHandler(value = {PropertyValueException.class})
 	protected ResponseEntity<ErrorResponse> handlePropertyValueException(PropertyValueException e) {
 		log.warn("PropertyValueException: {}", e.getMessage());
-		return ErrorResponse.toResponseEntity(INVALID_PARAM, "invalid param");
+		return ErrorResponse.toResponseEntity(INVALID_PARAM);
 	}
 
-	@ExceptionHandler(value = {IllegalArgumentException.class,
-		MethodArgumentTypeMismatchException.class})
+	@ExceptionHandler(value = {
+		IllegalArgumentException.class,
+		MethodArgumentTypeMismatchException.class,
+
+	})
 	protected ResponseEntity<ErrorResponse> handleIllegalArgumentException(
 		Exception e) {
-		return ErrorResponse.toResponseEntity(INVALID_PARAM, e.getMessage());
+		log.info(e.getMessage());
+		return ErrorResponse.toResponseEntity(INVALID_PARAM);
 	}
 
 	@ExceptionHandler(value = {HttpMessageNotReadableException.class})

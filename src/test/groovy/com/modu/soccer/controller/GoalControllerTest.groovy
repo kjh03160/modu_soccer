@@ -122,4 +122,64 @@ class GoalControllerTest extends Specification {
         "asd"       | 1l
         "Ads"       | "asd"
     }
+
+    def "getGoals"() {
+        given:
+        def scorer = TestUtil.getUser(1l, "email1")
+        def assistant = TestUtil.getUser(2l, "email2")
+        def team = TestUtil.getTeam(1l, "team", null)
+        def goal = TestUtil.getGoal(1l, team, null, scorer, assistant)
+
+        def url = String.format(GOAL_URL, String.valueOf(1l), String.valueOf(1l))
+
+        service.getGoalsOfQuarter(_) >> List.of(goal)
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.get(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn()
+                .getResponse()
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<List<GoalDto>>>(){})
+
+
+        then:
+        noExceptionThrown()
+        response.getCode() == 0
+        response.getContents().size() == 1
+        response.getContents().get(0).getGoalId() == goal.getId()
+        response.getContents().get(0).getAssistant().getName() == goal.getAssistUser().getName()
+        response.getContents().get(0).getScorer().getName() == goal.getScoringUser().getName()
+    }
+
+    @Unroll
+    def "getGoals - invalid path #match_id #quarter_id"() {
+        given:
+        def scorer = TestUtil.getUser(1l, "email1")
+        def assistant = TestUtil.getUser(2l, "email2")
+        def team = TestUtil.getTeam(1l, "team", null)
+        def goal = TestUtil.getGoal(1l, team, null, scorer, assistant)
+
+        def url = String.format(GOAL_URL, String.valueOf(match_id), String.valueOf(quarter_id))
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.get(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andReturn()
+                .getResponse()
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<List<GoalDto>>>(){})
+
+        then:
+        noExceptionThrown()
+        response.getCode() == ErrorCode.INVALID_PARAM.getCode()
+
+        where:
+        match_id    | quarter_id
+        1l          | "asd"
+        "asd"       | 1l
+        "Ads"       | "asd"
+    }
 }
