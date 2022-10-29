@@ -1,13 +1,18 @@
 package com.modu.soccer.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.modu.soccer.enums.FormationName;
 import com.modu.soccer.enums.Position;
+import com.modu.soccer.exception.CustomException;
+import com.modu.soccer.exception.ErrorCode;
 import java.util.Map;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Getter
 @Setter
 @NoArgsConstructor
@@ -30,17 +35,17 @@ public class Formation {
 		@JsonProperty("formation_name")
 		private FormationName formationName;
 		@JsonProperty("member_info")
-		private Map<String, MemberInfo> memberInfo = Map.of(
-			"1", new MemberInfo(),
-			"2", new MemberInfo(),
-			"3", new MemberInfo(),
-			"4", new MemberInfo(),
-			"5", new MemberInfo(),
-			"6", new MemberInfo(),
-			"7", new MemberInfo(),
-			"8", new MemberInfo(),
-			"9", new MemberInfo()
-		);
+		private Map<String, MemberInfo> memberInfo = Map.of();
+
+		public String toJsonString() {
+			ObjectMapper objectMapper = new ObjectMapper();
+			try{
+				return objectMapper.writeValueAsString(this);
+			} catch (Exception e) {
+				log.error(e.getMessage());
+				throw new CustomException(ErrorCode.UNKNOWN_ERROR);
+			}
+		}
 	}
 
 	@Getter

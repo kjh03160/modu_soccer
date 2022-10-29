@@ -73,10 +73,12 @@ public class QuarterService {
 		}
 
 		if (quarter.getFormation().getTeamA().getTeamId() == request.getFormation().getTeamId()) {
-			quarter.getFormation().setTeamA(request.getFormation());
+			quarterRepository
+				.updateTeamAFormation(quarterId, request.getFormation().toJsonString());
 		} else if (quarter.getFormation().getTeamB().getTeamId() == request.getFormation()
 			.getTeamId()) {
-			quarter.getFormation().setTeamB(request.getFormation());
+			quarterRepository
+				.updateTeamBFormation(quarterId, request.getFormation().toJsonString());
 		} else {
 			throw new IllegalArgumentException("invalid team id");
 		}
