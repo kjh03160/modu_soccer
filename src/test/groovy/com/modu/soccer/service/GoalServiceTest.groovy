@@ -139,4 +139,45 @@ class GoalServiceTest extends Specification {
         def e = thrown(CustomException)
         e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
     }
+
+    def "getGoalsOfQuarter" () {
+        given:
+        def scorer = TestUtil.getUser(1l, "email1")
+        def assistant = TestUtil.getUser(2l, "email2")
+        def team = TestUtil.getTeam(1l, "team", null)
+        def team2 = TestUtil.getTeam(2l, "team2", null)
+        def match = TestUtil.getMatch(1l, team, team2, scorer)
+        def quarter = TestUtil.getQuarter(1l, match, team, team2, 1, 2, 1)
+        def goal = TestUtil.getGoal(1l, team, null, scorer, assistant)
+
+        1 * quarterRepository.findById(quarter.getId()) >> Optional.of(quarter)
+        1 * goalRepository.findAllByQuarter(quarter) >> List.of(goal)
+
+        when:
+        def result = service.getGoalsOfQuarter(quarter.getId())
+
+        then:
+        noExceptionThrown()
+        result.size() == 1
+        result.get(0) == goal
+    }
+
+    def "getGoalsOfQuarter - quarter not found" () {
+        given:
+        def scorer = TestUtil.getUser(1l, "email1")
+        def team = TestUtil.getTeam(1l, "team", null)
+        def team2 = TestUtil.getTeam(2l, "team2", null)
+        def match = TestUtil.getMatch(1l, team, team2, scorer)
+        def quarter = TestUtil.getQuarter(1l, match, team, team2, 1, 2, 1)
+
+        1 * quarterRepository.findById(quarter.getId()) >> Optional.empty()
+        0 * goalRepository.findAllByQuarter(quarter)
+
+        when:
+        def result = service.getGoalsOfQuarter(quarter.getId())
+
+        then:
+        def e = thrown(CustomException)
+        e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
+    }
 }
