@@ -163,7 +163,7 @@ class TeamControllerTest extends Specification{
         response.getContents().getLocation().getLongitude() == request.getLongitude()
         response.getContents().getLocation().getLatitude() == request.getLatitude()
         response.getContents().getRecord().getTotal() == 0
-        response.getContents().getRecord().getWinRate() == 0
+        response.getContents().getRecord().getWinPercent() == 0
     }
 
     def "postTeam - 토큰 지남"() {

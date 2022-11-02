@@ -37,8 +37,12 @@ public class TeamRecord extends BaseEntity {
 	private Integer lose = 0;
 	@Column(nullable = false)
 	private Integer draw = 0;
-	@Column(nullable = false)
+	@Column(nullable = false, name = "win_rate")
 	private Double winRate = 0.0d;
+	@Column(nullable = false)
+	private Integer goals = 0;
+	@Column(nullable = false, name = "lost_goals")
+	private Integer lostGoals = 0;
 
 	public TeamRecord(Team team) {
 		this.team = team;
@@ -62,10 +66,12 @@ public class TeamRecord extends BaseEntity {
 		return Objects.hash(id);
 	}
 
-	public void increaseRecord(Integer win, Integer draw, Integer lose) {
+	public void updateRecord(Integer win, Integer draw, Integer lose, Integer goals, Integer lostGoals) {
 		this.win = this.win + win;
 		this.draw = this.draw + draw;
 		this.lose = this.win + lose;
+		this.goals = this.goals + goals;
+		this.lostGoals = this.lostGoals + lostGoals;
 		this.calculateWinRate();
 	}
 

@@ -17,7 +17,7 @@ public class TeamRecordService {
 	private final TeamRecordRepository recordRepository;
 
 	@Transactional(propagation = Propagation.MANDATORY)
-	public void updateTeamRecord(Long teamAId, Long teamBId, Integer scoreDifference) {
+	public void updateTeamRecord(Long teamAId, Long teamBId, Integer teamAScore, Integer teamBScore) {
 		TeamRecord teamARecord = recordRepository.findByTeamId(teamAId).orElseThrow(() -> {
 			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "record");
 		});
@@ -26,15 +26,16 @@ public class TeamRecordService {
 			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "record");
 		});
 
+		int scoreDifference = teamAScore - teamBScore;
 		if (scoreDifference > 0) {
-			teamARecord.increaseRecord(1, 0, 0);
-			teamBRecord.increaseRecord(0, 0, 1);
+			teamARecord.updateRecord(1, 0, 0, teamAScore, teamBScore);
+			teamBRecord.updateRecord(0, 0, 1, teamBScore, teamAScore);
 		} else if (scoreDifference == 0) {
-			teamARecord.increaseRecord(0, 1, 0);
-			teamBRecord.increaseRecord(0, 1, 0);
+			teamARecord.updateRecord(0, 1, 0, teamAScore, teamBScore);
+			teamBRecord.updateRecord(0, 1, 0, teamBScore, teamAScore);
 		} else {
-			teamARecord.increaseRecord(0, 0, 1);
-			teamBRecord.increaseRecord(1, 0, 0);
+			teamARecord.updateRecord(0, 0, 1, teamAScore, teamBScore);
+			teamBRecord.updateRecord(1, 0, 0, teamBScore, teamAScore);
 		}
 	}
 }

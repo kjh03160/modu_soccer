@@ -16,7 +16,7 @@ class TeamRecordServiceTest extends Specification {
     }
 
     @Unroll
-    def "updateTeamRecord scoreDiff: #scoreDiff"() {
+    def "updateTeamRecord teamAScore: #teamAScore, teamBScore: #teamBScore"() {
         given:
         def teamA = TestUtil.getTeam(1l, "teamA", null)
         def teamARecord = TestUtil.getTeamRecord(teamA)
@@ -27,13 +27,16 @@ class TeamRecordServiceTest extends Specification {
         1 * recordRepository.findByTeamId(teamB.getId()) >> Optional.of(teamBRecord)
 
         when:
-        service.updateTeamRecord(teamA.getId(), teamB.getId(), scoreDiff)
+        service.updateTeamRecord(teamA.getId(), teamB.getId(), teamAScore, teamBScore)
 
         then:
         noExceptionThrown()
 
         where:
-        scoreDiff << [1, 0, -1]
+        teamAScore | teamBScore
+        1          | 0
+        0          | 1
+        0          | 0
     }
 
     def "updateTeamRecord - teamA not found"() {
@@ -44,7 +47,7 @@ class TeamRecordServiceTest extends Specification {
         1 * recordRepository.findByTeamId(teamA.getId()) >> Optional.empty()
 
         when:
-        service.updateTeamRecord(teamA.getId(), teamB.getId(), 1)
+        service.updateTeamRecord(teamA.getId(), teamB.getId(), 1, 1)
 
         then:
         def e = thrown(CustomException)
@@ -61,7 +64,7 @@ class TeamRecordServiceTest extends Specification {
         1 * recordRepository.findByTeamId(teamB.getId()) >> Optional.empty()
 
         when:
-        service.updateTeamRecord(teamA.getId(), teamB.getId(), 1)
+        service.updateTeamRecord(teamA.getId(), teamB.getId(), 1, 1)
 
         then:
         def e = thrown(CustomException)
