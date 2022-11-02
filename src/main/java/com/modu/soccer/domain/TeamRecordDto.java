@@ -23,16 +23,7 @@ public class TeamRecordDto {
 			.draw(record.getDraw())
 			.lose(record.getLose())
 			.total(record.getWin() + record.getDraw() + record.getLose())
-			.winRate(calculateWinRate(record))
+			.winRate((int) Math.round(record.getWinRate() * 100))
 			.build();
-	}
-
-	private static Integer calculateWinRate(TeamRecord record) {
-		int total = record.getWin() + record.getLose() + record.getDraw();
-		if (total == 0) {
-			return 0;
-		}
-		float rate = record.getWin() / (float) total;
-		return Math.round(rate * 100);
 	}
 }

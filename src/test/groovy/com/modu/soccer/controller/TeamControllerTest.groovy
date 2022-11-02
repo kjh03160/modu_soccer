@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.modu.soccer.TestUtil
 import com.modu.soccer.domain.ApiResponse
 import com.modu.soccer.domain.TeamDto
+import com.modu.soccer.domain.TeamRecordDto
 import com.modu.soccer.domain.request.TeamRequest
 import com.modu.soccer.entity.Team
 import com.modu.soccer.entity.TeamRecord
@@ -217,5 +218,32 @@ class TeamControllerTest extends Specification{
 
         then:
         response.getCode() == ErrorCode.AUTHENTICATION_FAILED.getCode()
+    }
+
+    def "getTeamRecord"() {
+        def user = UserContextUtil.getCurrentUser()
+
+        given:
+        def token = jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)
+        def team = Team.builder()
+                .id(1l)
+                .owner(user)
+                .record(new TeamRecord())
+                .build();
+        teamService.getTeamById(_) >> team
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.get(TEAM_CREATE + "/1/record")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn()
+                .getResponse()
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<TeamRecordDto>>(){})
+
+        then:
+        noExceptionThrown()
+        response.getCode() == 0
+        response.getContents() != null
     }
 }
