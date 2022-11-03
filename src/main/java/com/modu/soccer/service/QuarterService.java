@@ -41,9 +41,8 @@ public class QuarterService {
 			.formation(formation)
 			.build();
 
-		Integer scoreDiff = request.getTeamAScore() - request.getTeamBScore();
 		recordService.updateTeamRecord(match.getTeamA().getId(), match.getTeamB().getId(),
-			scoreDiff);
+			quarter.getTeamAScore(), quarter.getTeamBScore());
 		return quarterRepository.save(quarter);
 	}
 

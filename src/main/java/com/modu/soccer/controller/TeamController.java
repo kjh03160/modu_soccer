@@ -2,6 +2,7 @@ package com.modu.soccer.controller;
 
 import com.modu.soccer.domain.ApiResponse;
 import com.modu.soccer.domain.TeamDto;
+import com.modu.soccer.domain.TeamRecordDto;
 import com.modu.soccer.domain.request.TeamRequest;
 import com.modu.soccer.entity.Team;
 import com.modu.soccer.service.TeamService;
@@ -24,9 +25,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class TeamController {
 	private final TeamService teamService;
 
-	@GetMapping("/{id}")
-	public ApiResponse<?> getTeam(@PathVariable long id) {
-		Team team = teamService.getTeamWithOwner(id);
+	@GetMapping("/{team_id}")
+	public ApiResponse<?> getTeam(@PathVariable("team_id") long teamId) {
+		Team team = teamService.getTeamWithOwner(teamId);
 		return ApiResponse.withBody(TeamDto.fromEntity(team));
 	}
 
@@ -36,4 +37,11 @@ public class TeamController {
 		Team result = teamService.createTeam(UserContextUtil.getCurrentUser(), request);
 		return ApiResponse.withBody(TeamDto.fromEntity(result));
 	}
+
+	@GetMapping("/{team_id}/record")
+	public ApiResponse<?> getTeamRecord(@PathVariable("team_id") long teamId) {
+		Team team = teamService.getTeamById(teamId);
+		return ApiResponse.withBody(TeamRecordDto.fromEntity(team.getRecord()));
+	}
+
 }

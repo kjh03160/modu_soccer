@@ -36,7 +36,7 @@ class QuarterServiceTest extends Specification {
         def teamB = TestUtil.getTeam(2l, "teamB", null)
         def match = TestUtil.getMatch(1l, teamA, teamB, null)
 
-        1 * teamRecordService.updateTeamRecord(teamA.getId(), teamB.getId(), 1)
+        1 * teamRecordService.updateTeamRecord(teamA.getId(), teamB.getId(), request.getTeamAScore(), request.getTeamBScore())
         1 * quarterRepository.save(_)
 
         when:
