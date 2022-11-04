@@ -46,9 +46,11 @@ public class JwtInterceptor implements HandlerInterceptor {
 			});
 			UserContextUtil.setUser(user);
 		} catch (CustomException e) {
+			log.error(e.getMessage());
 			handleCustomException(request, response, e);
 			return false;
 		} catch (Exception e) {
+			log.error("jwt interceptor raise unknown exception: {}", e.getMessage());
 			handleException(request, response, e);
 			return false;
 		}
