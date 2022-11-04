@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.modu.soccer.TestUtil
 import com.modu.soccer.domain.ApiResponse
+import com.modu.soccer.domain.RankMemberDto
 import com.modu.soccer.domain.TeamDto
 import com.modu.soccer.domain.TeamRecordDto
 import com.modu.soccer.domain.request.TeamRequest
@@ -14,6 +15,7 @@ import com.modu.soccer.exception.CustomException
 import com.modu.soccer.exception.ErrorCode
 import com.modu.soccer.jwt.JwtProvider
 import com.modu.soccer.repository.UserRepository
+import com.modu.soccer.service.TeamMemberService
 import com.modu.soccer.service.TeamService
 import com.modu.soccer.utils.GeoUtil
 import com.modu.soccer.utils.UserContextUtil
@@ -21,6 +23,7 @@ import org.spockframework.spring.SpringBean
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.test.context.TestPropertySource
@@ -28,6 +31,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import spock.lang.Specification
+import spock.lang.Unroll
 
 @WebMvcTest(controllers = [TeamController, JwtProvider])
 @AutoConfigureMockMvc
@@ -43,6 +47,8 @@ class TeamControllerTest extends Specification{
     protected MockMvc mvc
     @SpringBean
     private final TeamService teamService = Stub();
+    @SpringBean
+    private final TeamMemberService memberService = Stub()
     @SpringBean
     private UserRepository userRepository= Stub();
     @Autowired
@@ -246,4 +252,45 @@ class TeamControllerTest extends Specification{
         response.getCode() == 0
         response.getContents() != null
     }
+
+
+    @Unroll
+    def "getTeamTopMember - #type"() {
+        def user = UserContextUtil.getCurrentUser()
+
+        given:
+        def token = jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)
+        def team = Team.builder()
+                .id(1l)
+                .owner(user)
+                .record(new TeamRecord())
+                .build();
+        def teamMember = TestUtil.getTeamMember(1l, user, team)
+        def pageRequest = PageRequest.of(0, 5)
+        def ranks = Map.of(teamMember, 1)
+        def url = String.format(TEAM_CREATE + "/1/ranks?type=%s", type)
+
+        teamService.getTeamById(_) >> team
+        memberService.getRankMembers(team, pageRequest, _) >> ranks
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.get(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn()
+                .getResponse()
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<List<RankMemberDto>>>(){})
+
+        then:
+        noExceptionThrown()
+        response.getCode() == 0
+        response.getContents() != null
+        response.getContents().size() == 1
+        response.getContents().get(0).getUserId() == user.getId()
+
+        where:
+        type << ["goal", "assist"]
+    }
+
 }
