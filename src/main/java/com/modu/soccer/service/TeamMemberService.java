@@ -6,15 +6,22 @@ import com.modu.soccer.domain.request.TeamMemberPutRequest;
 import com.modu.soccer.entity.Team;
 import com.modu.soccer.entity.TeamMember;
 import com.modu.soccer.entity.User;
+import com.modu.soccer.entity.Ranking;
 import com.modu.soccer.enums.AcceptStatus;
+import com.modu.soccer.enums.RankType;
 import com.modu.soccer.exception.CustomException;
 import com.modu.soccer.exception.ErrorCode;
+import com.modu.soccer.repository.GoalRepository;
 import com.modu.soccer.repository.TeamMemberRepository;
 import com.modu.soccer.repository.TeamRepository;
+import com.modu.soccer.repository.UserRepository;
 import com.modu.soccer.utils.UserContextUtil;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +32,8 @@ public class TeamMemberService {
 
 	private final TeamMemberRepository memberRepository;
 	private final TeamRepository teamRepository;
+	private final GoalRepository goalRepository;
+	private final UserRepository userRepository;
 
 	@Transactional(readOnly = true)
 	public List<TeamMember> getTeamMembers(Long teamId, AcceptStatus status) {
@@ -109,10 +118,43 @@ public class TeamMemberService {
 		}
 	}
 
+	public Map<TeamMember, Integer> getRankMembers(Team team, PageRequest pageRequest, RankType type) {
+		List<Ranking> result;
+		switch (type) {
+			case GOAL ->
+				result = goalRepository.findScoreUserIdsByTeamId(
+					team.getId(), pageRequest.getPageSize(), (int) pageRequest.getOffset());
+			case ASSIST ->
+				result = goalRepository.findAssistUserIdsByTeamId(
+					team.getId(), pageRequest.getPageSize(), (int) pageRequest.getOffset());
+			default -> throw new IllegalArgumentException("unknown rank type");
+		}
+
+		List<User> users = result.stream()
+			.map(r -> userRepository.getReferenceById(r.getUserId())).toList();
+
+		List<TeamMember> members = memberRepository.findByTeamAndUserIn(team, users);
+		return mappingTeamMember(result, members);
+	}
+
 	private boolean canMemberManage(Team team, User user) {
 		TeamMember member = memberRepository.findByTeamAndUser(team, user).orElseThrow(() -> {
 			throw new CustomException(ErrorCode.FORBIDDEN);
 		});
 		return member.hasManagePermission();
+	}
+
+	private Map<TeamMember, Integer> mappingTeamMember(
+		List<Ranking> result, List<TeamMember> members) {
+		Map<TeamMember, Integer> map = new HashMap<>();
+		for (Ranking g : result) {
+			for (TeamMember member: members) {
+				if (g.getUserId() == member.getUser().getId()) {
+					map.put(member, g.getCount());
+					break;
+				}
+			}
+		}
+		return map;
 	}
 }
