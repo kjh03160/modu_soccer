@@ -9,6 +9,7 @@ import com.modu.soccer.exception.CustomException
 import com.modu.soccer.exception.ErrorCode
 import com.modu.soccer.jwt.JwtProvider
 import com.modu.soccer.repository.UserRepository
+import com.modu.soccer.utils.UserContextUtil
 import org.springframework.dao.DataIntegrityViolationException
 import spock.lang.Specification
 
@@ -228,5 +229,19 @@ class AuthServiceTest extends Specification {
         then:
         def e = thrown(CustomException)
         e.getErrorCode() == ErrorCode.REFRESH_TOKEN_EXPIRED
+    }
+
+    def "logoutCurrentUser"() {
+        given:
+        def u = TestUtil.getUser(1l, "email")
+        UserContextUtil.setUser(u)
+
+        when:
+        service.logoutCurrentUser()
+
+        then:
+        noExceptionThrown()
+        u.getRefreshToken() == null
+        UserContextUtil.clear()
     }
 }

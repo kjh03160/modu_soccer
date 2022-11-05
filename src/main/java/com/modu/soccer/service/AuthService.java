@@ -7,6 +7,7 @@ import com.modu.soccer.exception.CustomException;
 import com.modu.soccer.exception.ErrorCode;
 import com.modu.soccer.jwt.JwtProvider;
 import com.modu.soccer.repository.UserRepository;
+import com.modu.soccer.utils.UserContextUtil;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,5 +64,11 @@ public class AuthService {
 		}
 		user.setRefreshToken(jwtProvider.createTokenOfType(user, TokenType.AUTH_REFRESH_TOKEN));
 		return user;
+	}
+
+	@Transactional
+	public void logoutCurrentUser() {
+		User currentUser = UserContextUtil.getCurrentUser();
+		currentUser.setRefreshToken(null);
 	}
 }
