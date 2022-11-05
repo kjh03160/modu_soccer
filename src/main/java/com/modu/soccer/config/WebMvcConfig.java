@@ -5,10 +5,12 @@ import com.modu.soccer.filter.LoggingFilter;
 import com.modu.soccer.jwt.JwtInterceptor;
 import com.modu.soccer.jwt.JwtProvider;
 import com.modu.soccer.repository.UserRepository;
+import com.modu.soccer.utils.RankTypeConverter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -19,6 +21,11 @@ public class WebMvcConfig implements WebMvcConfigurer {
 	private final JwtProvider jwtProvider;
 	private final UserRepository userRepository;
 	private final ObjectMapper mapper;
+
+	@Override
+	public void addFormatters(FormatterRegistry registry) {
+		registry.addConverter(new RankTypeConverter());
+	}
 
 	@Bean
 	public FilterRegistrationBean getFilterRegistrationBean() {

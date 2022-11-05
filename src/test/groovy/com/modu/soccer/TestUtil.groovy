@@ -119,4 +119,18 @@ class TestUtil {
         request.setIsOwnGoal(false)
         return request
     }
+
+    static def getRankResult(userId, count) {
+        return new Ranking() {
+            @Override
+            Long getUserId() {
+                return userId
+            }
+
+            @Override
+            Integer getCount() {
+                return count
+            }
+        }
+    }
 }
