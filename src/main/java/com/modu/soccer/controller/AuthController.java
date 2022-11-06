@@ -53,6 +53,12 @@ public class AuthController {
 		return ApiResponse.withBody(
 			AuthenticateResponse.of(user, jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)));
 	}
+
+	@GetMapping("/user/logout")
+	public ApiResponse<?> logout() {
+		authService.logoutCurrentUser();
+		return ApiResponse.ok();
+	}
 }
 
 
