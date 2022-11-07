@@ -62,6 +62,8 @@ class UserControllerTest extends Specification {
     def "getCurrentUserInfo"() {
         given:
         def team = TestUtil.getTeam(1l, "team", null)
+        def teamRecord = TestUtil.getTeamRecord(team)
+        team.setRecord(teamRecord)
         def url = USER_API + "/me"
 
         teamService.getTeamsOfUser(user) >> [team]
@@ -88,6 +90,8 @@ class UserControllerTest extends Specification {
     def "getUserInfo"() {
         given:
         def team = TestUtil.getTeam(1l, "team", null)
+        def teamRecord = TestUtil.getTeamRecord(team)
+        team.setRecord(teamRecord)
         def url = String.format(USER_API + "/%s", String.valueOf(user.getId()))
 
         userService.getUser(user.getId()) >> user
