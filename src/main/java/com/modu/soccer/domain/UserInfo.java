@@ -5,13 +5,16 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.modu.soccer.entity.Team;
 import com.modu.soccer.entity.User;
 import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
+@NoArgsConstructor
 @SuperBuilder
 @JsonNaming(SnakeCaseStrategy.class)
 public class UserInfo extends UserDto {
@@ -19,6 +22,8 @@ public class UserInfo extends UserDto {
 
 	@Getter
 	@Builder
+	@NoArgsConstructor
+	@AllArgsConstructor
 	@JsonNaming(SnakeCaseStrategy.class)
 	static class TeamSummary {
 		private Long teamId;

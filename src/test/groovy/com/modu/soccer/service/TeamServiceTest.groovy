@@ -4,6 +4,7 @@ import com.modu.soccer.TestUtil
 import com.modu.soccer.domain.request.TeamRequest
 import com.modu.soccer.entity.Team
 import com.modu.soccer.entity.TeamRecord
+import com.modu.soccer.enums.AcceptStatus
 import com.modu.soccer.exception.CustomException
 import com.modu.soccer.exception.ErrorCode
 import com.modu.soccer.repository.TeamMemberRepository
@@ -102,5 +103,22 @@ class TeamServiceTest extends Specification {
         then:
         def e = thrown(CustomException)
         e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
+    }
+
+    def "getTeamsOfUser"() {
+        given:
+        def u = TestUtil.getUser(1l, "email")
+        def team = TestUtil.getTeam(1, "name", u)
+        def teamMember = TestUtil.getTeamMember(1l, u, team)
+
+        teamMemberRepository.findAllByUserAndAcceptStatus(u, AcceptStatus.ACCEPTED) >> [teamMember]
+
+        when:
+        def result = service.getTeamsOfUser(u)
+
+        then:
+        noExceptionThrown()
+        result.size() == 1
+        result.get(0) == team
     }
 }

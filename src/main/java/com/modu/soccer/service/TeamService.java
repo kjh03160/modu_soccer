@@ -64,7 +64,7 @@ public class TeamService {
 		});
 	}
 
-	public List<Team> getTeamOfUser(User user) {
+	public List<Team> getTeamsOfUser(User user) {
 		return teamMemberRepository.findAllByUserAndAcceptStatus(user, AcceptStatus.ACCEPTED)
 			.stream().map(TeamMember::getTeam).toList();
 	}

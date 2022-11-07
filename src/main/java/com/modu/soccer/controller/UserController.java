@@ -24,14 +24,14 @@ public class UserController {
 	@GetMapping("/me")
 	public ApiResponse<?> getCurrentUserInfo() {
 		User user = UserContextUtil.getCurrentUser();
-		List<Team> teams = teamService.getTeamOfUser(user);
+		List<Team> teams = teamService.getTeamsOfUser(user);
 		return ApiResponse.withBody(UserInfo.of(user, teams));
 	}
 
 	@GetMapping("/{user_id}")
 	public ApiResponse<?> getUserInfo(@PathVariable("user_id") long userId) {
 		User user = userService.getUser(userId);
-		List<Team> teams = teamService.getTeamOfUser(user);
+		List<Team> teams = teamService.getTeamsOfUser(user);
 		return ApiResponse.withBody(UserInfo.of(user, teams));
 	}
 }
