@@ -15,6 +15,7 @@ import com.modu.soccer.repository.TeamRecordRepository;
 import com.modu.soccer.repository.TeamRepository;
 import com.modu.soccer.repository.UserRepository;
 import com.modu.soccer.utils.GeoUtil;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -61,5 +62,10 @@ public class TeamService {
 		return teamRepository.findById(teamId).orElseThrow(() -> {
 			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "team");
 		});
+	}
+
+	public List<Team> getTeamOfUser(User user) {
+		return teamMemberRepository.findAllByUserAndAcceptStatus(user, AcceptStatus.ACCEPTED)
+			.stream().map(TeamMember::getTeam).toList();
 	}
 }

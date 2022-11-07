@@ -16,6 +16,9 @@ public interface TeamMemberRepository extends JpaRepository<TeamMember, Long> {
 	Optional<TeamMember> findByTeamAndUser(Team team, User user);
 	List<TeamMember> findByTeamAndUserIn(Team team, List<User> users);
 	List<TeamMember> findByUserAndTeamIn(User user, List<Team> teams);
+	@EntityGraph(attributePaths = {"team", "team.record"})
+	List<TeamMember> findAllByUserAndAcceptStatus(User user, AcceptStatus status);
+
 	@EntityGraph(attributePaths = {"user"})
 	List<TeamMember> findAllByTeamAndAcceptStatus(Team team, AcceptStatus status);
 }
