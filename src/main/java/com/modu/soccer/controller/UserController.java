@@ -1,7 +1,7 @@
 package com.modu.soccer.controller;
 
 import com.modu.soccer.domain.ApiResponse;
-import com.modu.soccer.domain.UserDto;
+import com.modu.soccer.domain.UserInfo;
 import com.modu.soccer.entity.Team;
 import com.modu.soccer.entity.User;
 import com.modu.soccer.service.TeamService;
@@ -25,13 +25,13 @@ public class UserController {
 	public ApiResponse<?> getCurrentUserInfo() {
 		User user = UserContextUtil.getCurrentUser();
 		List<Team> teams = teamService.getTeamOfUser(user);
-		return ApiResponse.withBody(UserDto.of(user, teams));
+		return ApiResponse.withBody(UserInfo.of(user, teams));
 	}
 
 	@GetMapping("/{user_id}")
 	public ApiResponse<?> getUserInfo(@PathVariable("user_id") long userId) {
 		User user = userService.getUser(userId);
 		List<Team> teams = teamService.getTeamOfUser(user);
-		return ApiResponse.withBody(UserDto.of(user, teams));
+		return ApiResponse.withBody(UserInfo.of(user, teams));
 	}
 }
