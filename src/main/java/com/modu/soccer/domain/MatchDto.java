@@ -2,7 +2,6 @@ package com.modu.soccer.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.modu.soccer.entity.Match;
-import com.modu.soccer.entity.Team;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,27 +19,6 @@ public class MatchDto {
 	private TeamInfo teamB;
 	@JsonProperty("match_date")
 	private LocalDateTime matchDate;
-
-	@Getter
-	@Builder
-	@NoArgsConstructor
-	@AllArgsConstructor
-	static class TeamInfo {
-		@JsonProperty("team_id")
-		private Long teamId;
-		private String logo;
-		private String name;
-		private TeamRecordDto record;
-
-		static TeamInfo fromEntity(Team team) {
-			return TeamInfo.builder()
-				.teamId(team.getId())
-				.logo(team.getLogoUrl())
-				.record(TeamRecordDto.fromEntity(team.getRecord()))
-				.name(team.getName())
-				.build();
-		}
-	}
 
 	public static MatchDto fromEntity(Match match) {
 		return MatchDto.builder()
