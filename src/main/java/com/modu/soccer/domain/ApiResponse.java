@@ -31,7 +31,7 @@ public class ApiResponse<T> {
 	}
 
 	public static <T> ApiResponse<?> withBody(T body) {
-		ApiResponse<T> response = new ApiResponse<T>();
+		ApiResponse<T> response = new ApiResponse<>();
 		response.code = SUCCESS_STATUS;
 		response.message = SUCCESS_MESSAGE;
 		response.contents = body;
