@@ -7,6 +7,7 @@ import com.modu.soccer.domain.ApiResponse
 import com.modu.soccer.domain.RankMemberDto
 import com.modu.soccer.domain.TeamDto
 import com.modu.soccer.domain.TeamRecordDto
+import com.modu.soccer.domain.request.TeamEditRequest
 import com.modu.soccer.domain.request.TeamRequest
 import com.modu.soccer.entity.Team
 import com.modu.soccer.entity.TeamRecord
@@ -41,7 +42,7 @@ import spock.lang.Unroll
         "jwt.expire_in.refresh_token=86400000"]
 )
 class TeamControllerTest extends Specification{
-    private final String TEAM_CREATE = "/api/v1/teams";
+    private final String TEAM_API = "/api/v1/teams";
     private ObjectMapper objectMapper = new ObjectMapper();
     @Autowired
     protected MockMvc mvc
@@ -78,7 +79,7 @@ class TeamControllerTest extends Specification{
         teamService.getTeamWithOwner(_) >> team
 
         when:
-        def result = mvc.perform(MockMvcRequestBuilders.get(TEAM_CREATE + "/1")
+        def result = mvc.perform(MockMvcRequestBuilders.get(TEAM_API + "/1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -102,7 +103,7 @@ class TeamControllerTest extends Specification{
         teamService.getTeamWithOwner(_) >> {throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND)}
 
         when:
-        def result = mvc.perform(MockMvcRequestBuilders.get(TEAM_CREATE + "/1")
+        def result = mvc.perform(MockMvcRequestBuilders.get(TEAM_API + "/1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(MockMvcResultMatchers.status().isNotFound())
@@ -122,7 +123,7 @@ class TeamControllerTest extends Specification{
         def token = jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)
 
         when:
-        def result = mvc.perform(MockMvcRequestBuilders.get(TEAM_CREATE + "/asd")
+        def result = mvc.perform(MockMvcRequestBuilders.get(TEAM_API + "/asd")
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
@@ -151,7 +152,7 @@ class TeamControllerTest extends Specification{
         teamService.createTeam(_, _) >> team
 
         when:
-        def result = mvc.perform(MockMvcRequestBuilders.post(TEAM_CREATE)
+        def result = mvc.perform(MockMvcRequestBuilders.post(TEAM_API)
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .content(objectMapper.writeValueAsString(request)))
@@ -187,7 +188,7 @@ class TeamControllerTest extends Specification{
         teamService.createTeam(_, _) >> team
 
         when:
-        def result = mvc.perform(MockMvcRequestBuilders.post(TEAM_CREATE)
+        def result = mvc.perform(MockMvcRequestBuilders.post(TEAM_API)
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + expiredToken)
                 .content(objectMapper.writeValueAsString(request)))
@@ -214,7 +215,7 @@ class TeamControllerTest extends Specification{
         teamService.createTeam(_, _) >> team
 
         when:
-        def result = mvc.perform(MockMvcRequestBuilders.post(TEAM_CREATE)
+        def result = mvc.perform(MockMvcRequestBuilders.post(TEAM_API)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(MockMvcResultMatchers.status().isUnauthorized())
@@ -224,6 +225,55 @@ class TeamControllerTest extends Specification{
 
         then:
         response.getCode() == ErrorCode.AUTHENTICATION_FAILED.getCode()
+    }
+
+    def "putTeam"() {
+        def request = new TeamEditRequest("name", "logo_url", 1.1, 1.2)
+        def user = UserContextUtil.getCurrentUser()
+
+        given:
+        def token = jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)
+        def teamId = 1l
+        def url = TEAM_API + "/" + String.valueOf(teamId)
+
+        teamService.editTeam(teamId, request) >> null
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.put(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn()
+                .getResponse()
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<?>>(){})
+
+        then:
+        noExceptionThrown()
+        response.getCode() == 0
+    }
+
+    def "putTeam - invalid team id"() {
+        def request = new TeamEditRequest("name", "logo_url", 1.1, 1.2)
+        def user = UserContextUtil.getCurrentUser()
+
+        given:
+        def token = jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)
+        def url = TEAM_API + "/fdas"
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.put(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andReturn()
+                .getResponse()
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<?>>(){})
+
+        then:
+        noExceptionThrown()
+        response.getCode() == ErrorCode.INVALID_PARAM.getCode()
     }
 
     def "getTeamRecord"() {
@@ -239,7 +289,7 @@ class TeamControllerTest extends Specification{
         teamService.getTeamById(_) >> team
 
         when:
-        def result = mvc.perform(MockMvcRequestBuilders.get(TEAM_CREATE + "/1/record")
+        def result = mvc.perform(MockMvcRequestBuilders.get(TEAM_API + "/1/record")
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -268,7 +318,7 @@ class TeamControllerTest extends Specification{
         def teamMember = TestUtil.getTeamMember(1l, user, team)
         def pageRequest = PageRequest.of(0, 5)
         def ranks = Map.of(teamMember, 1)
-        def url = String.format(TEAM_CREATE + "/1/ranks?type=%s", type)
+        def url = String.format(TEAM_API + "/1/ranks?type=%s", type)
 
         teamService.getTeamById(_) >> team
         memberService.getRankMembers(team, pageRequest, _) >> ranks

@@ -1,5 +1,6 @@
 package com.modu.soccer.service;
 
+import com.modu.soccer.domain.request.TeamEditRequest;
 import com.modu.soccer.domain.request.TeamRequest;
 import com.modu.soccer.entity.Team;
 import com.modu.soccer.entity.TeamMember;
@@ -15,6 +16,7 @@ import com.modu.soccer.repository.TeamRecordRepository;
 import com.modu.soccer.repository.TeamRepository;
 import com.modu.soccer.repository.UserRepository;
 import com.modu.soccer.utils.GeoUtil;
+import com.modu.soccer.utils.UserContextUtil;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,6 +64,24 @@ public class TeamService {
 		return teamRepository.findById(teamId).orElseThrow(() -> {
 			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "team");
 		});
+	}
+
+	@Transactional
+	public void editTeam(Long teamId, TeamEditRequest request) {
+		Team team = getTeamById(teamId);
+		User currentUser = UserContextUtil.getCurrentUser();
+
+		TeamMember member = teamMemberRepository.findByTeamAndUser(team, currentUser)
+			.orElseThrow(() -> {
+				throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "team member");
+			});
+		if (!member.hasManagePermission()) {
+			throw new CustomException(ErrorCode.NO_PERMISSION_ON_TEAM);
+		}
+
+		team.setName(request.getName());
+		team.setLocation(GeoUtil.createPoint(request.getLongitude(), request.getLatitude()));
+		team.setLogoUrl(request.getLogoUrl());
 	}
 
 	public List<Team> getTeamsOfUser(User user) {
