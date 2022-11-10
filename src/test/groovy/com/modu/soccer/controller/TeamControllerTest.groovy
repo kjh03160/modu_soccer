@@ -16,6 +16,7 @@ import com.modu.soccer.exception.CustomException
 import com.modu.soccer.exception.ErrorCode
 import com.modu.soccer.jwt.JwtProvider
 import com.modu.soccer.repository.UserRepository
+import com.modu.soccer.service.S3UploadService
 import com.modu.soccer.service.TeamMemberService
 import com.modu.soccer.service.TeamService
 import com.modu.soccer.utils.GeoUtil
@@ -27,9 +28,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
+import org.springframework.mock.web.MockMultipartFile
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+import org.springframework.test.web.servlet.request.RequestPostProcessor
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -52,6 +55,8 @@ class TeamControllerTest extends Specification{
     private final TeamMemberService memberService = Stub()
     @SpringBean
     private UserRepository userRepository= Stub();
+    @SpringBean
+    private S3UploadService s3UploadService = Stub()
     @Autowired
     private JwtProvider jwtProvider;
 
@@ -137,10 +142,12 @@ class TeamControllerTest extends Specification{
     }
 
     def "postTeam"() {
-        def request = new TeamRequest("name", "logo_url", 1.1, 1.2)
         def user = UserContextUtil.getCurrentUser()
 
         given:
+        def image = TestUtil.getTestImage()
+        def request = new TeamRequest("name", "logo_url", 1.1, 1.2)
+        def logoUrl = "testLogoUrl"
         def token = jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)
         def team = Team.builder()
                 .id(1l)
@@ -149,13 +156,18 @@ class TeamControllerTest extends Specification{
                 .name(request.getName())
                 .record(new TeamRecord())
                 .build();
+        def requestString = objectMapper.writeValueAsString(request)
+        def jsonFile = new MockMultipartFile("team", "", "application/json", requestString.getBytes());
+
+        s3UploadService.uploadFile(_) >> logoUrl
         teamService.createTeam(_, _) >> team
 
         when:
-        def result = mvc.perform(MockMvcRequestBuilders.post(TEAM_API)
-                .contentType(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .content(objectMapper.writeValueAsString(request)))
+        def result = mvc.perform(MockMvcRequestBuilders.multipart(TEAM_API)
+                .file(image)
+                .file(jsonFile)
+                .contentType("multipart/mixed")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(MockMvcResultMatchers.status().isCreated())
                 .andReturn()
                 .getResponse()
@@ -228,7 +240,7 @@ class TeamControllerTest extends Specification{
     }
 
     def "putTeam"() {
-        def request = new TeamEditRequest("name", "logo_url", 1.1, 1.2)
+        def request = new TeamEditRequest("name", 1.1, 1.2)
         def user = UserContextUtil.getCurrentUser()
 
         given:
@@ -254,7 +266,7 @@ class TeamControllerTest extends Specification{
     }
 
     def "putTeam - invalid team id"() {
-        def request = new TeamEditRequest("name", "logo_url", 1.1, 1.2)
+        def request = new TeamEditRequest("name", 1.1, 1.2)
         def user = UserContextUtil.getCurrentUser()
 
         given:
@@ -274,6 +286,37 @@ class TeamControllerTest extends Specification{
         then:
         noExceptionThrown()
         response.getCode() == ErrorCode.INVALID_PARAM.getCode()
+    }
+
+    def "editTeamLogo"() {
+        def user = UserContextUtil.getCurrentUser()
+
+        given:
+        def image = TestUtil.getTestImage()
+        def token = jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)
+
+        s3UploadService.uploadFile(_) >> ""
+        teamService.updateTeamLogo(_, _) >> null
+        when:
+
+        RequestPostProcessor requestPostProcessor = request -> {
+            request.setMethod("PUT");
+            return request;
+        };
+
+        def result = mvc.perform(MockMvcRequestBuilders.multipart(TEAM_API + "/1/logo")
+                .with(requestPostProcessor)
+                .file(image)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn()
+                .getResponse()
+
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<TeamDto>>(){})
+
+        then:
+        noExceptionThrown()
+        response.getCode() == 0
     }
 
     def "getTeamRecord"() {
