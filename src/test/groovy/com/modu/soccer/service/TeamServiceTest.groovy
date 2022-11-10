@@ -1,10 +1,12 @@
 package com.modu.soccer.service
 
 import com.modu.soccer.TestUtil
+import com.modu.soccer.domain.request.TeamEditRequest
 import com.modu.soccer.domain.request.TeamRequest
 import com.modu.soccer.entity.Team
 import com.modu.soccer.entity.TeamRecord
 import com.modu.soccer.enums.AcceptStatus
+import com.modu.soccer.enums.Permission
 import com.modu.soccer.exception.CustomException
 import com.modu.soccer.exception.ErrorCode
 import com.modu.soccer.repository.TeamMemberRepository
@@ -103,6 +105,87 @@ class TeamServiceTest extends Specification {
         then:
         def e = thrown(CustomException)
         e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
+    }
+
+    def "editTeam - permission #permission"() {
+        given:
+        def request = new TeamEditRequest("name", "logo_url", 1.1, 1.1)
+        def team = TestUtil.getTeam(1l, "name1", null)
+        def user = UserContextUtil.getCurrentUser()
+        def member = TestUtil.getTeamMember(1l, user, team)
+        member.setPermission(permission)
+
+        1 * teamRepository.findById(team.getId()) >> Optional.of(team)
+        1 * teamMemberRepository.findByTeamAndUser(team, user) >> Optional.of(member)
+
+        when:
+        service.editTeam(team.getId(), request)
+
+        then:
+        noExceptionThrown()
+        team.getName() == request.getName()
+        team.getLocation().getX() == request.getLongitude()
+        team.getLocation().getY() == request.getLatitude()
+
+        where:
+        permission << [Permission.ADMIN, Permission.MANAGER]
+    }
+
+    def "editTeam - no team"() {
+        given:
+        def request = new TeamEditRequest("name", "logo_url", 1.1, 1.1)
+        def team = TestUtil.getTeam(1l, "name1", null)
+        def user = UserContextUtil.getCurrentUser()
+
+        1 * teamRepository.findById(team.getId()) >> Optional.empty()
+        0 * teamMemberRepository.findByTeamAndUser(team, user)
+
+        when:
+        service.editTeam(team.getId(), request)
+
+        then:
+        def e = thrown(CustomException)
+        e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
+    }
+
+    def "editTeam - no member"() {
+        given:
+        def request = new TeamEditRequest("name", "logo_url", 1.1, 1.1)
+        def team = TestUtil.getTeam(1l, "name1", null)
+        def user = UserContextUtil.getCurrentUser()
+
+        1 * teamRepository.findById(team.getId()) >> Optional.of(team)
+        1 * teamMemberRepository.findByTeamAndUser(team, user) >> Optional.empty()
+
+        when:
+        service.editTeam(team.getId(), request)
+
+        then:
+        def e = thrown(CustomException)
+        e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
+    }
+
+
+    def "editTeam - no permission #permission"() {
+        given:
+        def request = new TeamEditRequest("name", "logo_url", 1.1, 1.1)
+        def team = TestUtil.getTeam(1l, "name1", null)
+        def user = UserContextUtil.getCurrentUser()
+        def member = TestUtil.getTeamMember(1l, user, team)
+        member.setPermission(permission)
+
+        1 * teamRepository.findById(team.getId()) >> Optional.of(team)
+        1 * teamMemberRepository.findByTeamAndUser(team, user) >> Optional.of(member)
+
+        when:
+        service.editTeam(team.getId(), request)
+
+        then:
+        def e = thrown(CustomException)
+        e.getErrorCode() == ErrorCode.NO_PERMISSION_ON_TEAM
+
+        where:
+        permission << [Permission.MEMBER]
     }
 
     def "getTeamsOfUser"() {
