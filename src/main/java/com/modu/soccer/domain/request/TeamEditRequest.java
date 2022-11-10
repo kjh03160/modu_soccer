@@ -7,7 +7,6 @@ import lombok.Getter;
 @AllArgsConstructor
 public class TeamEditRequest {
 	private String name;
-	private String logoUrl;
 	private Double latitude;
 	private Double longitude;
 }

@@ -69,23 +69,33 @@ public class TeamService {
 	@Transactional
 	public void editTeam(Long teamId, TeamEditRequest request) {
 		Team team = getTeamById(teamId);
-		User currentUser = UserContextUtil.getCurrentUser();
-
-		TeamMember member = teamMemberRepository.findByTeamAndUser(team, currentUser)
-			.orElseThrow(() -> {
-				throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "team member");
-			});
-		if (!member.hasManagePermission()) {
+		if (!HasCurrentUserPermissionOnTeam(team)) {
 			throw new CustomException(ErrorCode.NO_PERMISSION_ON_TEAM);
 		}
-
 		team.setName(request.getName());
 		team.setLocation(GeoUtil.createPoint(request.getLongitude(), request.getLatitude()));
-		team.setLogoUrl(request.getLogoUrl());
+	}
+
+	@Transactional
+	public void updateTeamLogo(Long teamId, String logoUrl) {
+		Team team = getTeamById(teamId);
+		if (!HasCurrentUserPermissionOnTeam(team)) {
+			throw new CustomException(ErrorCode.NO_PERMISSION_ON_TEAM);
+		}
+		team.setLogoUrl(logoUrl);
 	}
 
 	public List<Team> getTeamsOfUser(User user) {
 		return teamMemberRepository.findAllByUserAndAcceptStatus(user, AcceptStatus.ACCEPTED)
 			.stream().map(TeamMember::getTeam).toList();
+	}
+
+	private boolean HasCurrentUserPermissionOnTeam(Team team) {
+		User currentUser = UserContextUtil.getCurrentUser();
+		TeamMember member = teamMemberRepository.findByTeamAndUser(team, currentUser)
+			.orElseThrow(() -> {
+				throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "team member");
+			});
+		return member.hasManagePermission();
 	}
 }

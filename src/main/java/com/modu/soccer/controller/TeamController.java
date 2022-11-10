@@ -66,6 +66,14 @@ public class TeamController {
 		return ApiResponse.ok();
 	}
 
+	@PutMapping("/{team_id}/logo")
+	public ApiResponse<?> editTeamLogo(
+		@PathVariable("team_id") long teamId, @RequestPart("file") MultipartFile file) {
+		String filePath = s3UploadService.uploadFile(file);
+		teamService.updateTeamLogo(teamId, filePath);
+		return ApiResponse.ok();
+	}
+
 	@GetMapping("/{team_id}/record")
 	public ApiResponse<?> getTeamRecord(@PathVariable("team_id") long teamId) {
 		Team team = teamService.getTeamById(teamId);
