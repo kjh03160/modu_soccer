@@ -109,7 +109,7 @@ class TeamServiceTest extends Specification {
 
     def "editTeam - permission #permission"() {
         given:
-        def request = new TeamEditRequest("name", "logo_url", 1.1, 1.1)
+        def request = new TeamEditRequest("name", 1.1, 1.1)
         def team = TestUtil.getTeam(1l, "name1", null)
         def user = UserContextUtil.getCurrentUser()
         def member = TestUtil.getTeamMember(1l, user, team)
@@ -133,7 +133,7 @@ class TeamServiceTest extends Specification {
 
     def "editTeam - no team"() {
         given:
-        def request = new TeamEditRequest("name", "logo_url", 1.1, 1.1)
+        def request = new TeamEditRequest("name", 1.1, 1.1)
         def team = TestUtil.getTeam(1l, "name1", null)
         def user = UserContextUtil.getCurrentUser()
 
@@ -150,7 +150,7 @@ class TeamServiceTest extends Specification {
 
     def "editTeam - no member"() {
         given:
-        def request = new TeamEditRequest("name", "logo_url", 1.1, 1.1)
+        def request = new TeamEditRequest("name", 1.1, 1.1)
         def team = TestUtil.getTeam(1l, "name1", null)
         def user = UserContextUtil.getCurrentUser()
 
@@ -168,7 +168,7 @@ class TeamServiceTest extends Specification {
 
     def "editTeam - no permission #permission"() {
         given:
-        def request = new TeamEditRequest("name", "logo_url", 1.1, 1.1)
+        def request = new TeamEditRequest("name", 1.1, 1.1)
         def team = TestUtil.getTeam(1l, "name1", null)
         def user = UserContextUtil.getCurrentUser()
         def member = TestUtil.getTeamMember(1l, user, team)
@@ -183,6 +183,51 @@ class TeamServiceTest extends Specification {
         then:
         def e = thrown(CustomException)
         e.getErrorCode() == ErrorCode.NO_PERMISSION_ON_TEAM
+
+        where:
+        permission << [Permission.MEMBER]
+    }
+
+    def "updateTeamLogo - #permission"() {
+        given:
+        def team = TestUtil.getTeam(1l, "name1", null)
+        def logo = "logo"
+        def user = UserContextUtil.getCurrentUser()
+        def member = TestUtil.getTeamMember(1l, user, team)
+        member.setPermission(permission)
+
+        1 * teamRepository.findById(team.getId()) >> Optional.of(team)
+        1 * teamMemberRepository.findByTeamAndUser(team, user) >> Optional.of(member)
+
+        when:
+        service.updateTeamLogo(team.getId(), logo)
+
+        then:
+        noExceptionThrown()
+        team.getLogoUrl() == logo
+
+        where:
+        permission << [Permission.ADMIN, Permission.MANAGER]
+    }
+
+    def "updateTeamLogo - no permission #permission"() {
+        given:
+        def team = TestUtil.getTeam(1l, "name1", null)
+        def logo = "logo"
+        def user = UserContextUtil.getCurrentUser()
+        def member = TestUtil.getTeamMember(1l, user, team)
+        member.setPermission(permission)
+
+        1 * teamRepository.findById(team.getId()) >> Optional.of(team)
+        1 * teamMemberRepository.findByTeamAndUser(team, user) >> Optional.of(member)
+
+        when:
+        service.updateTeamLogo(team.getId(), logo)
+
+        then:
+        def e = thrown(CustomException)
+        e.getErrorCode() == ErrorCode.NO_PERMISSION_ON_TEAM
+        team.getLogoUrl() == null
 
         where:
         permission << [Permission.MEMBER]

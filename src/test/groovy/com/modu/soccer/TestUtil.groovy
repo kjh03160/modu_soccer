@@ -1,18 +1,18 @@
 package com.modu.soccer
 
-import com.modu.soccer.domain.request.GoalRequest
-import com.modu.soccer.domain.request.MatchRequest
-import com.modu.soccer.domain.request.QuarterFormationRequest
-import com.modu.soccer.domain.request.QuarterRequest
-import com.modu.soccer.domain.request.TeamMemberPutRequest
+import com.amazonaws.util.IOUtils
+import com.modu.soccer.domain.request.*
 import com.modu.soccer.entity.*
 import com.modu.soccer.entity.Formation.TeamFormation
 import com.modu.soccer.utils.LocalDateTimeUtil
+import org.springframework.mock.web.MockMultipartFile
 
 import java.sql.Time
 import java.time.LocalDateTime
 
 class TestUtil {
+    private static final String IMAGE_PATH = "src/test/resources/testImage.png";
+
     static def getUser(userId, email) {
         def user = new User()
         user.setId(userId)
@@ -132,5 +132,13 @@ class TestUtil {
                 return count
             }
         }
+    }
+
+    static def getTestImage() {
+        def file = new File(IMAGE_PATH)
+        FileInputStream input = new FileInputStream(file);
+        def multipartFile = new MockMultipartFile("file",
+                file.getName(), "image/png", IOUtils.toByteArray(input));
+        return multipartFile
     }
 }

@@ -1,16 +1,18 @@
 package com.modu.soccer.domain.request;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 
 @AllArgsConstructor
 @Getter
+@JsonNaming(SnakeCaseStrategy.class)
 public class TeamRequest {
 	private String name;
-	@JsonProperty("logo_url")
+	@Setter
 	private String logoUrl;
-
 	private Double latitude;
 	private Double longitude;
 

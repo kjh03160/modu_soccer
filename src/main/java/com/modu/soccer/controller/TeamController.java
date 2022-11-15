@@ -9,6 +9,7 @@ import com.modu.soccer.domain.request.TeamRequest;
 import com.modu.soccer.entity.Team;
 import com.modu.soccer.entity.TeamMember;
 import com.modu.soccer.enums.RankType;
+import com.modu.soccer.service.S3UploadService;
 import com.modu.soccer.service.TeamMemberService;
 import com.modu.soccer.service.TeamService;
 import com.modu.soccer.utils.UserContextUtil;
@@ -24,20 +25,30 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/teams")
 public class TeamController {
+	private final S3UploadService s3UploadService;
 	private final TeamService teamService;
 	private final TeamMemberService memberService;
 
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
-	public ApiResponse<?> postTeam(@RequestBody TeamRequest request) {
+	public ApiResponse<?> postTeam(
+		@RequestPart("team") TeamRequest request, @RequestPart("file") MultipartFile file
+	) {
+		String filePath = "";
+		if (!file.isEmpty()) {
+			filePath = s3UploadService.uploadFile(file);
+		}
+		request.setLogoUrl(filePath);
 		Team result = teamService.createTeam(UserContextUtil.getCurrentUser(), request);
 		return ApiResponse.withBody(TeamDto.fromEntity(result));
 	}
@@ -52,6 +63,14 @@ public class TeamController {
 	public ApiResponse<?> putTeam(
 		@PathVariable("team_id") long teamId, @RequestBody TeamEditRequest request) {
 		teamService.editTeam(teamId, request);
+		return ApiResponse.ok();
+	}
+
+	@PutMapping("/{team_id}/logo")
+	public ApiResponse<?> editTeamLogo(
+		@PathVariable("team_id") long teamId, @RequestPart("file") MultipartFile file) {
+		String filePath = s3UploadService.uploadFile(file);
+		teamService.updateTeamLogo(teamId, filePath);
 		return ApiResponse.ok();
 	}
 
