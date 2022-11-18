@@ -12,10 +12,9 @@ class S3UploadServiceTest extends Specification {
     private S3UploadService service
     private AmazonS3Client client = Mock()
 
-
-
     def setup() {
         service = new S3UploadService(client)
+        service.S3_HOST_PREFIX = "https://s3.ap-northeast-2.amazonaws.com/modu-soccer/local/app/";
     }
 
     def "uploadFile"() {
@@ -48,5 +47,19 @@ class S3UploadServiceTest extends Specification {
         then:
         def e = thrown(CustomException)
         e.getErrorCode() == ErrorCode.INVALID_PARAM
+    }
+
+    def "deleteFile"() {
+        given:
+        def fullFilePath = "https://s3.ap-northeast-2.amazonaws.com/modu-soccer/local/app/c9b65dea-bbad-455f-964c-5ce9a9e68378.png"
+        def fileKey = "c9b65dea-bbad-455f-964c-5ce9a9e68378.png"
+
+        1 * client.deleteObject(_, fileKey) >> null
+
+        when:
+        service.deleteFile(fullFilePath)
+
+        then:
+        noExceptionThrown()
     }
 }

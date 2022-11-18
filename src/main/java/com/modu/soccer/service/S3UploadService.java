@@ -8,7 +8,10 @@ import com.modu.soccer.exception.CustomException;
 import com.modu.soccer.exception.ErrorCode;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
+import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,8 +24,14 @@ import org.springframework.web.multipart.MultipartFile;
 public class S3UploadService {
 	private final AmazonS3Client s3Client;
 
+	private static String S3_HOST_PREFIX;
 	@Value("${cloud.aws.s3.bucket}")
 	private String bucketName;
+
+	@PostConstruct
+	private void init() {
+		S3_HOST_PREFIX = "https://s3.ap-northeast-2.amazonaws.com/" + bucketName + "/";
+	}
 
 
 	public String uploadFile(MultipartFile multipartFile) {
@@ -44,6 +53,11 @@ public class S3UploadService {
 		return s3Client.getUrl(bucketName, fileName).toString();
 	}
 
+	public void deleteFile(String fileFullPath) {
+		String path = trimAndGetFileKey(fileFullPath);
+		s3Client.deleteObject(bucketName, path);
+	}
+
 	private void validateFileExists(MultipartFile multipartFile) {
 		if (multipartFile.isEmpty()) {
 			log.warn("file is empty");
@@ -61,5 +75,10 @@ public class S3UploadService {
 		} catch (StringIndexOutOfBoundsException e) {
 			throw new CustomException(ErrorCode.INVALID_PARAM);
 		}
+	}
+
+	private String trimAndGetFileKey(String filePath) {
+		return URLDecoder
+			.decode(filePath.replace(S3_HOST_PREFIX, ""), StandardCharsets.UTF_8);
 	}
 }
