@@ -70,7 +70,12 @@ public class TeamController {
 	public ApiResponse<?> editTeamLogo(
 		@PathVariable("team_id") long teamId, @RequestPart("file") MultipartFile file) {
 		String filePath = s3UploadService.uploadFile(file);
-		teamService.updateTeamLogo(teamId, filePath);
+		String prevUrl = teamService.updateAndReturnPrevTeamLogo(teamId, filePath);
+		try {
+			s3UploadService.deleteFile(prevUrl);
+		} catch (Exception e) {
+			log.error("delete s3 failed, error: {} file: {}", e.getMessage(), prevUrl);
+		}
 		return ApiResponse.ok();
 	}
 
