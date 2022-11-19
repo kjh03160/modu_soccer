@@ -25,6 +25,7 @@ class TestUtil {
         team.setId(teamId)
         team.setName(name)
         team.setOwner(owner)
+        team.setRecord(new TeamRecord(team))
         return team
     }
 
@@ -140,5 +141,11 @@ class TestUtil {
         def multipartFile = new MockMultipartFile("file",
                 file.getName(), "image/png", IOUtils.toByteArray(input));
         return multipartFile
+    }
+
+    static def getMatchEditRequest(time) {
+        def request = new MatchEditRequest()
+        request.setMatchDate(time)
+        return request
     }
 }

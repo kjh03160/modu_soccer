@@ -5,16 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.modu.soccer.TestUtil
 import com.modu.soccer.domain.ApiResponse
 import com.modu.soccer.domain.MatchDto
-import com.modu.soccer.domain.request.MatchRequest
 import com.modu.soccer.entity.Match
-import com.modu.soccer.entity.Team
-import com.modu.soccer.entity.TeamRecord
 import com.modu.soccer.enums.TokenType
 import com.modu.soccer.exception.ErrorCode
 import com.modu.soccer.jwt.JwtProvider
 import com.modu.soccer.repository.UserRepository
 import com.modu.soccer.service.MatchService
-import com.modu.soccer.utils.LocalDateTimeUtil
 import com.modu.soccer.utils.UserContextUtil
 import org.spockframework.spring.SpringBean
 import org.springframework.beans.factory.annotation.Autowired
@@ -66,8 +62,8 @@ class MatchControllerTest extends Specification {
 
     def "getTeamMatches"() {
         given:
-        def team1 = getTeam(1l, "team1", null)
-        def team2 = getTeam(2l, "team2", null)
+        def team1 = TestUtil.getTeam(1l, "team1", null)
+        def team2 = TestUtil.getTeam(2l, "team2", null)
         def d = LocalDateTime.now()
         def match = Match.builder()
                 .teamA(team1)
@@ -115,9 +111,9 @@ class MatchControllerTest extends Specification {
 
     def "createMatch"() {
         given:
-        def team1 = getTeam(1l, "team1", null)
-        def team2 = getTeam(2l, "team2", null)
-        def request = getMatchRequest(team1.getId(), team2.getId())
+        def team1 = TestUtil.getTeam(1l, "team1", null)
+        def team2 = TestUtil.getTeam(2l, "team2", null)
+        def request = TestUtil.getMatchRequest(team1.getId(), team2.getId())
         def match = Match.builder()
                 .teamA(team1)
                 .teamB(team2)
@@ -161,21 +157,47 @@ class MatchControllerTest extends Specification {
         response.getCode() == ErrorCode.INVALID_PARAM.getCode()
     }
 
-    def getMatchRequest(teamA, teamB) {
-        def request = new MatchRequest()
-        request.setTeamAId(teamA)
-        request.setTeamBId(teamB)
-        request.setMatchDate(LocalDateTimeUtil.now())
-        return request
+    def "putMatch"() {
+        given:
+        def matchId = 1l
+        def request = TestUtil.getMatchEditRequest(LocalDateTime.now())
+        def url = MATCH_BASE_URL + "/" +String.valueOf(matchId)
+
+        matchService.editMatch(matchId, request) >> null
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.put(url)
+                .content(objectMapper.writeValueAsString(request))
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn()
+                .getResponse()
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<MatchDto>>(){})
+
+        then:
+        noExceptionThrown()
+        response.getCode() == 0
     }
 
-    def getTeam(teamId, name, owner){
-        def team = new Team()
-        team.setId(teamId)
-        team.setName(name)
-        team.setOwner(owner)
-        team.setRecord(new TeamRecord(team))
-        return team
-    }
+    def "putMatch - 경기 id 숫자 아님"() {
+        given:
+        def matchId = 1l
+        def request = TestUtil.getMatchEditRequest(LocalDateTime.now())
+        def url = MATCH_BASE_URL + "/dsa"
 
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.put(url)
+                .content(objectMapper.writeValueAsString(request))
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andReturn()
+                .getResponse()
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<MatchDto>>(){})
+
+        then:
+        noExceptionThrown()
+        response.getCode() == ErrorCode.INVALID_PARAM.getCode()
+    }
 }

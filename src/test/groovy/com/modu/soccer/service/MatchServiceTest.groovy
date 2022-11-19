@@ -10,6 +10,8 @@ import com.modu.soccer.repository.TeamRepository
 import com.modu.soccer.utils.UserContextUtil
 import spock.lang.Specification
 
+import java.time.LocalDateTime
+
 class MatchServiceTest extends Specification {
     private MatchService service
     private MatchRepository matchRepository = Mock()
@@ -162,6 +164,65 @@ class MatchServiceTest extends Specification {
         when:
         def result = service.createMatch(request)
 
+        then:
+        def e = thrown(CustomException)
+        e.getErrorCode() == ErrorCode.FORBIDDEN
+    }
+
+    def "editMatch"() {
+        given:
+        def u = UserContextUtil.getCurrentUser()
+        def teamA = TestUtil.getTeam(1l, "teamA", null)
+        def teamB = TestUtil.getTeam(2l, "teamB", null)
+        def teamMember = TestUtil.getTeamMember(1l, u, teamA)
+        def match = TestUtil.getMatch(1l, teamA, teamB, u)
+        def matchDate = LocalDateTime.now()
+        def request = TestUtil.getMatchEditRequest(matchDate)
+
+        1 * matchRepository.findMatchById(match.getId()) >> Optional.of(match)
+        1 * memberRepository.findByUserAndTeamIn(u, [teamA, teamB]) >> [teamMember]
+
+        when:
+        service.editMatch(match.getId(), request)
+        then:
+        noExceptionThrown()
+        match.getMatchDateTime() == request.getMatchDate()
+    }
+
+    def "editMatch - 경기 찾을 수 없음"() {
+        given:
+        def u = UserContextUtil.getCurrentUser()
+        def teamA = TestUtil.getTeam(1l, "teamA", null)
+        def teamB = TestUtil.getTeam(2l, "teamB", null)
+        def match = TestUtil.getMatch(1l, teamA, teamB, u)
+        def matchDate = LocalDateTime.now()
+        def request = TestUtil.getMatchEditRequest(matchDate)
+
+        1 * matchRepository.findMatchById(match.getId()) >> Optional.empty()
+        0 * memberRepository.findByUserAndTeamIn(u, [teamA, teamB])
+
+        when:
+        service.editMatch(match.getId(), request)
+
+        then:
+        def e = thrown(CustomException)
+        e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
+    }
+
+    def "editMatch - 팀에 속하지 않은 유저가 수정하면 forbidden"() {
+        given:
+        def u = UserContextUtil.getCurrentUser()
+        def teamA = TestUtil.getTeam(1l, "teamA", null)
+        def teamB = TestUtil.getTeam(2l, "teamB", null)
+        def match = TestUtil.getMatch(1l, teamA, teamB, u)
+        def matchDate = LocalDateTime.now()
+        def request = TestUtil.getMatchEditRequest(matchDate)
+
+        1 * matchRepository.findMatchById(match.getId()) >> Optional.of(match)
+        1 * memberRepository.findByUserAndTeamIn(u, [teamA, teamB]) >> []
+
+        when:
+        service.editMatch(match.getId(), request)
         then:
         def e = thrown(CustomException)
         e.getErrorCode() == ErrorCode.FORBIDDEN

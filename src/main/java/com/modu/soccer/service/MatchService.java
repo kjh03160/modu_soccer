@@ -1,5 +1,6 @@
 package com.modu.soccer.service;
 
+import com.modu.soccer.domain.request.MatchEditRequest;
 import com.modu.soccer.domain.request.MatchRequest;
 import com.modu.soccer.entity.Match;
 import com.modu.soccer.entity.Team;
@@ -54,10 +55,7 @@ public class MatchService {
 		}
 
 		User user = UserContextUtil.getCurrentUser();
-		List<TeamMember> teamMembers = memberRepository.findByUserAndTeamIn(user, teams);
-		if (teamMembers.size() == 0) {
-			throw new CustomException(ErrorCode.FORBIDDEN);
-		}
+		validateUserInTeams(user, teams);
 
 		Collections.sort(teams);
 
@@ -68,5 +66,28 @@ public class MatchService {
 			.createBy(user)
 			.build();
 		return matchRepository.save(match);
+	}
+
+	/*
+	TODO: check planning match edit scenario
+	if teamA or teamB could be changed?
+	-> it seems better to induce the user to delete it, rather than edit?
+	* */
+	@Transactional
+	public void editMatch(Long matchId, MatchEditRequest request) {
+		Match match = getMatchById(matchId);
+		User requestUser = UserContextUtil.getCurrentUser();
+
+		List<Team> prevTeams = List.of(match.getTeamA(), match.getTeamB());
+		validateUserInTeams(requestUser, prevTeams);
+
+		match.setMatchDateTime(request.getMatchDate());
+	}
+
+	private void validateUserInTeams(User user, List<Team> teams) {
+		List<TeamMember> memberList = memberRepository.findByUserAndTeamIn(user, teams);
+		if (memberList.size() == 0) {
+			throw new CustomException(ErrorCode.FORBIDDEN);
+		}
 	}
 }
