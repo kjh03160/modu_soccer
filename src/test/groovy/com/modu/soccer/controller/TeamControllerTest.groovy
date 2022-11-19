@@ -322,40 +322,6 @@ class TeamControllerTest extends Specification{
         response.getCode() == 0
     }
 
-    def "editTeamLogo - delete prev logo fail"() {
-        def user = UserContextUtil.getCurrentUser()
-
-        given:
-        def image = TestUtil.getTestImage()
-        def token = jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)
-        def prevLogo = "logo"
-
-        s3UploadService.uploadFile(_) >> ""
-        teamService.updateAndReturnPrevTeamLogo(_, _) >> prevLogo
-        s3UploadService.deleteFile(prevLogo) >> { throw new Exception() }
-
-        when:
-
-        RequestPostProcessor requestPostProcessor = request -> {
-            request.setMethod("PUT");
-            return request;
-        };
-
-        def result = mvc.perform(MockMvcRequestBuilders.multipart(TEAM_API + "/1/logo")
-                .with(requestPostProcessor)
-                .file(image)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andReturn()
-                .getResponse()
-
-        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<TeamDto>>(){})
-
-        then:
-        noExceptionThrown()
-        response.getCode() == 0
-    }
-
     def "getTeamRecord"() {
         def user = UserContextUtil.getCurrentUser()
 

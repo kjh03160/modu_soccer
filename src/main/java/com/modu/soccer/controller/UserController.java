@@ -26,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/users")
 public class UserController {
+
 	private final UserService userService;
 	private final TeamService teamService;
 	public final S3UploadService s3UploadService;
@@ -50,11 +51,7 @@ public class UserController {
 		String prevProfile = user.getProfileURL();
 		String filePath = s3UploadService.uploadFile(file);
 		userService.editUserProfile(user, filePath);
-		try {
-			s3UploadService.deleteFile(prevProfile);
-		} catch (Exception e) {
-			log.error("delete s3 failed, error: {} file: {}", e.getMessage(), prevProfile);
-		}
+		s3UploadService.deleteFile(prevProfile);
 		return ApiResponse.ok();
 	}
 

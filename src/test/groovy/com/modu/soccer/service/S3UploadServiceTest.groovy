@@ -62,4 +62,18 @@ class S3UploadServiceTest extends Specification {
         then:
         noExceptionThrown()
     }
+
+    def "deleteFile - delete failed"() {
+        given:
+        def fullFilePath = "https://s3.ap-northeast-2.amazonaws.com/modu-soccer/local/app/c9b65dea-bbad-455f-964c-5ce9a9e68378.png"
+        def fileKey = "c9b65dea-bbad-455f-964c-5ce9a9e68378.png"
+
+        1 * client.deleteObject(_, fileKey) >> {throw new Exception()}
+
+        when:
+        service.deleteFile(fullFilePath)
+
+        then:
+        noExceptionThrown()
+    }
 }

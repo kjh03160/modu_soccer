@@ -71,11 +71,7 @@ public class TeamController {
 		@PathVariable("team_id") long teamId, @RequestPart("file") MultipartFile file) {
 		String filePath = s3UploadService.uploadFile(file);
 		String prevUrl = teamService.updateAndReturnPrevTeamLogo(teamId, filePath);
-		try {
-			s3UploadService.deleteFile(prevUrl);
-		} catch (Exception e) {
-			log.error("delete s3 failed, error: {} file: {}", e.getMessage(), prevUrl);
-		}
+		s3UploadService.deleteFile(prevUrl);
 		return ApiResponse.ok();
 	}
 

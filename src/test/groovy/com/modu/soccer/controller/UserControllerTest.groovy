@@ -173,35 +173,4 @@ class UserControllerTest extends Specification {
         noExceptionThrown()
         response.getCode() == 0
     }
-
-    def "putCurrentUserProfile - delete failed"() {
-        given:
-        def url = USER_API + "/me/profile"
-        def image = TestUtil.getTestImage()
-        def prevProfileUrl = user.getProfileURL()
-        def newProfileUrl = "newProfile"
-
-        uploadService.uploadFile(_) >> newProfileUrl
-        userService.editUserProfile(user, newProfileUrl) >> null
-        uploadService.deleteFile(prevProfileUrl) >> {throw new Exception()}
-
-        when:
-        RequestPostProcessor requestPostProcessor = request -> {
-            request.setMethod("PUT");
-            return request;
-        };
-        def result = mvc.perform(MockMvcRequestBuilders.multipart(url)
-                .with(requestPostProcessor)
-                .file(image)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andReturn()
-                .getResponse()
-        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<?>>(){})
-
-
-        then:
-        noExceptionThrown()
-        response.getCode() == 0
-    }
 }

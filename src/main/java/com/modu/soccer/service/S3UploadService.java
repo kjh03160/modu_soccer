@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 @RequiredArgsConstructor
 public class S3UploadService {
+
 	private final AmazonS3Client s3Client;
 
 	private static String S3_HOST_PREFIX;
@@ -45,7 +46,7 @@ public class S3UploadService {
 		try (InputStream inputStream = multipartFile.getInputStream()) {
 			s3Client
 				.putObject(new PutObjectRequest(bucketName, fileName, inputStream, objectMetadata)
-				.withCannedAcl(CannedAccessControlList.PublicRead));
+					.withCannedAcl(CannedAccessControlList.PublicRead));
 		} catch (IOException e) {
 			log.error("upload s3 exception: {}", e.getMessage());
 			throw new CustomException(ErrorCode.UNKNOWN_ERROR);
@@ -55,7 +56,11 @@ public class S3UploadService {
 
 	public void deleteFile(String fileFullPath) {
 		String path = trimAndGetFileKey(fileFullPath);
-		s3Client.deleteObject(bucketName, path);
+		try {
+			s3Client.deleteObject(bucketName, path);
+		} catch (Exception e) {
+			log.error("delete s3 failed, error: {} file: {}", e.getMessage(), fileFullPath);
+		}
 	}
 
 	private void validateFileExists(MultipartFile multipartFile) {
