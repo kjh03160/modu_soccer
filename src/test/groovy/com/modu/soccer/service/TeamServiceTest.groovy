@@ -191,6 +191,7 @@ class TeamServiceTest extends Specification {
     def "updateTeamLogo - #permission"() {
         given:
         def team = TestUtil.getTeam(1l, "name1", null)
+        def prevLogo = team.getLogoUrl()
         def logo = "logo"
         def user = UserContextUtil.getCurrentUser()
         def member = TestUtil.getTeamMember(1l, user, team)
@@ -200,11 +201,12 @@ class TeamServiceTest extends Specification {
         1 * teamMemberRepository.findByTeamAndUser(team, user) >> Optional.of(member)
 
         when:
-        service.updateTeamLogo(team.getId(), logo)
+        def result = service.updateAndReturnPrevTeamLogo(team.getId(), logo)
 
         then:
         noExceptionThrown()
         team.getLogoUrl() == logo
+        prevLogo == result
 
         where:
         permission << [Permission.ADMIN, Permission.MANAGER]
@@ -222,7 +224,7 @@ class TeamServiceTest extends Specification {
         1 * teamMemberRepository.findByTeamAndUser(team, user) >> Optional.of(member)
 
         when:
-        service.updateTeamLogo(team.getId(), logo)
+        service.updateAndReturnPrevTeamLogo(team.getId(), logo)
 
         then:
         def e = thrown(CustomException)

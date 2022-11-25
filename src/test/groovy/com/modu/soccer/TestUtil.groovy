@@ -143,9 +143,17 @@ class TestUtil {
         return multipartFile
     }
 
+
     static def getMatchEditRequest(time) {
         def request = new MatchEditRequest()
         request.setMatchDate(time)
+        return request
+
+    static def getUserInfoRequest(name, isPro, age) {
+        def request = new UserInfoRequest()
+        request.setName(name)
+        request.setIsPro(isPro)
+        request.setAge(age)
         return request
     }
 }

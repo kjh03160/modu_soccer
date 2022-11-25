@@ -77,12 +77,14 @@ public class TeamService {
 	}
 
 	@Transactional
-	public void updateTeamLogo(Long teamId, String logoUrl) {
+	public String updateAndReturnPrevTeamLogo(Long teamId, String logoUrl) {
 		Team team = getTeamById(teamId);
 		if (!HasCurrentUserPermissionOnTeam(team)) {
 			throw new CustomException(ErrorCode.NO_PERMISSION_ON_TEAM);
 		}
+		String prevUrl = team.getLogoUrl();
 		team.setLogoUrl(logoUrl);
+		return prevUrl;
 	}
 
 	public List<Team> getTeamsOfUser(User user) {

@@ -39,4 +39,32 @@ class UserServiceTest extends Specification {
         def e = thrown(CustomException)
         e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
     }
+
+    def "editUserInfo"() {
+        given:
+        def request = TestUtil.getUserInfoRequest("name1", false, 20)
+        def user = TestUtil.getUser(1l, "email")
+
+        when:
+        service.editUserInfo(user, request)
+
+        then:
+        noExceptionThrown()
+        user.getName() == request.getName()
+        user.getIsPro() == request.getIsPro()
+        user.getAge() == request.getAge()
+    }
+
+    def "editUserPofile"() {
+        given:
+        def user = TestUtil.getUser(1l, "email")
+        def profile = "profile"
+
+        when:
+        service.editUserProfile(user, profile)
+
+        then:
+        noExceptionThrown()
+        user.getProfileURL() == profile
+    }
 }
