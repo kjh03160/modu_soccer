@@ -141,4 +141,12 @@ class TestUtil {
                 file.getName(), "image/png", IOUtils.toByteArray(input));
         return multipartFile
     }
+
+    static def getUserInfoRequest(name, isPro, age) {
+        def request = new UserInfoRequest()
+        request.setName(name)
+        request.setIsPro(isPro)
+        request.setAge(age)
+        return request
+    }
 }

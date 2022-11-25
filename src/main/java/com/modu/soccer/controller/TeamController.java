@@ -70,7 +70,8 @@ public class TeamController {
 	public ApiResponse<?> editTeamLogo(
 		@PathVariable("team_id") long teamId, @RequestPart("file") MultipartFile file) {
 		String filePath = s3UploadService.uploadFile(file);
-		teamService.updateTeamLogo(teamId, filePath);
+		String prevUrl = teamService.updateAndReturnPrevTeamLogo(teamId, filePath);
+		s3UploadService.deleteFile(prevUrl);
 		return ApiResponse.ok();
 	}
 

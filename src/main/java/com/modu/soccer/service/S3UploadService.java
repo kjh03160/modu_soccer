@@ -8,7 +8,10 @@ import com.modu.soccer.exception.CustomException;
 import com.modu.soccer.exception.ErrorCode;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
+import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,10 +22,17 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 @RequiredArgsConstructor
 public class S3UploadService {
+
 	private final AmazonS3Client s3Client;
 
+	private static String S3_HOST_PREFIX;
 	@Value("${cloud.aws.s3.bucket}")
 	private String bucketName;
+
+	@PostConstruct
+	private void init() {
+		S3_HOST_PREFIX = "https://s3.ap-northeast-2.amazonaws.com/" + bucketName + "/";
+	}
 
 
 	public String uploadFile(MultipartFile multipartFile) {
@@ -36,12 +46,21 @@ public class S3UploadService {
 		try (InputStream inputStream = multipartFile.getInputStream()) {
 			s3Client
 				.putObject(new PutObjectRequest(bucketName, fileName, inputStream, objectMetadata)
-				.withCannedAcl(CannedAccessControlList.PublicRead));
+					.withCannedAcl(CannedAccessControlList.PublicRead));
 		} catch (IOException e) {
 			log.error("upload s3 exception: {}", e.getMessage());
 			throw new CustomException(ErrorCode.UNKNOWN_ERROR);
 		}
 		return s3Client.getUrl(bucketName, fileName).toString();
+	}
+
+	public void deleteFile(String fileFullPath) {
+		String path = trimAndGetFileKey(fileFullPath);
+		try {
+			s3Client.deleteObject(bucketName, path);
+		} catch (Exception e) {
+			log.error("delete s3 failed, error: {} file: {}", e.getMessage(), fileFullPath);
+		}
 	}
 
 	private void validateFileExists(MultipartFile multipartFile) {
@@ -61,5 +80,10 @@ public class S3UploadService {
 		} catch (StringIndexOutOfBoundsException e) {
 			throw new CustomException(ErrorCode.INVALID_PARAM);
 		}
+	}
+
+	private String trimAndGetFileKey(String filePath) {
+		return URLDecoder
+			.decode(filePath.replace(S3_HOST_PREFIX, ""), StandardCharsets.UTF_8);
 	}
 }

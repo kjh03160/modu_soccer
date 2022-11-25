@@ -9,6 +9,7 @@ import com.modu.soccer.entity.User
 import com.modu.soccer.enums.TokenType
 import com.modu.soccer.jwt.JwtProvider
 import com.modu.soccer.repository.UserRepository
+import com.modu.soccer.service.S3UploadService
 import com.modu.soccer.service.TeamService
 import com.modu.soccer.service.UserService
 import com.modu.soccer.utils.UserContextUtil
@@ -21,6 +22,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+import org.springframework.test.web.servlet.request.RequestPostProcessor
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import spock.lang.Specification
 
@@ -38,9 +40,11 @@ class UserControllerTest extends Specification {
     @SpringBean
     private UserService userService = Stub();
     @SpringBean
-    private TeamService teamService= Stub();
+    private TeamService teamService = Stub();
     @SpringBean
-    private UserRepository userRepository= Stub();
+    private UserRepository userRepository = Stub();
+    @SpringBean
+    private S3UploadService uploadService = Stub();
     @Autowired
     private JwtProvider jwtProvider;
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -114,5 +118,59 @@ class UserControllerTest extends Specification {
         response.getContents().getTeams().size() == 1
         response.getContents().getEmail() == user.getEmail()
         response.getContents().getTeams().get(0).getTeamId() == team.getId()
+    }
+
+    def "putCurrentUserInfo"() {
+        given:
+        def url = USER_API + "/me"
+        def request = TestUtil.getUserInfoRequest("userName", false, 20)
+
+        userService.editUserInfo(UserContextUtil.getCurrentUser(), request) >> null
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.put(url)
+                .content(objectMapper.writeValueAsString(request))
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn()
+                .getResponse()
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<?>>(){})
+
+
+        then:
+        noExceptionThrown()
+        response.getCode() == 0
+    }
+
+    def "putCurrentUserProfile"() {
+        given:
+        def url = USER_API + "/me/profile"
+        def image = TestUtil.getTestImage()
+        def prevProfileUrl = user.getProfileURL()
+        def newProfileUrl = "newProfile"
+
+        uploadService.uploadFile(_) >> newProfileUrl
+        userService.editUserProfile(user, newProfileUrl) >> null
+        uploadService.deleteFile(prevProfileUrl) >> null
+
+        when:
+        RequestPostProcessor requestPostProcessor = request -> {
+            request.setMethod("PUT");
+            return request;
+        };
+        def result = mvc.perform(MockMvcRequestBuilders.multipart(url)
+                .with(requestPostProcessor)
+                .file(image)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn()
+                .getResponse()
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<?>>(){})
+
+
+        then:
+        noExceptionThrown()
+        response.getCode() == 0
     }
 }

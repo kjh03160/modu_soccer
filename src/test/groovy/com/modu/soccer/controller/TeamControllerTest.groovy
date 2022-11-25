@@ -294,9 +294,12 @@ class TeamControllerTest extends Specification{
         given:
         def image = TestUtil.getTestImage()
         def token = jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)
+        def prevLogo = "logo"
 
         s3UploadService.uploadFile(_) >> ""
-        teamService.updateTeamLogo(_, _) >> null
+        teamService.updateAndReturnPrevTeamLogo(_, _) >> prevLogo
+        s3UploadService.deleteFile(prevLogo) >> null
+
         when:
 
         RequestPostProcessor requestPostProcessor = request -> {
