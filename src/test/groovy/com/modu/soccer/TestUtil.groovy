@@ -148,6 +148,7 @@ class TestUtil {
         def request = new MatchEditRequest()
         request.setMatchDate(time)
         return request
+    }
 
     static def getUserInfoRequest(name, isPro, age) {
         def request = new UserInfoRequest()
