@@ -71,16 +71,16 @@ jobs:
           cat .env
           ls
 
-      - name: Make zip file
-        run: zip -qq -r ./$GITHUB_SHA.zip .
-        shell: bash
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-northeast-2
-      #
-      - name: Upload to S3
-        run: aws s3 cp --acl private --region ap-northeast-2 ./$GITHUB_SHA.zip s3://modu-soccer/build/$GITHUB_SHA.zip
+#      - name: Make zip file
+#        run: zip -qq -r ./$GITHUB_SHA.zip .
+#        shell: bash
+#
+#      - name: Configure AWS credentials
+#        uses: aws-actions/configure-aws-credentials@v1
+#        with:
+#          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+#          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#          aws-region: ap-northeast-2
+#      #
+#      - name: Upload to S3
+#        run: aws s3 cp --acl private --region ap-northeast-2 ./$GITHUB_SHA.zip s3://modu-soccer/build/$GITHUB_SHA.zip
