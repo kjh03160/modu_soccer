@@ -59,7 +59,7 @@ jobs:
           files: build/test-results/**/*.xml
 
       - name: Login to private registry
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: ${{ secrets.REGISTRY_URL }}
           username: ${{ secrets.DOCKER_USER_NAME }}
