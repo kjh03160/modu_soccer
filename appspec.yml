@@ -7,7 +7,6 @@ files:
 permissions:
   - object: /home/ec2-user/app
     owner: ec2-user
-    group: ubuntu
     mode: 777
 hooks:
   AfterInstall:
