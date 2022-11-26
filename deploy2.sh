@@ -19,8 +19,7 @@ docker rm -f $APP_NAME
 
 # Run container
 echo "=> Run container..."
-docker run -d -p 8080:8080 -e PROFILE=dev $REGISTRY_URL:$TAG --name $APP_NAME
+docker run -d --name $APP_NAME -p 8080:8080 -e PROFILE=dev $REGISTRY_URL:$TAG
 
-# remove image
-echo "=> Remove previous image..."
-docker rmi -f $APP_NAME
+echo "=> Remove old container..."
+docker image prune -a --force --filter "until=240h"

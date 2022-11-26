@@ -6,77 +6,54 @@
 # This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
 # For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-gradle
 
-#name: On feature
-#
-#on:
-#  pull_request:
-#    branches: [ master ]
-#
-#jobs:
-#  build:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v3
-#      - name: Set up JDK 17
-#        uses: actions/setup-java@v3
-#        with:
-#          java-version: '17'
-#          distribution: 'temurin'
-#
-#      - name: Gradle Caching
-#        uses: actions/cache@v3
-#        with:
-#          path: |
-#            ~/.gradle/caches
-#            ~/.gradle/wrapper
-#          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-#          restore-keys: |
-#            ${{ runner.os }}-gradle-
-#      - name: Setup ENV
-#        run: echo "ENV Setup"
-#        env:
-#              db_user: ${{ secrets.DB_USER }}
-#              password: ${{ secrets.DB_PASSWORD }}
-#              kakao_client_id: ${{ secrets.KAKAO_CLIENT_ID }}
-#              kakao_client_secret: ${{ secrets.KAKAO_CLIENT_SECRET }}
-#              kakao_redirect_url: ${{ secrets.KAKAO_REDIRECT_URL }}
-#
-#      - name: Grant execute permission for gradlew
-#        run: chmod +x gradlew
-#
-#      - name: Build with Gradle
-#        uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
-#        with:
-#          arguments: build -x test
-#
-#      - name: Test with Gradle
-#        run: SPRING_PROFILES_ACTIVE=[dev] ./gradlew test
-#
-#      - name: Publish Unit Test Results
-#        uses: EnricoMi/publish-unit-test-result-action@v1
-#        if: ${{ always() }}
-#        with:
-#          files: build/test-results/**/*.xml
-#
-#      - name: env file
-#        env:
-#          DOCKER_USER_NAME: ${{ secrets.DOCKER_USER_NAME }}
-#          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-#        run: |
-#          touch .env
-#          echo export DOCKER_USER_NAME="$DOCKER_USER_NAME" >> .env
-#          echo export DOCKER_PASSWORD="$DOCKER_PASSWORD" >> .env
-#
-#      - name: Make zip file
-#        run: zip -qq -r ./$GITHUB_SHA.zip .env
-#        shell: bash
-#
-#      - name: Configure AWS credentials
-#        uses: aws-actions/configure-aws-credentials@v1
-#        with:
-#          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-#          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#          aws-region: ap-northeast-2
-#
-#      - name: Upload to S3
-#        run: aws s3 cp --acl private --region ap-northeast-2 ./$GITHUB_SHA.zip s3://modu-soccer/build/$GITHUB_SHA.zip
+name: On feature
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Gradle Caching
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      - name: Setup ENV
+        run: echo "ENV Setup"
+        env:
+              db_user: ${{ secrets.DB_USER }}
+              password: ${{ secrets.DB_PASSWORD }}
+              kakao_client_id: ${{ secrets.KAKAO_CLIENT_ID }}
+              kakao_client_secret: ${{ secrets.KAKAO_CLIENT_SECRET }}
+              kakao_redirect_url: ${{ secrets.KAKAO_REDIRECT_URL }}
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
+        with:
+          arguments: build -x test
+
+      - name: Test with Gradle
+        run: SPRING_PROFILES_ACTIVE=[dev] ./gradlew test
+
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: ${{ always() }}
+        with:
+          files: build/test-results/**/*.xml
