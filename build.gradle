@@ -4,6 +4,11 @@ plugins {
 	id 'java'
 	id 'groovy'
 }
+
+jar {
+	enabled = false
+}
+
 def timestamp = new Date().format('yy-MM-dd-HHmmss')
 group = 'com.modu'
 version = timestamp
