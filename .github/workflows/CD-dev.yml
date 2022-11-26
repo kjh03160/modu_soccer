@@ -61,10 +61,10 @@ jobs:
           REGISTRY_URL: ${{ secrets.REGISTRY_URL }}
         run: |
           touch env.sh
-          echo export DOCKER_USER_NAME="$DOCKER_USER_NAME" >> .env
-          echo export DOCKER_PASSWORD="$DOCKER_PASSWORD" >> .env
-          echo export REGISTRY_URL="$REGISTRY_URL" >> .env
-          echo export TAG=${GITHUB_SHA::7} >> .env
+          echo export DOCKER_USER_NAME="$DOCKER_USER_NAME" >> env.sh
+          echo export DOCKER_PASSWORD="$DOCKER_PASSWORD" >> env.sh
+          echo export REGISTRY_URL="$REGISTRY_URL" >> env.sh
+          echo export TAG=${GITHUB_SHA::7} >> env.sh
 
       - name: Make zip file
         run: zip -qq -r ./$GITHUB_SHA.zip .
