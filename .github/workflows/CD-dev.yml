@@ -63,7 +63,7 @@ jobs:
           touch .env
           echo export DOCKER_USER_NAME="$DOCKER_USER_NAME" >> .env
           echo export DOCKER_PASSWORD="$DOCKER_PASSWORD" >> .env
-          echo export REGISTRY_URL="REGISTRY_URL" >> .env
+          echo export REGISTRY_URL="$REGISTRY_URL" >> .env
           echo export TAG=${GITHUB_SHA::7} >> .env
 
           echo "cat .env"
