@@ -8,7 +8,7 @@
 name: On master
 
 on:
-  push:
+  pull_request:
     branches: [ master ]
 
 jobs:
@@ -54,23 +54,17 @@ jobs:
         with:
           arguments: build -x test
 
-#      - name: Test with Gradle
-#        run: SPRING_PROFILES_ACTIVE=[dev] ./gradlew test
-
-#      - name: Publish Unit Test Results
-#        uses: EnricoMi/publish-unit-test-result-action@v1
-#        if: ${{ always() }}
-#        with:
-#          files: build/test-results/**/*.xml
-
       - name: env file
         env:
           DOCKER_USER_NAME: ${{ secrets.DOCKER_USER_NAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          REGISTRY_URL: ${{ secrets.REGISTRY_URL }}
         run: |
           touch .env
           echo export DOCKER_USER_NAME="$DOCKER_USER_NAME" >> .env
           echo export DOCKER_PASSWORD="$DOCKER_PASSWORD" >> .env
+          echo export REGISTRY_URL="REGISTRY_URL" >> .env
+          echo export TAG=${GITHUB_SHA::7} >> .env
 
           echo "cat .env"
           cat .env
@@ -89,22 +83,22 @@ jobs:
       - name: Upload to S3
         run: aws s3 cp --acl private --region ap-northeast-2 ./$GITHUB_SHA.zip s3://modu-soccer/build/$GITHUB_SHA.zip
 #
-#      - name: Login to private registry
-#        uses: docker/login-action@v2
-#        with:
-#          username: ${{ secrets.DOCKER_USER_NAME }}
-#          password: ${{ secrets.DOCKER_PASSWORD }}
-#
-#      - name: Docker build
-#        run: |
-#          docker login -u ${{ secrets.DOCKER_USER_NAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-#          docker build -t modu_soccer .
-#          docker tag modu_soccer ${{ secrets.REGISTRY_URL }}:${GITHUB_SHA::7}
-#          docker push ${{ secrets.REGISTRY_URL }}:${GITHUB_SHA::7}
-#
-#      - name: Code Deploy
-#        run: aws deploy create-deployment
-#              --application-name modu-soccer
-#              --deployment-config-name CodeDeployDefault.OneAtATime
-#              --deployment-group-name dev
-#              --s3-location bucket=modu-soccer,bundleType=zip,key=build/$GITHUB_SHA.zip
+      - name: Login to private registry
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USER_NAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Docker build
+        run: |
+          docker login -u ${{ secrets.DOCKER_USER_NAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker build -t modu_soccer .
+          docker tag modu_soccer ${{ secrets.REGISTRY_URL }}:${GITHUB_SHA::7}
+          docker push ${{ secrets.REGISTRY_URL }}:${GITHUB_SHA::7}
+
+      - name: Code Deploy
+        run: aws deploy create-deployment
+              --application-name modu-soccer
+              --deployment-config-name CodeDeployDefault.OneAtATime
+              --deployment-group-name dev
+              --s3-location bucket=modu-soccer,bundleType=zip,key=build/$GITHUB_SHA.zip

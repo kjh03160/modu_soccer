@@ -3,14 +3,14 @@ os: linux
 
 files:
   - source: /
-    destination: /home/ubuntu/app # 인스턴스에서 파일이 저장될 위치
+    destination: /home/ec2-user/app # 인스턴스에서 파일이 저장될 위치
 permissions:
-  - object: /home/ubuntu/app
-    owner: ubuntu
+  - object: /home/ec2-user/app
+    owner: ec2-user
     group: ubuntu
     mode: 777
 hooks:
   AfterInstall:
-    - location: deploy.sh
+    - location: deploy2.sh
       timeout: 60
       runas: root
