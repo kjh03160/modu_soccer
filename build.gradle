@@ -6,7 +6,7 @@ plugins {
 }
 def timestamp = new Date().format('yy-MM-dd-HHmmss')
 group = 'com.modu'
-version = timestamp
+version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '17'
 
 configurations {
