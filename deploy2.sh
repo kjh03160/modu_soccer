@@ -1,7 +1,7 @@
 REPOSITORY=/home/ec2-user/app
 cd $REPOSITORY
 
-source .env
+source $REPOSITORY/env.sh
 
 APP_NAME=soccer
 

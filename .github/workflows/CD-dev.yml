@@ -60,14 +60,11 @@ jobs:
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
           REGISTRY_URL: ${{ secrets.REGISTRY_URL }}
         run: |
-          touch .env
+          touch env.sh
           echo export DOCKER_USER_NAME="$DOCKER_USER_NAME" >> .env
           echo export DOCKER_PASSWORD="$DOCKER_PASSWORD" >> .env
           echo export REGISTRY_URL="$REGISTRY_URL" >> .env
           echo export TAG=${GITHUB_SHA::7} >> .env
-
-          echo "cat .env"
-          cat .env
 
       - name: Make zip file
         run: zip -qq -r ./$GITHUB_SHA.zip .
