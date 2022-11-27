@@ -13,6 +13,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -59,6 +60,15 @@ public class QuarterController {
 		Match match = matchService.getMatchById(matchId);
 		Quarter quarter = quarterService.getQuarterInfoOfMatch(match, quarterId);
 		return ApiResponse.withBody(QuarterDetail.fromMatchAndQuarter(match, quarter));
+	}
+
+	@DeleteMapping("/{quarter_id}")
+	public ApiResponse<?> deleteQuarter(
+		@PathVariable("match_id") long matchId,
+		@PathVariable("quarter_id") long quarterId
+	) {
+		quarterService.removeQuarter(quarterId);
+		return ApiResponse.ok();
 	}
 
 	@PutMapping("/{quarter_id}/formation")

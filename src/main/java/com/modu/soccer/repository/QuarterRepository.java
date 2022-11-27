@@ -14,6 +14,8 @@ import org.springframework.stereotype.Repository;
 public interface QuarterRepository extends JpaRepository<Quarter, Long> {
 	List<Quarter> findByMatch(Match match);
 	Optional<Quarter> findByIdAndMatch(Long id, Match match);
+	@Query("select q from Quarter q join fetch q.match where q.id = :id")
+	Optional<Quarter> findByIdWithMatch(@Param("id") Long id);
 
 	@Modifying
 	@Query(nativeQuery = true,

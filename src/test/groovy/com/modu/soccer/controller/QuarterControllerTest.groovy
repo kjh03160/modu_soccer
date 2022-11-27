@@ -229,6 +229,57 @@ class QuarterControllerTest extends Specification {
         "ads" | "ads"
     }
 
+    def "deleteQuarter"() {
+        given:
+        def teamA = TestUtil.getTeam(1l, "teamA", null)
+        def teamB = TestUtil.getTeam(2l, "teamB", null)
+        def match = TestUtil.getMatch(1l, teamA, teamB, null)
+        def quarter = TestUtil.getQuarter(1l, match, teamA, teamB, 1, 2, 3)
+        def url = String.format(QUARTER_API + "/%s", String.valueOf(match.getId()), String.valueOf(quarter.getId()))
+
+        quarterService.removeQuarter(quarter.getId())
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.delete(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn()
+                .getResponse()
+
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<?>>(){})
+
+        then:
+        noExceptionThrown()
+        response.getCode() == 0
+    }
+
+    @Unroll
+    def "deleteQuarter - path match_id #match_id / quarter_id #quarter_id 숫자 아님"() {
+        given:
+        def url = String.format(QUARTER_API + "/%s", String.valueOf(match_id), String.valueOf(quarter_id))
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.delete(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andReturn()
+                .getResponse()
+
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<?>>(){})
+
+        then:
+        noExceptionThrown()
+        response.getCode() == ErrorCode.INVALID_PARAM.getCode()
+
+        where:
+        match_id | quarter_id
+        1 | "asd"
+        "asd" | 2
+        "ads" | "ads"
+    }
+
     def "editQuarterFormation"() {
         given:
         def teamA = TestUtil.getTeam(1l, "teamA", null)
