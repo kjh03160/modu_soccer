@@ -19,7 +19,7 @@ docker rm -f $APP_NAME
 
 # Run container
 echo "=> Run container..."
-docker run -d --name $APP_NAME -p 8080:8080 -e PROFILE=dev $REGISTRY_URL:$TAG
+docker run -d --name $APP_NAME -p 8080:8080 -e PROFILE=dev -e TZ=Asia/Seoul $REGISTRY_URL:$TAG
 
 echo "=> Remove old container..."
 docker image prune -a --force --filter "until=240h"
