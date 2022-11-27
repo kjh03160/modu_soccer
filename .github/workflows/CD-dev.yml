@@ -67,7 +67,7 @@ jobs:
           echo export TAG=${GITHUB_SHA::7} >> env.sh
 
       - name: Make zip file
-        run: zip -qq -r ./$GITHUB_SHA.zip .
+        run: zip -qq -r ./$GITHUB_SHA.zip ./env.sh
         shell: bash
 
       - name: Configure AWS credentials
