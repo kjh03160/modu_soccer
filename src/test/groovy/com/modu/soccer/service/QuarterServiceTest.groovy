@@ -5,6 +5,7 @@ import com.modu.soccer.enums.FormationName
 import com.modu.soccer.enums.Permission
 import com.modu.soccer.exception.CustomException
 import com.modu.soccer.exception.ErrorCode
+import com.modu.soccer.repository.GoalRepository
 import com.modu.soccer.repository.QuarterRepository
 import com.modu.soccer.repository.TeamMemberRepository
 import com.modu.soccer.repository.TeamRepository
@@ -17,10 +18,11 @@ class QuarterServiceTest extends Specification {
     private TeamRecordService teamRecordService = Mock()
     private TeamRepository teamRepository = Mock()
     private TeamMemberRepository memberRepository = Mock()
+    private GoalRepository goalRepository = Mock()
     private QuarterService service;
 
     def setup() {
-        service = new QuarterService(quarterRepository, teamRepository, memberRepository, teamRecordService)
+        service = new QuarterService(quarterRepository, teamRepository, memberRepository, teamRecordService, goalRepository)
         def u = TestUtil.getUser(1l, "email")
         UserContextUtil.setUser(u)
     }
@@ -36,7 +38,7 @@ class QuarterServiceTest extends Specification {
         def teamB = TestUtil.getTeam(2l, "teamB", null)
         def match = TestUtil.getMatch(1l, teamA, teamB, null)
 
-        1 * teamRecordService.updateTeamRecord(teamA.getId(), teamB.getId(), request.getTeamAScore(), request.getTeamBScore())
+        1 * teamRecordService.updateTeamRecord(teamA.getId(), teamB.getId(), request.getTeamAScore(), request.getTeamBScore(), false)
         1 * quarterRepository.save(_)
 
         when:
@@ -89,6 +91,43 @@ class QuarterServiceTest extends Specification {
 
         when:
         def result = service.getQuarterInfoOfMatch(match, quarter.getId())
+
+        then:
+        def e = thrown(CustomException)
+        e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
+    }
+
+    def "removeQuarter"() {
+        given:
+        def teamA = TestUtil.getTeam(1l, null, null)
+        def teamB = TestUtil.getTeam(2l, null, null)
+        def match = TestUtil.getMatch(1l, teamA, teamB, null)
+        def quarter = TestUtil.getQuarter(1l, match, teamA, teamB, 1, 1, 2)
+
+        1 * quarterRepository.findByIdWithMatch(quarter.getId()) >> Optional.of(quarter)
+        1 * goalRepository.deleteAllByQuarter(quarter)
+        1 * teamRecordService.updateTeamRecord(match.getTeamA().getId(), match.getTeamB().getId(), quarter.getTeamAScore(), quarter.getTeamBScore(), true)
+
+        when:
+        service.removeQuarter(quarter.getId())
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "removeQuarter - 쿼터 찾지 못함"() {
+        given:
+        def teamA = TestUtil.getTeam(1l, null, null)
+        def teamB = TestUtil.getTeam(2l, null, null)
+        def match = TestUtil.getMatch(1l, teamA, teamB, null)
+        def quarter = TestUtil.getQuarter(1l, match, teamA, teamB, 1, 1, 2)
+
+        1 * quarterRepository.findByIdWithMatch(quarter.getId()) >> Optional.empty()
+        0 * goalRepository.deleteAllByQuarter(_)
+        0 * teamRecordService.updateTeamRecord(_, _, _, _, true)
+
+        when:
+        service.removeQuarter(quarter.getId())
 
         then:
         def e = thrown(CustomException)

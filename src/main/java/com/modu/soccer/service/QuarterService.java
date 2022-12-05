@@ -10,6 +10,7 @@ import com.modu.soccer.entity.TeamMember;
 import com.modu.soccer.entity.User;
 import com.modu.soccer.exception.CustomException;
 import com.modu.soccer.exception.ErrorCode;
+import com.modu.soccer.repository.GoalRepository;
 import com.modu.soccer.repository.QuarterRepository;
 import com.modu.soccer.repository.TeamMemberRepository;
 import com.modu.soccer.repository.TeamRepository;
@@ -29,6 +30,7 @@ public class QuarterService {
 	private final TeamRepository teamRepository;
 	private final TeamMemberRepository memberRepository;
 	private final TeamRecordService recordService;
+	private final GoalRepository goalRepository;
 
 	@Transactional
 	public Quarter createQuarterOfMatch(Match match, QuarterRequest request) {
@@ -42,7 +44,7 @@ public class QuarterService {
 			.build();
 
 		recordService.updateTeamRecord(match.getTeamA().getId(), match.getTeamB().getId(),
-			quarter.getTeamAScore(), quarter.getTeamBScore());
+			quarter.getTeamAScore(), quarter.getTeamBScore(), false);
 		return quarterRepository.save(quarter);
 	}
 
@@ -56,6 +58,20 @@ public class QuarterService {
 		return quarterRepository.findByIdAndMatch(quarterId, match).orElseThrow(() -> {
 			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "quarter");
 		});
+	}
+
+	@Transactional
+	public void removeQuarter(Long quarterId) {
+		Quarter quarter = quarterRepository.findByIdWithMatch(quarterId).orElseThrow(() -> {
+			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "quarter");
+		});
+
+		goalRepository.deleteAllByQuarter(quarter);
+		quarterRepository.deleteById(quarterId);
+
+		Match match = quarter.getMatch();
+		recordService.updateTeamRecord(match.getTeamA().getId(), match.getTeamB().getId(),
+			quarter.getTeamAScore(), quarter.getTeamBScore(), true);
 	}
 
 	@Transactional

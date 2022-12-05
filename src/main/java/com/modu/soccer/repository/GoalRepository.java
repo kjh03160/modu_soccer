@@ -28,4 +28,6 @@ public interface GoalRepository extends JpaRepository<Goal, Long> {
 		+ "limit :limit offset :offset")
 	List<Ranking> findAssistUserIdsByTeamId(@Param("teamId") Long teamId,
 		@Param("limit") Integer limit, @Param("offset") Integer offset);
+
+	void deleteAllByQuarter(Quarter quarter);
 }
