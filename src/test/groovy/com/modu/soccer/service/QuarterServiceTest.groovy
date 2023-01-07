@@ -5,7 +5,7 @@ import com.modu.soccer.enums.FormationName
 import com.modu.soccer.enums.Permission
 import com.modu.soccer.exception.CustomException
 import com.modu.soccer.exception.ErrorCode
-import com.modu.soccer.repository.GoalRepository
+import com.modu.soccer.repository.AttackPointRepository
 import com.modu.soccer.repository.QuarterRepository
 import com.modu.soccer.repository.TeamMemberRepository
 import com.modu.soccer.repository.TeamRepository
@@ -18,7 +18,7 @@ class QuarterServiceTest extends Specification {
     private TeamRecordService teamRecordService = Mock()
     private TeamRepository teamRepository = Mock()
     private TeamMemberRepository memberRepository = Mock()
-    private GoalRepository goalRepository = Mock()
+    private AttackPointRepository goalRepository = Mock()
     private QuarterService service;
 
     def setup() {

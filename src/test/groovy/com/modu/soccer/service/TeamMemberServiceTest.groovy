@@ -6,7 +6,7 @@ import com.modu.soccer.domain.request.TeamJoinRequest
 import com.modu.soccer.enums.*
 import com.modu.soccer.exception.CustomException
 import com.modu.soccer.exception.ErrorCode
-import com.modu.soccer.repository.GoalRepository
+import com.modu.soccer.repository.AttackPointRepository
 import com.modu.soccer.repository.TeamMemberRepository
 import com.modu.soccer.repository.TeamRepository
 import com.modu.soccer.repository.UserRepository
@@ -20,7 +20,7 @@ import spock.lang.Unroll
 class TeamMemberServiceTest extends Specification {
     private TeamMemberRepository memberRepository = Mock();
     private TeamRepository teamRepository = Mock();
-    private GoalRepository goalRepository = Mock()
+    private AttackPointRepository goalRepository = Mock()
     private UserRepository userRepository = Mock()
     private TeamMemberService service;
 
