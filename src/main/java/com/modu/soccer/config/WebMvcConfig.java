@@ -5,7 +5,7 @@ import com.modu.soccer.filter.LoggingFilter;
 import com.modu.soccer.jwt.JwtInterceptor;
 import com.modu.soccer.jwt.JwtProvider;
 import com.modu.soccer.repository.UserRepository;
-import com.modu.soccer.utils.RankTypeConverter;
+import com.modu.soccer.utils.AttackPointTypeConverter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -24,7 +24,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
 	@Override
 	public void addFormatters(FormatterRegistry registry) {
-		registry.addConverter(new RankTypeConverter());
+		registry.addConverter(new AttackPointTypeConverter());
 	}
 
 	@Bean

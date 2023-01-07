@@ -8,7 +8,7 @@ import com.modu.soccer.entity.Team;
 import com.modu.soccer.entity.TeamMember;
 import com.modu.soccer.entity.User;
 import com.modu.soccer.enums.AcceptStatus;
-import com.modu.soccer.enums.RankType;
+import com.modu.soccer.enums.AttackPointType;
 import com.modu.soccer.exception.CustomException;
 import com.modu.soccer.exception.ErrorCode;
 import com.modu.soccer.repository.AttackPointRepository;
@@ -118,13 +118,12 @@ public class TeamMemberService {
 		}
 	}
 
-	public Map<TeamMember, Integer> getRankMembers(Team team, PageRequest pageRequest, RankType type) {
+	public Map<TeamMember, Integer> getRankMembers(Team team, PageRequest pageRequest,
+		AttackPointType type) {
 		List<Ranking> result;
 		switch (type) {
-			case GOAL -> result = attackPointRepository.findScoreUserIdsByTeamId(
-				team.getId(), pageRequest.getPageSize(), (int) pageRequest.getOffset());
-			case ASSIST -> result = attackPointRepository.findAssistUserIdsByTeamId(
-				team.getId(), pageRequest.getPageSize(), (int) pageRequest.getOffset());
+			case GOAL, ASSIST -> result = attackPointRepository.findUserCountByTeamIdAndType(
+				team.getId(), type, pageRequest.getPageSize(), (int) pageRequest.getOffset());
 			default -> throw new IllegalArgumentException("unknown rank type");
 		}
 

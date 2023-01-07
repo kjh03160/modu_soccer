@@ -8,8 +8,7 @@ import lombok.Getter;
 public enum AttackPointType {
 	GOAL("GOAL"),
 	ASSIST("ASSIST"),
-	OWN_GOAL("OWN_GOAL")
-	;
+	OWN_GOAL("OWN_GOAL");
 
 	private String name;
 }

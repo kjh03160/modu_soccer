@@ -25,7 +25,7 @@ import org.hibernate.Hibernate;
 
 @Entity
 @Table(
-	name = "attackPoints",
+	name = "attack_points",
 	indexes = {
 		@Index(name = "idx_team_user_type", columnList = "team_id, user_id, type")
 	}
