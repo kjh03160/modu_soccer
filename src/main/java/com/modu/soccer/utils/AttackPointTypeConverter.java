@@ -7,6 +7,6 @@ public class AttackPointTypeConverter implements Converter<String, AttackPointTy
 
 	@Override
 	public AttackPointType convert(String source) {
-		return AttackPointType.valueOf(source.toUpperCase());
+		return AttackPointType.valueOf(source);
 	}
 }
