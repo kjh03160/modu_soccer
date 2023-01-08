@@ -15,6 +15,7 @@ import com.modu.soccer.repository.TeamRepository;
 import com.modu.soccer.repository.UserRepository;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,9 +31,15 @@ public class AttackPointService {
 	private final UserRepository userRepository;
 	private final QuarterRepository quarterRepository;
 
-	public void addAttackPoint(Long quarterId, GoalRequest request) {
+	public void addAttackPoint(Long matchId, Long quarterId, GoalRequest request) {
 		Team team = teamRepository.getReferenceById(request.getTeamId());
-		Quarter quarter = quarterRepository.getReferenceById(quarterId);
+		Quarter quarter = quarterRepository.findById(quarterId).orElseThrow(() -> {
+			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "quarter");
+		});
+
+		if (!Objects.equals(quarter.getMatch().getId(), matchId)) {
+			throw new IllegalArgumentException("invalid matchId and quarterId");
+		}
 
 		User scorer = validateAndGetUserCondition(team, request.getScoringUserId());
 
@@ -56,10 +63,15 @@ public class AttackPointService {
 		attackPointRepository.saveAll(entities);
 	}
 
-	public List<AttackPoint> getGoalsOfQuarter(Long quarterId) {
+	public List<AttackPoint> getGoalsOfQuarter(Long matchId, Long quarterId) {
 		Quarter quarter = quarterRepository.findById(quarterId).orElseThrow(() -> {
 			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "quarter");
 		});
+
+		if (!Objects.equals(quarter.getMatch().getId(), matchId)) {
+			throw new IllegalArgumentException("invalid matchId and quarterId");
+		}
+
 		return attackPointRepository.findAllGoalsOfQuarter(quarter);
 	}
 

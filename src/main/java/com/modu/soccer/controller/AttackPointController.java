@@ -32,7 +32,7 @@ public class AttackPointController {
 		@RequestBody GoalRequest request
 	) {
 		// TODO: add permission check if need
-		attackPointService.addAttackPoint(quarterId, request);
+		attackPointService.addAttackPoint(matchId, quarterId, request);
 		return ApiResponse.ok();
 	}
 
@@ -41,7 +41,8 @@ public class AttackPointController {
 		@PathVariable(name = "match_id") long matchId,
 		@PathVariable(name = "quarter_id") long quarterId
 	) {
-		List<AttackPointDto> goalsOfQuarter = attackPointService.getGoalsOfQuarter(quarterId)
+		List<AttackPointDto> goalsOfQuarter = attackPointService
+			.getGoalsOfQuarter(matchId, quarterId)
 			.stream()
 			.map(AttackPointDto::fromEntity).toList();
 		return ApiResponse.withBody(goalsOfQuarter);

@@ -68,7 +68,7 @@ class AttackPointControllerTest extends Specification {
 
         def url = String.format(GOAL_URL, String.valueOf(1l), String.valueOf(1l))
 
-        service.addAttackPoint(_, _) >> null
+        service.addAttackPoint(_, _, _) >> null
 
         when:
         def result = mvc.perform(MockMvcRequestBuilders.post(url)
@@ -98,7 +98,7 @@ class AttackPointControllerTest extends Specification {
 
         def url = String.format(GOAL_URL, String.valueOf(match_id), String.valueOf(quarter_id))
 
-        service.addAttackPoint(_, _) >> null
+        service.addAttackPoint(_, _, _) >> null
 
         when:
         def result = mvc.perform(MockMvcRequestBuilders.post(url)
@@ -132,7 +132,7 @@ class AttackPointControllerTest extends Specification {
 
         def url = String.format(GOAL_URL, String.valueOf(1l), String.valueOf(1l))
 
-        service.getGoalsOfQuarter(_) >> List.of(goal)
+        service.getGoalsOfQuarter(_, _) >> List.of(goal)
 
         when:
         def result = mvc.perform(MockMvcRequestBuilders.get(url)
