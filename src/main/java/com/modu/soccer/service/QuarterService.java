@@ -10,7 +10,7 @@ import com.modu.soccer.entity.TeamMember;
 import com.modu.soccer.entity.User;
 import com.modu.soccer.exception.CustomException;
 import com.modu.soccer.exception.ErrorCode;
-import com.modu.soccer.repository.GoalRepository;
+import com.modu.soccer.repository.AttackPointRepository;
 import com.modu.soccer.repository.QuarterRepository;
 import com.modu.soccer.repository.TeamMemberRepository;
 import com.modu.soccer.repository.TeamRepository;
@@ -30,7 +30,7 @@ public class QuarterService {
 	private final TeamRepository teamRepository;
 	private final TeamMemberRepository memberRepository;
 	private final TeamRecordService recordService;
-	private final GoalRepository goalRepository;
+	private final AttackPointRepository attackPointRepository;
 
 	@Transactional
 	public Quarter createQuarterOfMatch(Match match, QuarterRequest request) {
@@ -66,7 +66,7 @@ public class QuarterService {
 			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "quarter");
 		});
 
-		goalRepository.deleteAllByQuarter(quarter);
+		attackPointRepository.deleteAllByQuarter(quarter);
 		quarterRepository.deleteById(quarterId);
 
 		Match match = quarter.getMatch();

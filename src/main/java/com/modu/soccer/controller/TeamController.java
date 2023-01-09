@@ -8,7 +8,7 @@ import com.modu.soccer.domain.request.TeamEditRequest;
 import com.modu.soccer.domain.request.TeamRequest;
 import com.modu.soccer.entity.Team;
 import com.modu.soccer.entity.TeamMember;
-import com.modu.soccer.enums.RankType;
+import com.modu.soccer.enums.AttackPointType;
 import com.modu.soccer.service.S3UploadService;
 import com.modu.soccer.service.TeamMemberService;
 import com.modu.soccer.service.TeamService;
@@ -84,7 +84,7 @@ public class TeamController {
 	@GetMapping("/{team_id}/ranks")
 	public ApiResponse<?> getTeamTopMember(
 		@PathVariable("team_id") long teamId,
-		@RequestParam(name = "type") RankType type,
+		@RequestParam(name = "type") AttackPointType type,
 		@RequestParam(defaultValue = "0") Integer page,
 		@RequestParam(defaultValue = "5") Integer pageSize
 	) {

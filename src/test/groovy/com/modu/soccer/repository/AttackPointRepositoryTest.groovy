@@ -1,9 +1,10 @@
 package com.modu.soccer.repository
 
 import com.modu.soccer.TestUtil
-import com.modu.soccer.entity.Goal
+import com.modu.soccer.entity.AttackPoint
 import com.modu.soccer.entity.Match
 import com.modu.soccer.entity.Quarter
+import com.modu.soccer.enums.AttackPointType
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import spock.lang.Specification
@@ -12,9 +13,9 @@ import javax.persistence.EntityManager
 import javax.persistence.PersistenceContext
 
 @DataJpaTest
-class GoalRepositoryTest extends Specification {
+class AttackPointRepositoryTest extends Specification {
     @Autowired
-    private GoalRepository repository
+    private AttackPointRepository repository
     @Autowired
     private MatchRepository matchRepository;
     @Autowired
@@ -32,7 +33,8 @@ class GoalRepositoryTest extends Specification {
 
     private Match match
     private Quarter quarter
-    private Goal goal
+    private AttackPoint goal
+    private AttackPoint assist
 
     def setup() {
         def user = TestUtil.getUser(null, "email")
@@ -56,8 +58,9 @@ class GoalRepositoryTest extends Specification {
         def quarter2 = TestUtil.getQuarter(null, this.match, team1, team2, 2, 2, 3)
         quarterRepository.save(quarter2)
 
-        goal = TestUtil.getGoal(null, team1, quarter, user, user)
-        repository.save(goal)
+        goal = TestUtil.getAttackPoint(null, team1, quarter, user, AttackPointType.GOAL)
+        assist = TestUtil.getAttackPoint(null, team1, quarter, user, AttackPointType.GOAL)
+        repository.saveAll([goal, assist])
 
         entityManager.clear()
     }
@@ -67,9 +70,9 @@ class GoalRepositoryTest extends Specification {
         entityManager.flush()
     }
 
-    def "findAllByQuarter"() {
+    def "findAllGoalsOfQuarter"() {
         when:
-        def result = repository.findAllByQuarter(quarter)
+        def result = repository.findAllGoalsOfQuarter(quarter)
 
         then:
         noExceptionThrown()

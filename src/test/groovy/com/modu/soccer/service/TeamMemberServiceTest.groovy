@@ -6,7 +6,7 @@ import com.modu.soccer.domain.request.TeamJoinRequest
 import com.modu.soccer.enums.*
 import com.modu.soccer.exception.CustomException
 import com.modu.soccer.exception.ErrorCode
-import com.modu.soccer.repository.GoalRepository
+import com.modu.soccer.repository.AttackPointRepository
 import com.modu.soccer.repository.TeamMemberRepository
 import com.modu.soccer.repository.TeamRepository
 import com.modu.soccer.repository.UserRepository
@@ -20,12 +20,12 @@ import spock.lang.Unroll
 class TeamMemberServiceTest extends Specification {
     private TeamMemberRepository memberRepository = Mock();
     private TeamRepository teamRepository = Mock();
-    private GoalRepository goalRepository = Mock()
+    private AttackPointRepository attackPointRepository = Mock()
     private UserRepository userRepository = Mock()
     private TeamMemberService service;
 
     def setup() {
-        service = new TeamMemberService(memberRepository, teamRepository, goalRepository, userRepository)
+        service = new TeamMemberService(memberRepository, teamRepository, attackPointRepository, userRepository)
         def u = TestUtil.getUser(1l, "email")
         UserContextUtil.setUser(u)
     }
@@ -441,11 +441,7 @@ class TeamMemberServiceTest extends Specification {
         def pageRequest = PageRequest.of(1, 5)
         def rankResult = [TestUtil.getRankResult(user.getId(), 1)]
 
-        if (type == RankType.GOAL) {
-            1 * goalRepository.findScoreUserIdsByTeamId(team.getId(), pageRequest.getPageSize(), 5) >> rankResult
-        } else if (type == RankType.ASSIST) {
-            1 * goalRepository.findAssistUserIdsByTeamId(team.getId(), pageRequest.getPageSize(), 5) >> rankResult
-        }
+        1 * attackPointRepository.findUserCountByTeamIdAndType(team.getId(), type, pageRequest.getPageSize(), 5) >> rankResult
         1 * userRepository.getReferenceById(user.getId()) >> user
         1 * memberRepository.findByTeamAndUserIn(team, [user]) >> [teamMember]
 
@@ -457,6 +453,6 @@ class TeamMemberServiceTest extends Specification {
         result.get(teamMember) == 1
 
         where:
-        type << [RankType.GOAL, RankType.ASSIST]
+        type << [AttackPointType.GOAL, AttackPointType.ASSIST]
     }
 }

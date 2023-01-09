@@ -3,15 +3,15 @@ package com.modu.soccer.service;
 import com.modu.soccer.domain.request.TeamJoinApproveRequest;
 import com.modu.soccer.domain.request.TeamJoinRequest;
 import com.modu.soccer.domain.request.TeamMemberPutRequest;
+import com.modu.soccer.entity.Ranking;
 import com.modu.soccer.entity.Team;
 import com.modu.soccer.entity.TeamMember;
 import com.modu.soccer.entity.User;
-import com.modu.soccer.entity.Ranking;
 import com.modu.soccer.enums.AcceptStatus;
-import com.modu.soccer.enums.RankType;
+import com.modu.soccer.enums.AttackPointType;
 import com.modu.soccer.exception.CustomException;
 import com.modu.soccer.exception.ErrorCode;
-import com.modu.soccer.repository.GoalRepository;
+import com.modu.soccer.repository.AttackPointRepository;
 import com.modu.soccer.repository.TeamMemberRepository;
 import com.modu.soccer.repository.TeamRepository;
 import com.modu.soccer.repository.UserRepository;
@@ -32,7 +32,7 @@ public class TeamMemberService {
 
 	private final TeamMemberRepository memberRepository;
 	private final TeamRepository teamRepository;
-	private final GoalRepository goalRepository;
+	private final AttackPointRepository attackPointRepository;
 	private final UserRepository userRepository;
 
 	@Transactional(readOnly = true)
@@ -118,15 +118,12 @@ public class TeamMemberService {
 		}
 	}
 
-	public Map<TeamMember, Integer> getRankMembers(Team team, PageRequest pageRequest, RankType type) {
+	public Map<TeamMember, Integer> getRankMembers(Team team, PageRequest pageRequest,
+		AttackPointType type) {
 		List<Ranking> result;
 		switch (type) {
-			case GOAL ->
-				result = goalRepository.findScoreUserIdsByTeamId(
-					team.getId(), pageRequest.getPageSize(), (int) pageRequest.getOffset());
-			case ASSIST ->
-				result = goalRepository.findAssistUserIdsByTeamId(
-					team.getId(), pageRequest.getPageSize(), (int) pageRequest.getOffset());
+			case GOAL, ASSIST -> result = attackPointRepository.findUserCountByTeamIdAndType(
+				team.getId(), type, pageRequest.getPageSize(), (int) pageRequest.getOffset());
 			default -> throw new IllegalArgumentException("unknown rank type");
 		}
 

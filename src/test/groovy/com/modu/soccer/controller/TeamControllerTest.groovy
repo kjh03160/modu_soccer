@@ -386,7 +386,43 @@ class TeamControllerTest extends Specification{
         response.getContents().get(0).getUserId() == user.getId()
 
         where:
-        type << ["goal", "assist"]
+        type << ["GOAL", "ASSIST"]
     }
 
+    @Unroll
+    def "getTeamTopMember - invalid type #type"() {
+        def user = UserContextUtil.getCurrentUser()
+
+        given:
+        def token = jwtProvider.createTokenOfType(user, TokenType.AUTH_ACCESS_TOKEN)
+        def team = Team.builder()
+                .id(1l)
+                .owner(user)
+                .record(new TeamRecord())
+                .build();
+        def teamMember = TestUtil.getTeamMember(1l, user, team)
+        def pageRequest = PageRequest.of(0, 5)
+        def ranks = Map.of(teamMember, 1)
+        def url = String.format(TEAM_API + "/1/ranks?type=%s", type)
+
+        teamService.getTeamById(_) >> team
+        memberService.getRankMembers(team, pageRequest, _) >> ranks
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.get(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andReturn()
+                .getResponse()
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<List<RankMemberDto>>>() {
+        })
+
+        then:
+        noExceptionThrown()
+        response.getCode() == ErrorCode.INVALID_PARAM.getCode()
+
+        where:
+        type << ["goal", "assist", "Adsfa"]
+    }
 }

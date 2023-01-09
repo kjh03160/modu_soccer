@@ -101,14 +101,14 @@ class TestUtil {
         return formation
     }
 
-    static def getGoal(id, team, quarter, scorer, assister) {
-        return Goal.builder()
-        .team(team)
-        .quarter(quarter)
-        .scoringUser(scorer)
-        .assistUser(assister)
-        .eventTime(Time.valueOf("00:01:00"))
-        .build()
+    static def getAttackPoint(id, team, quarter, user, type) {
+        return AttackPoint.builder()
+                .user(user)
+                .team(team)
+                .quarter(quarter)
+                .type(type)
+                .eventTime(Time.valueOf("00:01:00"))
+                .build()
     }
 
     static def getGoalRequest(teamId, scorer, assister) {

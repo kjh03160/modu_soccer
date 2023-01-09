@@ -7,8 +7,6 @@ import com.modu.soccer.domain.ApiResponse
 import com.modu.soccer.domain.TeamMemberInfo
 import com.modu.soccer.domain.request.TeamJoinApproveRequest
 import com.modu.soccer.domain.request.TeamJoinRequest
-import com.modu.soccer.entity.Team
-import com.modu.soccer.entity.TeamMember
 import com.modu.soccer.entity.User
 import com.modu.soccer.enums.Permission
 import com.modu.soccer.enums.Position
@@ -70,10 +68,9 @@ class TeamMemberControllerTest extends Specification {
     @Unroll
     def "getTeamMembers - status param #status"() {
         given:
-        def team = new Team()
-        team.setId(1l)
+        def team = TestUtil.getTeam(1l, "team", null)
+        def member = TestUtil.getTeamMember(1l, user, team)
         def url = String.format(TEAM_MEMBER_URL + "?accept-status=%s", String.valueOf(team.getId()), status)
-        def member = getTeamMember(user, team)
 
         service.getTeamMembers(team.getId(), _) >> List.of(member)
 
@@ -99,8 +96,7 @@ class TeamMemberControllerTest extends Specification {
 
     def "getTeamMembers - status param 잘못됨"() {
         given:
-        def team = new Team()
-        team.setId(1l)
+        def team = TestUtil.getTeam(1l, "team", null)
         def url = String.format(TEAM_MEMBER_URL + "?accept-status=%s", String.valueOf(team.getId()), "ads")
 
         when:
@@ -137,11 +133,10 @@ class TeamMemberControllerTest extends Specification {
 
     def "joinTeam"() {
         given:
-        def team = new Team()
-        team.setId(1l)
+        def team = TestUtil.getTeam(1l, "team", null)
+        def member = TestUtil.getTeamMember(1l, user, team)
         def url = String.format(TEAM_MEMBER_URL, String.valueOf(team.getId()))
         def request = new TeamJoinRequest()
-        def member = getTeamMember(user, team)
         request.setTeamId(1l)
 
         service.createMember(_, _) >> member
@@ -186,10 +181,8 @@ class TeamMemberControllerTest extends Specification {
 
     def "getTeamMember"() {
         given:
-        def team = new Team()
-        team.setId(1l)
-        def member = getTeamMember(user, team)
-        member.setId(1l)
+        def team = TestUtil.getTeam(1l, "team", null)
+        def member = TestUtil.getTeamMember(1l, user, team)
         def url = String.format(TEAM_MEMBER_URL + "/%s", String.valueOf(team.getId()), String.valueOf(member.getId()))
 
         service.getTeamMemberInfo(team.getId(), member.getId()) >> member
@@ -311,19 +304,5 @@ class TeamMemberControllerTest extends Specification {
         teamId | memberId
         1l | "asd"
         "asd" | 1l
-    }
-
-    def getUser(userId, email) {
-        def user = new User()
-        user.setId(userId)
-        user.setEmail(email)
-        return user
-    }
-
-    def getTeamMember(user, team) {
-        return TeamMember.builder()
-                .user(user)
-                .team(team)
-                .build()
     }
 }

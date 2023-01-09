@@ -1,36 +1,39 @@
 package com.modu.soccer.controller;
 
 import com.modu.soccer.domain.ApiResponse;
-import com.modu.soccer.domain.GoalDto;
+import com.modu.soccer.domain.AttackPointDto;
 import com.modu.soccer.domain.request.GoalRequest;
-import com.modu.soccer.entity.Goal;
-import com.modu.soccer.service.GoalService;
+import com.modu.soccer.service.AttackPointService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/matches/{match_id}/quarters/{quarter_id}/goals")
-public class GoalController {
-	private final GoalService goalService;
+public class AttackPointController {
+
+	private final AttackPointService attackPointService;
 
 	@PostMapping
+	@ResponseStatus(HttpStatus.CREATED)
 	public ApiResponse<?> addGoal(
 		@PathVariable(name = "match_id") long matchId,
 		@PathVariable(name = "quarter_id") long quarterId,
 		@RequestBody GoalRequest request
 	) {
 		// TODO: add permission check if need
-		Goal goal = goalService.addGoal(quarterId, request);
-		return ApiResponse.withBody(GoalDto.fromEntity(goal));
+		attackPointService.addAttackPoint(matchId, quarterId, request);
+		return ApiResponse.ok();
 	}
 
 	@GetMapping
@@ -38,8 +41,10 @@ public class GoalController {
 		@PathVariable(name = "match_id") long matchId,
 		@PathVariable(name = "quarter_id") long quarterId
 	) {
-		List<GoalDto> goalsOfQuarter = goalService.getGoalsOfQuarter(quarterId).stream()
-			.map(GoalDto::fromEntity).toList();
+		List<AttackPointDto> goalsOfQuarter = attackPointService
+			.getGoalsOfQuarter(matchId, quarterId)
+			.stream()
+			.map(AttackPointDto::fromEntity).toList();
 		return ApiResponse.withBody(goalsOfQuarter);
 	}
 }
