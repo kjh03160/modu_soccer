@@ -20,33 +20,33 @@ public interface AttackPointRepository extends JpaRepository<AttackPoint, Long> 
 	List<AttackPoint> findAllGoalsOfQuarter(@Param("quarter") Quarter quarter);
 
 	@Query(nativeQuery = true, value =
-		"select user_id as userId, count(*) as value from attack_points "
+		"select user_id as userId, count(*) as count from attack_points "
 			+ "where team_id = :teamId and type = :#{#statisticsType.name()} and user_id is not null "
 			+ "group by user_id "
-			+ "order by value desc "
+			+ "order by count desc "
 			+ "limit :limit offset :offset")
-	List<SoloRecordView> CountAttackPointsByTeamIdAndType(
+	List<SoloRecordView> countAttackPointsByTeamIdAndType(
 		@Param("teamId") Long teamId, @Param("statisticsType") StatisticsType statisticsType,
 		@Param("limit") Integer limit, @Param("offset") Integer offset
 	);
 
 	@Query(nativeQuery = true, value =
-		"select p.user_id as userId, count(p.user_id) as value from attack_points p "
+		"select p.user_id as userId, count(p.user_id) as count from attack_points p "
 			+ "where p.team_id = :teamId and p.type != 'OWN_GOAL' and p.user_id is not null "
 			+ "group by p.user_id "
-			+ "order by value desc "
+			+ "order by count desc "
 			+ "limit :limit offset :offset")
-	List<SoloRecordView> CountAttackPointsByTeamIdAndUserId(@Param("teamId") Long team,
+	List<SoloRecordView> countAttackPointsByTeamIdAndUserId(@Param("teamId") Long team,
 		@Param("limit") Integer limit, @Param("offset") Integer offset);
 
 	@Query(nativeQuery = true, value =
-		"select least(goal.user_id, assist.user_id) as userId1, greatest(goal.user_id, assist.user_id) as userId2, count(goal.user_id) as value "
+		"select least(goal.user_id, assist.user_id) as userId1, greatest(goal.user_id, assist.user_id) as userId2, count(goal.user_id) as count "
 			+ "from attack_points goal inner join attack_points assist on goal.id = assist.goal_id "
 			+ "where goal.team_id = :teamId and goal.type != 'OWN_GOAL' and goal.user_id is not null "
 			+ "group by least(goal.user_id, assist.user_id), greatest(goal.user_id, assist.user_id) "
-			+ "order by value desc "
+			+ "order by count desc "
 			+ "limit :limit offset :offset")
-	List<DuoRecordView> CountDuoAttackPointsByTeamIdAndGoal(@Param("teamId") Long teamId,
+	List<DuoRecordView> countDuoAttackPointsByTeamIdAndGoal(@Param("teamId") Long teamId,
 		@Param("limit") Integer limit, @Param("offset") Integer offset);
 
 	void deleteAllByQuarter(Quarter quarter);

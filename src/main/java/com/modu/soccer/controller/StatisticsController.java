@@ -23,13 +23,14 @@ public class StatisticsController {
 	@GetMapping()
 	public ApiResponse<?> getTeamStatistics(
 		@PathVariable("team_id") long teamId,
-		@RequestParam(name = "type") StatisticsType type,
+		@RequestParam(name = "type") StatisticsType statisticsType,
 		@RequestParam(defaultValue = "0") Integer page,
 		@RequestParam(defaultValue = "5") Integer pageSize
 	) {
 		Team team = teamService.getTeamById(teamId);
 		PageRequest pageRequest = PageRequest.of(page, pageSize);
-		return ApiResponse.withBody(statisticsService.getTopMembers(pageRequest, team, type));
+		return ApiResponse.withBody(
+			statisticsService.getTopMembers(pageRequest, team, statisticsType));
 	}
 
 	@GetMapping("/duo")

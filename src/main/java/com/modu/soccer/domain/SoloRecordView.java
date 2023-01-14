@@ -4,5 +4,5 @@ public interface SoloRecordView {
 
 	Long getUserId();
 
-	Integer getValue();
+	Integer getCount();
 }

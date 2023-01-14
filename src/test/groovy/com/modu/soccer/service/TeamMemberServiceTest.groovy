@@ -6,26 +6,21 @@ import com.modu.soccer.domain.request.TeamJoinRequest
 import com.modu.soccer.enums.*
 import com.modu.soccer.exception.CustomException
 import com.modu.soccer.exception.ErrorCode
-import com.modu.soccer.repository.AttackPointRepository
 import com.modu.soccer.repository.TeamMemberRepository
 import com.modu.soccer.repository.TeamRepository
-import com.modu.soccer.repository.UserRepository
 import com.modu.soccer.utils.UserContextUtil
 import org.assertj.core.util.Lists
 import org.slf4j.MDC
-import org.springframework.data.domain.PageRequest
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class TeamMemberServiceTest extends Specification {
     private TeamMemberRepository memberRepository = Mock();
     private TeamRepository teamRepository = Mock();
-    private AttackPointRepository attackPointRepository = Mock()
-    private UserRepository userRepository = Mock()
     private TeamMemberService service;
 
     def setup() {
-        service = new TeamMemberService(memberRepository, teamRepository, attackPointRepository, userRepository)
+        service = new TeamMemberService(memberRepository, teamRepository)
         def u = TestUtil.getUser(1l, "email")
         UserContextUtil.setUser(u)
     }
@@ -430,29 +425,5 @@ class TeamMemberServiceTest extends Specification {
 
         where:
         status << [AcceptStatus.ACCEPTED, AcceptStatus.DENIED]
-    }
-
-    @Unroll
-    def "getRankMembers - #type"() {
-        given:
-        def user = TestUtil.getUser(1l, "email")
-        def team = TestUtil.getTeam(1l, "team", user)
-        def teamMember = TestUtil.getTeamMember(1l, user, team)
-        def pageRequest = PageRequest.of(1, 5)
-        def rankResult = [TestUtil.getRankResult(user.getId(), 1)]
-
-        1 * attackPointRepository.findUserCountByTeamIdAndType(team.getId(), type, pageRequest.getPageSize(), 5) >> rankResult
-        1 * userRepository.getReferenceById(user.getId()) >> user
-        1 * memberRepository.findByTeamAndUserIn(team, [user]) >> [teamMember]
-
-        when:
-        def result = service.getRankMembers(team, pageRequest, type)
-
-        then:
-        noExceptionThrown()
-        result.get(teamMember) == 1
-
-        where:
-        type << [AttackPointType.GOAL, AttackPointType.ASSIST]
     }
 }

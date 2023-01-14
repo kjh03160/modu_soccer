@@ -17,12 +17,12 @@ import lombok.Setter;
 @JsonNaming(SnakeCaseStrategy.class)
 public class SoloRecordDto {
 	private UserInfo user;
-	private Integer value;
+	private Integer count;
 
-	public static SoloRecordDto from(User user, Integer value) {
+	public static SoloRecordDto from(User user, Integer count) {
 		return SoloRecordDto.builder()
 			.user(UserInfo.of(user))
-			.value(value)
+			.count(count)
 			.build();
 	}
 }

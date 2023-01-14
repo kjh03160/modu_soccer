@@ -32,11 +32,12 @@ public class StatisticsService {
 		StatisticsType type) {
 		List<SoloRecordView> soloRecordViews;
 		switch (type) {
-			case GOAL, ASSIST -> soloRecordViews = attackPointRepository.CountAttackPointsByTeamIdAndType(
-				team.getId(), type, pageRequest.getPageSize(), (int) pageRequest.getOffset());
+			case GOAL, ASSIST ->
+				soloRecordViews = attackPointRepository.countAttackPointsByTeamIdAndType(
+					team.getId(), type, pageRequest.getPageSize(), (int) pageRequest.getOffset());
 			case ATTACK_POINT -> soloRecordViews = attackPointRepository
-				.CountAttackPointsByTeamIdAndUserId(
-					team.getId(), pageRequest.getPageSize(), pageRequest.getPageNumber()
+				.countAttackPointsByTeamIdAndUserId(
+					team.getId(), pageRequest.getPageSize(), (int) pageRequest.getOffset()
 				);
 			default -> throw new IllegalArgumentException("unknown rank type");
 		}
@@ -44,14 +45,14 @@ public class StatisticsService {
 		Map<Long, User> userIdMap = getUserIdMap(userIds);
 
 		return soloRecordViews.stream().map(record ->
-				SoloRecordDto.from(userIdMap.get(record.getUserId()), record.getValue())
+				SoloRecordDto.from(userIdMap.get(record.getUserId()), record.getCount())
 			).toList();
 	}
 
 	@Transactional(readOnly = true)
 	public List<DuoRecord> getTopDuoMembers(PageRequest pageRequest, Team team) {
-		List<DuoRecordView> duos = attackPointRepository.CountDuoAttackPointsByTeamIdAndGoal(
-			team.getId(), pageRequest.getPageSize(), pageRequest.getPageNumber());
+		List<DuoRecordView> duos = attackPointRepository.countDuoAttackPointsByTeamIdAndGoal(
+			team.getId(), pageRequest.getPageSize(), (int) pageRequest.getOffset());
 
 		List<Long> userIds = duos.stream().map(
 				duoRecordView -> Arrays.asList(duoRecordView.getUserId1(), duoRecordView.getUserId2()))
@@ -59,7 +60,8 @@ public class StatisticsService {
 		Map<Long, User> userMap = getUserIdMap(userIds);
 
 		return duos.stream().map(duoRecordView -> DuoRecord.of(userMap.get(
-			duoRecordView.getUserId1()), userMap.get(duoRecordView.getUserId2()), duoRecordView.getValue()
+				duoRecordView.getUserId1()), userMap.get(duoRecordView.getUserId2()),
+			duoRecordView.getCount()
 		)).toList();
 	}
 
