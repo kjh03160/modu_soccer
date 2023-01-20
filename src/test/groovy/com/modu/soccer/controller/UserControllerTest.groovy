@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.modu.soccer.TestUtil
 import com.modu.soccer.domain.ApiResponse
-import com.modu.soccer.domain.UserInfo
+import com.modu.soccer.domain.UserTeamsDto
 import com.modu.soccer.entity.User
 import com.modu.soccer.enums.TokenType
 import com.modu.soccer.jwt.JwtProvider
@@ -79,7 +79,8 @@ class UserControllerTest extends Specification {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andReturn()
                 .getResponse()
-        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<UserInfo>>(){})
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<UserTeamsDto>>() {
+        })
 
 
         then:
@@ -108,7 +109,8 @@ class UserControllerTest extends Specification {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andReturn()
                 .getResponse()
-        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<UserInfo>>(){})
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<UserTeamsDto>>() {
+        })
 
 
         then:

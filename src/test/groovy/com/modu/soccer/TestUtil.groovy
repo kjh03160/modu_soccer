@@ -1,6 +1,8 @@
 package com.modu.soccer
 
 import com.amazonaws.util.IOUtils
+import com.modu.soccer.domain.DuoRecordView
+import com.modu.soccer.domain.SoloRecordView
 import com.modu.soccer.domain.request.*
 import com.modu.soccer.entity.*
 import com.modu.soccer.entity.Formation.TeamFormation
@@ -101,12 +103,13 @@ class TestUtil {
         return formation
     }
 
-    static def getAttackPoint(id, team, quarter, user, type) {
+    static def getAttackPoint(id, team, quarter, user, type, goal) {
         return AttackPoint.builder()
                 .user(user)
                 .team(team)
                 .quarter(quarter)
                 .type(type)
+                .goal(goal)
                 .eventTime(Time.valueOf("00:01:00"))
                 .build()
     }
@@ -119,20 +122,6 @@ class TestUtil {
         request.setEventTime(Time.valueOf("00:01:00"))
         request.setIsOwnGoal(false)
         return request
-    }
-
-    static def getRankResult(userId, count) {
-        return new Ranking() {
-            @Override
-            Long getUserId() {
-                return userId
-            }
-
-            @Override
-            Integer getCount() {
-                return count
-            }
-        }
     }
 
     static def getTestImage() {
@@ -156,5 +145,38 @@ class TestUtil {
         request.setIsPro(isPro)
         request.setAge(age)
         return request
+    }
+
+    static def getSoloRecordView(user, value) {
+        return new SoloRecordView() {
+            @Override
+            Long getUserId() {
+                return user.getId()
+            }
+
+            @Override
+            Integer getCount() {
+                return value
+            }
+        }
+    }
+
+    static def getDuoRecordView(user1, user2, value) {
+        return new DuoRecordView() {
+            @Override
+            Long getUserId1() {
+                return user1.getId()
+            }
+
+            @Override
+            Long getUserId2() {
+                return user2.getId()
+            }
+
+            @Override
+            Integer getCount() {
+                return value
+            }
+        }
     }
 }

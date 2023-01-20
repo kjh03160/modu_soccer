@@ -29,8 +29,8 @@ class AttackPointServiceTest extends Specification {
         def teamMember2 = TestUtil.getTeamMember(2l, assistant, team)
         def match = TestUtil.getMatch(1l, team, team, scorer)
         def quarter = TestUtil.getQuarter(1l, match, team, team, 1, 1, 1)
-        def goal = TestUtil.getAttackPoint(1l, team, null, scorer, AttackPointType.GOAL)
-        def assist = TestUtil.getAttackPoint(1l, team, null, assistant, AttackPointType.ASSIST)
+        def goal = TestUtil.getAttackPoint(1l, team, null, scorer, AttackPointType.GOAL, null)
+        def assist = TestUtil.getAttackPoint(1l, team, null, assistant, AttackPointType.ASSIST, goal)
         def request = TestUtil.getGoalRequest(team.getId(), scorer.getId(), assistant.getId())
 
         1 * teamRepository.getReferenceById(team.getId()) >> team
@@ -55,7 +55,7 @@ class AttackPointServiceTest extends Specification {
         def teamMember1 = TestUtil.getTeamMember(1l, scorer, team)
         def match = TestUtil.getMatch(1l, team, team, scorer)
         def quarter = TestUtil.getQuarter(1l, match, team, team, 1, 1, 1)
-        def goal = TestUtil.getAttackPoint(1l, team, null, scorer, AttackPointType.OWN_GOAL)
+        def goal = TestUtil.getAttackPoint(1l, team, null, scorer, AttackPointType.OWN_GOAL, null)
         def request = TestUtil.getGoalRequest(team.getId(), scorer.getId(), null)
         request.setIsOwnGoal(true)
 
@@ -233,7 +233,7 @@ class AttackPointServiceTest extends Specification {
         def team2 = TestUtil.getTeam(2l, "team2", null)
         def match = TestUtil.getMatch(1l, team, team2, scorer)
         def quarter = TestUtil.getQuarter(1l, match, team, team2, 1, 2, 1)
-        def goal = TestUtil.getAttackPoint(1l, team, null, scorer, AttackPointType.GOAL)
+        def goal = TestUtil.getAttackPoint(1l, team, null, scorer, AttackPointType.GOAL, null)
 
         1 * quarterRepository.findById(quarter.getId()) >> Optional.of(quarter)
         1 * attackPointRepository.findAllGoalsOfQuarter(quarter) >> List.of(goal)

@@ -93,7 +93,7 @@ class AttackPointControllerTest extends Specification {
         def scorer = TestUtil.getUser(1l, "email1")
         def assistant = TestUtil.getUser(2l, "email2")
         def team = TestUtil.getTeam(1l, "team", null)
-        def goal = TestUtil.getAttackPoint(1l, team, null, scorer, AttackPointType.GOAL)
+        def goal = TestUtil.getAttackPoint(1l, team, null, scorer, AttackPointType.GOAL, null)
         def request = TestUtil.getGoalRequest(team.getId(), scorer.getId(), assistant.getId())
 
         def url = String.format(GOAL_URL, String.valueOf(match_id), String.valueOf(quarter_id))
@@ -128,7 +128,7 @@ class AttackPointControllerTest extends Specification {
         def scorer = TestUtil.getUser(1l, "email1")
         def assistant = TestUtil.getUser(2l, "email2")
         def team = TestUtil.getTeam(1l, "team", null)
-        def goal = TestUtil.getAttackPoint(1l, team, null, scorer, AttackPointType.GOAL)
+        def goal = TestUtil.getAttackPoint(1l, team, null, scorer, AttackPointType.GOAL, null)
 
         def url = String.format(GOAL_URL, String.valueOf(1l), String.valueOf(1l))
 
@@ -161,7 +161,7 @@ class AttackPointControllerTest extends Specification {
         def scorer = TestUtil.getUser(1l, "email1")
         def assistant = TestUtil.getUser(2l, "email2")
         def team = TestUtil.getTeam(1l, "team", null)
-        def goal = TestUtil.getAttackPoint(1l, team, null, scorer, AttackPointType.GOAL)
+        def goal = TestUtil.getAttackPoint(1l, team, null, scorer, AttackPointType.GOAL, null)
 
         def url = String.format(GOAL_URL, String.valueOf(match_id), String.valueOf(quarter_id))
 

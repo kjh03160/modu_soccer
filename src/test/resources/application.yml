@@ -2,7 +2,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create
-    dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+    dialect: org.hibernate.dialect.MySQL57InnoDBDialect
     properties:
       hibernate:
         show_sql: true
@@ -11,7 +11,7 @@ spring:
     url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1
     username: sa
     password: sa
-    driver-class-name: org.h2.Driver
+    driver-class-name: com.mysql.cj.jdbc.Driver
   h2:
     console:
       enabled: true
