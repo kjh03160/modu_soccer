@@ -1,7 +1,7 @@
 package com.modu.soccer.entity;
 
-import com.vladmihalcea.hibernate.type.json.JsonType;
 import java.util.Objects;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -11,28 +11,24 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+
+import org.hibernate.Hibernate;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.Hibernate;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 
 @Entity
 @Table(
 	name = "quarters"
-//	indexes = {
-//		@Index(name = "idx_match_id_quarter", columnList = "match_id, quarter", unique = true)
-//	}
 )
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@TypeDef(name = "json", typeClass = JsonType.class, defaultForType = Formation.class)
 public class Quarter extends BaseEntity implements Comparable<Quarter>{
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,9 +43,6 @@ public class Quarter extends BaseEntity implements Comparable<Quarter>{
 	@Column(name = "team_b_score")
 	private Integer teamBScore;
 
-	@Type(type = "json")
-	@Column(columnDefinition = "JSON")
-	private Formation formation;
 	@Column(nullable = false)
 	private Integer quarter;
 
