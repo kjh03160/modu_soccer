@@ -3,6 +3,7 @@ package com.modu.soccer.repository
 import com.modu.soccer.TestUtil
 import com.modu.soccer.entity.Match
 import com.modu.soccer.entity.Quarter
+import com.modu.soccer.enums.FormationName
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import spock.lang.Specification
@@ -47,9 +48,9 @@ class QuarterRepositoryTest extends Specification {
         def m = TestUtil.getMatch(null, team1, team2, user)
         this.match = matchRepository.save(m)
 
-        quarter = TestUtil.getQuarter(null, this.match, team1, team2, 1, 2, 1)
+        quarter = TestUtil.getQuarter(null, this.match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 2, 1)
         repository.save(quarter)
-        def quarter2 = TestUtil.getQuarter(null, this.match, team1, team2, 2, 2, 3)
+        def quarter2 = TestUtil.getQuarter(null, this.match, FormationName.FORMATION_1, FormationName.FORMATION_2, 2, 2, 3)
         repository.save(quarter2)
 
         entityManager.clear()

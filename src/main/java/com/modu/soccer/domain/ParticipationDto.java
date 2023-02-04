@@ -21,7 +21,7 @@ public class ParticipationDto {
 	private Long quarterId;
 	private Long teamId;
 
-	public static  ParticipationDto fromEntities(Long quarterId, Long teamId, List<QuarterParticipation> entities) {
+	public static ParticipationDto of(Long quarterId, Long teamId, List<QuarterParticipation> entities) {
 		return ParticipationDto.builder()
 			.quarterId(quarterId)
 			.teamId(teamId)

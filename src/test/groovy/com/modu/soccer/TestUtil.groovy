@@ -53,14 +53,16 @@ class TestUtil {
                 .build()
     }
 
-    static def getQuarter(id, match, teamA, teamB, quarter, s1, s2) {
+    static def getQuarter(id, match, teamAFormation, teamBFormation, quarter, s1, s2) {
         return Quarter.builder()
-        .id(id)
-        .match(match)
-        .quarter(quarter)
-        .teamAScore(s1)
-        .teamBScore(s2)
-        .build()
+                .id(id)
+                .teamAFormation(teamAFormation)
+                .teamBFormation(teamBFormation)
+                .match(match)
+                .quarter(quarter)
+                .teamAScore(s1)
+                .teamBScore(s2)
+                .build()
     }
 
     static def getMatchRequest(teamA, teamB) {

@@ -1,6 +1,7 @@
 package com.modu.soccer.service
 
 import com.modu.soccer.TestUtil
+import com.modu.soccer.enums.FormationName
 import com.modu.soccer.enums.Permission
 import com.modu.soccer.enums.Position
 import com.modu.soccer.exception.CustomException
@@ -53,7 +54,7 @@ class QuarterServiceTest extends Specification {
         def teamA = TestUtil.getTeam(1l, null, null)
         def teamB = TestUtil.getTeam(2l, null, null)
         def match = TestUtil.getMatch(1l, teamA, teamB, null)
-        def quarter = TestUtil.getQuarter(1l, match, teamA, teamB, 1, 1, 2)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 1, 2)
         quarterRepository.findByMatch(match) >> List.of(quarter)
 
         when:
@@ -69,7 +70,7 @@ class QuarterServiceTest extends Specification {
         def teamA = TestUtil.getTeam(1l, null, null)
         def teamB = TestUtil.getTeam(2l, null, null)
         def match = TestUtil.getMatch(1l, teamA, teamB, null)
-        def quarter = TestUtil.getQuarter(1l, match, teamA, teamB, 1, 1, 2)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 1, 2)
         quarterRepository.findByIdAndMatch(quarter.getId(), match) >> Optional.of(quarter)
 
         when:
@@ -86,7 +87,7 @@ class QuarterServiceTest extends Specification {
         def teamA = TestUtil.getTeam(1l, null, null)
         def teamB = TestUtil.getTeam(2l, null, null)
         def match = TestUtil.getMatch(1l, teamA, teamB, null)
-        def quarter = TestUtil.getQuarter(1l, match, teamA, teamB, 1, 1, 2)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 1, 2)
         quarterRepository.findByIdAndMatch(quarter.getId(), match) >> Optional.empty()
 
         when:
@@ -102,7 +103,7 @@ class QuarterServiceTest extends Specification {
         def teamA = TestUtil.getTeam(1l, null, null)
         def teamB = TestUtil.getTeam(2l, null, null)
         def match = TestUtil.getMatch(1l, teamA, teamB, null)
-        def quarter = TestUtil.getQuarter(1l, match, teamA, teamB, 1, 1, 2)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 1, 2)
 
         1 * quarterRepository.findByIdWithMatch(quarter.getId()) >> Optional.of(quarter)
         1 * attackPointRepository.deleteAllByQuarter(quarter)
@@ -120,7 +121,7 @@ class QuarterServiceTest extends Specification {
         def teamA = TestUtil.getTeam(1l, null, null)
         def teamB = TestUtil.getTeam(2l, null, null)
         def match = TestUtil.getMatch(1l, teamA, teamB, null)
-        def quarter = TestUtil.getQuarter(1l, match, teamA, teamB, 1, 1, 2)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 1, 2)
 
         1 * quarterRepository.findByIdWithMatch(quarter.getId()) >> Optional.empty()
         0 * attackPointRepository.deleteAllByQuarter(_)
@@ -140,7 +141,7 @@ class QuarterServiceTest extends Specification {
         def team2 = TestUtil.getTeam(2l, "name", null)
         def user = UserContextUtil.getCurrentUser();
         def match = TestUtil.getMatch(1l, team1, team2, user)
-        def quarter = TestUtil.getQuarter(1l, match, team1, team2, 1, 2, 1)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 2, 1)
         def participation = TestUtil.getQuarterParticipation(user, user.getName(), null, null, Position.GK, Time.valueOf("00:00:00"))
 
 
@@ -167,7 +168,7 @@ class QuarterServiceTest extends Specification {
         member.setPermission(permission)
         def member2 = TestUtil.getTeamMember(2l, user2, requestTeam)
         def match = TestUtil.getMatch(1l, team1, team2, user)
-        def quarter = TestUtil.getQuarter(1l, match, team1, team2, 1, 2, 1)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 2, 1)
         def participation = TestUtil.getParticipation(user.getId(), user.getName(), null, null, Position.GK, Time.valueOf("00:00:00"))
         def participation2 = TestUtil.getParticipation(user.getId(), user.getName(), user2.getId(), user2.getName(), Position.GK, Time.valueOf("00:00:00"))
         def request = TestUtil.getQuarterPaticipationRequest(requestTeam.getId(), [participation, participation2])
@@ -201,7 +202,7 @@ class QuarterServiceTest extends Specification {
         def member = TestUtil.getTeamMember(1l, user, team3)
         member.setPermission(Permission.ADMIN)
         def match = TestUtil.getMatch(1l, team1, team2, user)
-        def quarter = TestUtil.getQuarter(1l, match, team1, team2, 1, 2, 1)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 2, 1)
         def participation = TestUtil.getParticipation(user.getId(), user.getName(), null, null, Position.GK, Time.valueOf("00:00:00"))
         def request = TestUtil.getQuarterPaticipationRequest(team1.getId(), [participation])
 
@@ -225,7 +226,7 @@ class QuarterServiceTest extends Specification {
         def member = TestUtil.getTeamMember(1l, user, team1)
         member.setPermission(Permission.MEMBER)
         def match = TestUtil.getMatch(1l, team1, team2, user)
-        def quarter = TestUtil.getQuarter(1l, match, team1, team2, 1, 2, 1)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 2, 1)
         def participation = TestUtil.getParticipation(user.getId(), user.getName(), null, null, Position.GK, Time.valueOf("00:00:00"))
         def request = TestUtil.getQuarterPaticipationRequest(team1.getId(), [participation])
 
@@ -249,7 +250,7 @@ class QuarterServiceTest extends Specification {
         def member = TestUtil.getTeamMember(1l, user, team1)
         member.setPermission(Permission.ADMIN)
         def match = TestUtil.getMatch(1l, team1, team2, user)
-        def quarter = TestUtil.getQuarter(1l, match, team1, team2, 1, 2, 1)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 2, 1)
         def participation = TestUtil.getParticipation(3l, "name", null, null, Position.GK, Time.valueOf("00:00:00"))
         def request = TestUtil.getQuarterPaticipationRequest(team1.getId(), [participation])
 

@@ -2,6 +2,7 @@ package com.modu.soccer.service
 
 import com.modu.soccer.TestUtil
 import com.modu.soccer.enums.AttackPointType
+import com.modu.soccer.enums.FormationName
 import com.modu.soccer.exception.CustomException
 import com.modu.soccer.exception.ErrorCode
 import com.modu.soccer.repository.*
@@ -28,7 +29,7 @@ class AttackPointServiceTest extends Specification {
         def teamMember1 = TestUtil.getTeamMember(1l, scorer, team)
         def teamMember2 = TestUtil.getTeamMember(2l, assistant, team)
         def match = TestUtil.getMatch(1l, team, team, scorer)
-        def quarter = TestUtil.getQuarter(1l, match, team, team, 1, 1, 1)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 1, 1)
         def goal = TestUtil.getAttackPoint(1l, team, null, scorer, AttackPointType.GOAL, null)
         def assist = TestUtil.getAttackPoint(1l, team, null, assistant, AttackPointType.ASSIST, goal)
         def request = TestUtil.getGoalRequest(team.getId(), scorer.getId(), assistant.getId())
@@ -54,7 +55,7 @@ class AttackPointServiceTest extends Specification {
         def team = TestUtil.getTeam(1l, "team", null)
         def teamMember1 = TestUtil.getTeamMember(1l, scorer, team)
         def match = TestUtil.getMatch(1l, team, team, scorer)
-        def quarter = TestUtil.getQuarter(1l, match, team, team, 1, 1, 1)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 1, 1)
         def goal = TestUtil.getAttackPoint(1l, team, null, scorer, AttackPointType.OWN_GOAL, null)
         def request = TestUtil.getGoalRequest(team.getId(), scorer.getId(), null)
         request.setIsOwnGoal(true)
@@ -78,7 +79,7 @@ class AttackPointServiceTest extends Specification {
         def assistant = TestUtil.getUser(2l, "email2")
         def team = TestUtil.getTeam(1l, "team", null)
         def match = TestUtil.getMatch(1l, team, team, scorer)
-        def quarter = TestUtil.getQuarter(1l, match, team, team, 1, 1, 1)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 1, 1)
         def request = TestUtil.getGoalRequest(team.getId(), scorer.getId(), assistant.getId())
 
         1 * teamRepository.getReferenceById(team.getId()) >> team
@@ -103,7 +104,7 @@ class AttackPointServiceTest extends Specification {
         def assistant = TestUtil.getUser(2l, "email2")
         def team = TestUtil.getTeam(1l, "team", null)
         def match = TestUtil.getMatch(1l, team, team, scorer)
-        def quarter = TestUtil.getQuarter(1l, match, team, team, 1, 1, 1)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 1, 1)
         def request = TestUtil.getGoalRequest(team.getId(), scorer.getId(), assistant.getId())
 
         1 * teamRepository.getReferenceById(team.getId()) >> team
@@ -127,7 +128,7 @@ class AttackPointServiceTest extends Specification {
         def assistant = TestUtil.getUser(2l, "email2")
         def team = TestUtil.getTeam(1l, "team", null)
         def match = TestUtil.getMatch(1l, team, team, scorer)
-        def quarter = TestUtil.getQuarter(1l, match, team, team, 1, 1, 1)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 1, 1)
         def request = TestUtil.getGoalRequest(team.getId(), scorer.getId(), assistant.getId())
 
         1 * teamRepository.getReferenceById(team.getId()) >> team
@@ -153,7 +154,7 @@ class AttackPointServiceTest extends Specification {
         def assistant = TestUtil.getUser(2l, "email2")
         def team = TestUtil.getTeam(1l, "team", null)
         def match = TestUtil.getMatch(1l, team, team, scorer)
-        def quarter = TestUtil.getQuarter(1l, match, team, team, 1, 1, 1)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 1, 1)
         def request = TestUtil.getGoalRequest(team.getId(), scorer.getId(), assistant.getId())
 
         1 * teamRepository.getReferenceById(team.getId()) >> team
@@ -178,7 +179,7 @@ class AttackPointServiceTest extends Specification {
         def assistant = TestUtil.getUser(2l, "email2")
         def team = TestUtil.getTeam(1l, "team", null)
         def match = TestUtil.getMatch(1l, team, team, scorer)
-        def quarter = TestUtil.getQuarter(1l, match, team, team, 1, 1, 1)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 1, 1)
         def request = TestUtil.getGoalRequest(team.getId(), scorer.getId(), assistant.getId())
         def teamMember1 = TestUtil.getTeamMember(1l, scorer, team)
 
@@ -206,7 +207,7 @@ class AttackPointServiceTest extends Specification {
         def team = TestUtil.getTeam(1l, "team", null)
         def teamMember1 = TestUtil.getTeamMember(1l, scorer, team)
         def match = TestUtil.getMatch(1l, team, team, scorer)
-        def quarter = TestUtil.getQuarter(1l, match, team, team, 1, 1, 1)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 1, 1)
         def request = TestUtil.getGoalRequest(team.getId(), scorer.getId(), assistant.getId())
 
         1 * teamRepository.getReferenceById(team.getId()) >> team
@@ -232,7 +233,7 @@ class AttackPointServiceTest extends Specification {
         def team = TestUtil.getTeam(1l, "team", null)
         def team2 = TestUtil.getTeam(2l, "team2", null)
         def match = TestUtil.getMatch(1l, team, team2, scorer)
-        def quarter = TestUtil.getQuarter(1l, match, team, team2, 1, 2, 1)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 2, 1)
         def goal = TestUtil.getAttackPoint(1l, team, null, scorer, AttackPointType.GOAL, null)
 
         1 * quarterRepository.findById(quarter.getId()) >> Optional.of(quarter)
@@ -253,7 +254,7 @@ class AttackPointServiceTest extends Specification {
         def team = TestUtil.getTeam(1l, "team", null)
         def team2 = TestUtil.getTeam(2l, "team2", null)
         def match = TestUtil.getMatch(1l, team, team2, scorer)
-        def quarter = TestUtil.getQuarter(1l, match, team, team2, 1, 2, 1)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 2, 1)
 
         1 * quarterRepository.findById(quarter.getId()) >> Optional.empty()
         0 * attackPointRepository.findAllByQuarter(quarter)
@@ -272,7 +273,7 @@ class AttackPointServiceTest extends Specification {
         def team = TestUtil.getTeam(1l, "team", null)
         def team2 = TestUtil.getTeam(2l, "team2", null)
         def match = TestUtil.getMatch(1l, team, team2, scorer)
-        def quarter = TestUtil.getQuarter(1l, match, team, team2, 1, 2, 1)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 2, 1)
 
         1 * quarterRepository.findById(quarter.getId()) >> Optional.of(quarter)
         0 * attackPointRepository.findAllByQuarter(quarter)

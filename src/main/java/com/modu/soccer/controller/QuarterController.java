@@ -81,7 +81,7 @@ public class QuarterController {
 		return ApiResponse.ok();
 	}
 
-	@PostMapping("/{quarter_id}/participation")
+	@PostMapping("/{quarter_id}/participations")
 	public ApiResponse<?> addQuarterPariticipation(
 		@PathVariable("match_id") long matchId,
 		@PathVariable("quarter_id") long quarterId,
@@ -94,6 +94,6 @@ public class QuarterController {
 		}
 		request.validate();
 		List<QuarterParticipation> result = quarterService.insertMemberParticipation(match, quarterId, request);
-		return ApiResponse.withBody(ParticipationDto.fromEntities(quarterId, request.getTeamId(), result));
+		return ApiResponse.withBody(ParticipationDto.of(quarterId, request.getTeamId(), result));
 	}
 }
