@@ -68,7 +68,8 @@ public class QuarterController {
 	) {
 		Match match = matchService.getMatchById(matchId);
 		Quarter quarter = quarterService.getQuarterInfoOfMatch(match, quarterId);
-		return ApiResponse.withBody(QuarterDetail.fromMatchAndQuarter(match, quarter));
+		List<QuarterParticipation> participations = quarterService.getQuarterParticipations(quarter);
+		return ApiResponse.withBody(QuarterDetail.fromMatchAndQuarter(match, quarter, participations));
 	}
 
 	@DeleteMapping("/{quarter_id}")

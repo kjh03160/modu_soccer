@@ -83,6 +83,11 @@ public class QuarterService {
 			quarter.getTeamAScore(), quarter.getTeamBScore(), true);
 	}
 
+	@Transactional(readOnly = true)
+	public List<QuarterParticipation> getQuarterParticipations(Quarter quarter) {
+		return participationRepository.findAllByQuarter(quarter);
+	}
+
 	@Transactional
 	public List<QuarterParticipation> insertMemberParticipation(Match match, Long quarterId,
 		QuarterParticipationRequest request) {
