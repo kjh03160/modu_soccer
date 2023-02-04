@@ -13,11 +13,15 @@ import com.modu.soccer.entity.Team;
 import com.modu.soccer.entity.TeamMember;
 import com.modu.soccer.enums.Position;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @JsonNaming(SnakeCaseStrategy.class)
 public class Participation {
 	@NotNull(message = "in user id should not be null")

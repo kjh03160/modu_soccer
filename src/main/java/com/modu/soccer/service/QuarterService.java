@@ -92,9 +92,6 @@ public class QuarterService {
 	public List<QuarterParticipation> insertMemberParticipation(Match match, Long quarterId,
 		QuarterParticipationRequest request) {
 		Quarter quarter = getQuarterInfoOfMatch(match, quarterId);
-		if (quarter.getMatch() != match) {
-			throw new CustomException(ErrorCode.INVALID_PARAM, "match");
-		}
 
 		Team team = teamRepository.getReferenceById(request.getTeamId());
 		User user = UserContextUtil.getCurrentUser();
@@ -102,7 +99,7 @@ public class QuarterService {
 			throw new CustomException(ErrorCode.FORBIDDEN);
 		});
 
-		if (!member.hasManagePermission() && member.getTeam() == team) {
+		if (!member.hasManagePermission()) {
 			throw new CustomException(ErrorCode.NO_PERMISSION_ON_TEAM);
 		}
 

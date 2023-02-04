@@ -14,6 +14,8 @@ import javax.persistence.Table;
 
 import org.hibernate.Hibernate;
 
+import com.modu.soccer.enums.FormationName;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -42,6 +44,10 @@ public class Quarter extends BaseEntity implements Comparable<Quarter>{
 	private Integer teamAScore;
 	@Column(name = "team_b_score")
 	private Integer teamBScore;
+	@Column(name = "team_a_formation")
+	private FormationName teamAFormation;
+	@Column(name = "team_b_formation")
+	private FormationName teamBFormation;
 
 	@Column(nullable = false)
 	private Integer quarter;

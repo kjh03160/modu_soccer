@@ -2,10 +2,10 @@ package com.modu.soccer
 
 import com.amazonaws.util.IOUtils
 import com.modu.soccer.domain.DuoRecordView
+import com.modu.soccer.domain.Participation
 import com.modu.soccer.domain.SoloRecordView
 import com.modu.soccer.domain.request.*
 import com.modu.soccer.entity.*
-import com.modu.soccer.entity.Formation.TeamFormation
 import com.modu.soccer.utils.LocalDateTimeUtil
 import org.springframework.mock.web.MockMultipartFile
 
@@ -57,7 +57,6 @@ class TestUtil {
         return Quarter.builder()
         .id(id)
         .match(match)
-        .formation(new Formation(teamA, teamB))
         .quarter(quarter)
         .teamAScore(s1)
         .teamBScore(s2)
@@ -80,6 +79,35 @@ class TestUtil {
         return request
     }
 
+    static def getQuarterPaticipationRequest(teamId, participations) {
+        def request = new QuarterParticipationRequest()
+        request.teamId = teamId
+        request.participations = participations
+        return request
+    }
+
+    static def getQuarterParticipation(inUser, inUserName, outUser, outUserName, position, time) {
+        def p = new QuarterParticipation()
+        p.eventTime = time
+        p.inUser = inUser
+        p.inUserName = inUserName
+        p.outUser = outUser
+        p.outUserName = outUserName
+        p.position = position
+        return p
+    }
+
+    static def getParticipation(inUserId, inUserName, outUserId, outUserName, position, time) {
+        def p = new Participation()
+        p.eventTime = time
+        p.inUserId = inUserId
+        p.inUserName = inUserName
+        p.outUserId = outUserId
+        p.outUserName = outUserName
+        p.position = position
+        return p
+    }
+
     static def getTeamMemberPutRequest(position, role, backNumber, permission) {
         def request = new TeamMemberPutRequest()
         request.setPermission(permission)
@@ -87,20 +115,6 @@ class TestUtil {
         request.setPosition(position)
         request.setRole(role)
         return request
-    }
-
-    static def getQuarterFormationRequest(TeamFormation formation) {
-        def request = new QuarterFormationRequest()
-        request.setFormation(formation)
-        return request
-    }
-
-    static def getTeamFormation(teamId, formationName) {
-        def formation = new TeamFormation()
-        formation.setTeamId(teamId)
-        formation.setFormationName(formationName)
-        formation.setMemberInfo(Map.of())
-        return formation
     }
 
     static def getAttackPoint(id, team, quarter, user, type, goal) {
