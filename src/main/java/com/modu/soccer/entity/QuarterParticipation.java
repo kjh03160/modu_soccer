@@ -5,6 +5,8 @@ import java.util.Objects;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -15,6 +17,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import org.hibernate.Hibernate;
+
+import com.modu.soccer.enums.Position;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -65,6 +69,10 @@ public class QuarterParticipation extends BaseEntity {
 	private Quarter quarter;
 	private Time eventTime;
 
+	@Column(name = "position")
+	@Enumerated(EnumType.STRING)
+	private Position position;
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -73,7 +81,7 @@ public class QuarterParticipation extends BaseEntity {
 		if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
 			return false;
 		}
-		QuarterParticipation that = (QuarterParticipation) o;
+		QuarterParticipation that = (QuarterParticipation)o;
 		return id != null && Objects.equals(id, that.id);
 	}
 

@@ -10,6 +10,7 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.modu.soccer.domain.Participation;
 import com.modu.soccer.domain.request.QuarterParticipationRequest;
 import com.modu.soccer.domain.request.QuarterRequest;
 import com.modu.soccer.entity.Match;
@@ -87,7 +88,7 @@ public class QuarterService {
 		QuarterParticipationRequest request) {
 		Quarter quarter = getQuarterInfoOfMatch(match, quarterId);
 		if (quarter.getMatch() != match) {
-			throw new CustomException(ErrorCode.INVALID_PARAM);
+			throw new CustomException(ErrorCode.INVALID_PARAM, "match");
 		}
 
 		Team team = teamRepository.getReferenceById(request.getTeamId());
@@ -96,40 +97,38 @@ public class QuarterService {
 			throw new CustomException(ErrorCode.FORBIDDEN);
 		});
 
-		if (!member.hasManagePermission()) {
+		if (!member.hasManagePermission() && member.getTeam() == team) {
 			throw new CustomException(ErrorCode.NO_PERMISSION_ON_TEAM);
 		}
 
-		Set<Long> userIds = new HashSet<>();
-		request.getParticipations().forEach(
-			participation -> {
-				userIds.addAll(Arrays.asList(participation.getOutUserId(), participation.getInUserId())
-				);
-			});
-
-		Map<Long, TeamMember> userIdMemberMap = getUserIdMemberMap(team, userIds);
-		if (userIdMemberMap.keySet().size() != userIds.size()) {
-			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "team_member");
-		}
+		Map<Long, TeamMember> userIdMemberMap = validateAndGetUserIdMemberMap(team, request.getParticipations());
 		List<QuarterParticipation> quarterParticipations = request.getParticipations().stream().map(r -> {
-			return QuarterParticipation.builder()
-				.quarter(quarter)
-				.team(team)
-				.eventTime(r.getEventTime())
-				.inUser(userIdMemberMap.get(r.getInUserId()).getUser())
-				.inUserName(r.getInUserName())
-				.outUser(userIdMemberMap.get(r.getOutUserId()).getUser())
-				.outUserName(r.getOutUserName())
-				.build();
+			return r.toEntity(quarter, team, userIdMemberMap.get(r.getInUserId()),
+				userIdMemberMap.get(r.getOutUserId()));
 		}).toList();
 		return participationRepository.saveAll(quarterParticipations);
 	}
 
-	private Map<Long, TeamMember> getUserIdMemberMap(Team team, Set<Long> userIds) {
+	private Map<Long, TeamMember> validateAndGetUserIdMemberMap(Team team, List<Participation> participations) {
+		Set<Long> userIds = new HashSet<>();
+		participations.forEach(
+			p -> {
+				if (p.getOutUserId() != null) {
+					userIds.addAll(Arrays.asList(p.getOutUserId(), p.getInUserId()));
+				} else {
+					userIds.add(p.getInUserId());
+				}
+			});
+
 		Map<Long, TeamMember> map = new HashMap<>();
 		memberRepository.findAllByTeamAndUser_IdIn(team, userIds).forEach(
 			m -> map.put(m.getUser().getId(), m)
 		);
+
+		if (map.keySet().size() != userIds.size()) {
+			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "team_member");
+		}
+
 		return map;
 	}
 }

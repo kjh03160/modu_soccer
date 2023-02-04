@@ -3,6 +3,8 @@ package com.modu.soccer.controller;
 import java.util.List;
 import java.util.Objects;
 
+import javax.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -82,13 +84,14 @@ public class QuarterController {
 	public ApiResponse<?> addQuarterPariticipation(
 		@PathVariable("match_id") long matchId,
 		@PathVariable("quarter_id") long quarterId,
-		@RequestBody QuarterParticipationRequest request
+		@RequestBody @Valid QuarterParticipationRequest request
 	) {
 		Match match = matchService.getMatchById(matchId);
 		if (!(Objects.equals(match.getTeamA().getId(), request.getTeamId())
 			|| Objects.equals(match.getTeamB().getId(), request.getTeamId()))) {
-			throw new CustomException(ErrorCode.INVALID_PARAM);
+			throw new CustomException(ErrorCode.INVALID_PARAM, "team id");
 		}
+		request.validate();
 		List<QuarterParticipation> result = quarterService.insertMemberParticipation(match, quarterId, request);
 		return ApiResponse.withBody(ParticipationDto.fromEntities(quarterId, request.getTeamId(), result));
 	}
