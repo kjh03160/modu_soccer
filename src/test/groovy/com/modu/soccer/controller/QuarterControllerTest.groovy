@@ -4,10 +4,12 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.modu.soccer.TestUtil
 import com.modu.soccer.domain.ApiResponse
+import com.modu.soccer.domain.ParticipationDto
 import com.modu.soccer.domain.QuarterDetail
 import com.modu.soccer.domain.QuarterSummary
 import com.modu.soccer.entity.User
 import com.modu.soccer.enums.FormationName
+import com.modu.soccer.enums.Position
 import com.modu.soccer.enums.TokenType
 import com.modu.soccer.exception.ErrorCode
 import com.modu.soccer.jwt.JwtProvider
@@ -27,6 +29,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 import spock.lang.Specification
 import spock.lang.Unroll
+
+import java.sql.Time
 
 @WebMvcTest(controllers = [QuarterController, JwtProvider])
 @AutoConfigureMockMvc
@@ -74,7 +78,7 @@ class QuarterControllerTest extends Specification {
         def url = String.format(QUARTER_API, String.valueOf(match.getId()))
 
         matchService.getMatchById(match.getId()) >> match
-        quarterService.createQuarterOfMatch(match, _) >> TestUtil.getQuarter(1l, match, match.getTeamA(), match.getTeamB(), request.getQuarter(), request.getTeamAScore(), request.getTeamBScore())
+        quarterService.createQuarterOfMatch(match, _) >> TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, request.getQuarter(), request.getTeamAScore(), request.getTeamBScore())
 
         when:
         def result = mvc.perform(MockMvcRequestBuilders.post(url)
@@ -95,8 +99,6 @@ class QuarterControllerTest extends Specification {
         response.getContents().getSummary().getQuarter() == request.getQuarter()
         response.getContents().getSummary().getTeamA().getTeamScore() == request.getTeamAScore()
         response.getContents().getSummary().getTeamB().getTeamScore() == request.getTeamBScore()
-        response.getContents().getFormation().getTeamA().getTeamId() == match.getTeamA().getId()
-        response.getContents().getFormation().getTeamB().getTeamId() == match.getTeamB().getId()
     }
 
     def "createQuarter - match id 숫자 아님"() {
@@ -128,7 +130,7 @@ class QuarterControllerTest extends Specification {
         def url = String.format(QUARTER_API, String.valueOf(match.getId()))
 
         matchService.getMatchById(match.getId()) >> match
-        quarterService.getQuartersOfMatch(match) >> List.of(TestUtil.getQuarter(1l, match, match.getTeamA(), match.getTeamB(), 1, 2, 3))
+        quarterService.getQuartersOfMatch(match) >> List.of(TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 2, 3))
 
         when:
         def result = mvc.perform(MockMvcRequestBuilders.get(url)
@@ -138,7 +140,8 @@ class QuarterControllerTest extends Specification {
                 .andReturn()
                 .getResponse()
 
-        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<List<QuarterSummary>>>(){})
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<List<QuarterSummary>>>() {
+        })
 
         then:
         noExceptionThrown()
@@ -148,6 +151,8 @@ class QuarterControllerTest extends Specification {
         response.getContents().get(0).getQuarter() == 1
         response.getContents().get(0).getTeamA().getTeamScore() == 2
         response.getContents().get(0).getTeamB().getTeamScore() == 3
+        response.getContents().get(0).getTeamAFormation() == FormationName.FORMATION_1
+        response.getContents().get(0).getTeamBFormation() == FormationName.FORMATION_2
     }
 
     def "getQuarters - match id 숫자 아님"() {
@@ -174,11 +179,13 @@ class QuarterControllerTest extends Specification {
         def teamA = TestUtil.getTeam(1l, "teamA", null)
         def teamB = TestUtil.getTeam(2l, "teamB", null)
         def match = TestUtil.getMatch(1l, teamA, teamB, null)
-        def quarter = TestUtil.getQuarter(1l, match, teamA, teamB, 1, 2, 3)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 2, 3)
         def url = String.format(QUARTER_API + "/%s", String.valueOf(match.getId()), String.valueOf(quarter.getId()))
+        def participation = TestUtil.getQuarterParticipation(user, user.getName(), null, null, Position.GK, Time.valueOf("00:00:00"))
 
         matchService.getMatchById(match.getId()) >> match
         quarterService.getQuarterInfoOfMatch(match, quarter.getId()) >> quarter
+        quarterService.getQuarterParticipations(quarter) >> [participation]
 
         when:
         def result = mvc.perform(MockMvcRequestBuilders.get(url)
@@ -199,8 +206,8 @@ class QuarterControllerTest extends Specification {
         response.getContents().getSummary().getQuarter() == quarter.getQuarter()
         response.getContents().getSummary().getTeamA().getTeamScore() == quarter.getTeamAScore()
         response.getContents().getSummary().getTeamB().getTeamScore() == quarter.getTeamBScore()
-        response.getContents().getFormation().getTeamA().getTeamId() == teamA.getId()
-        response.getContents().getFormation().getTeamB().getTeamId() == teamB.getId()
+        response.getContents().getSummary().getTeamAFormation() == FormationName.FORMATION_1
+        response.getContents().getSummary().getTeamBFormation() == FormationName.FORMATION_2
     }
 
     @Unroll
@@ -234,7 +241,7 @@ class QuarterControllerTest extends Specification {
         def teamA = TestUtil.getTeam(1l, "teamA", null)
         def teamB = TestUtil.getTeam(2l, "teamB", null)
         def match = TestUtil.getMatch(1l, teamA, teamB, null)
-        def quarter = TestUtil.getQuarter(1l, match, teamA, teamB, 1, 2, 3)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 2, 3)
         def url = String.format(QUARTER_API + "/%s", String.valueOf(match.getId()), String.valueOf(quarter.getId()))
 
         quarterService.removeQuarter(quarter.getId())
@@ -280,53 +287,65 @@ class QuarterControllerTest extends Specification {
         "ads" | "ads"
     }
 
-    def "editQuarterFormation"() {
+    def "쿼터 출전 선수 추가"() {
         given:
+        user.setName("test")
         def teamA = TestUtil.getTeam(1l, "teamA", null)
         def teamB = TestUtil.getTeam(2l, "teamB", null)
         def match = TestUtil.getMatch(1l, teamA, teamB, null)
-        def quarter = TestUtil.getQuarter(1l, match, teamA, teamB, 1, 2, 3)
-        def url = String.format(QUARTER_API + "/%s/formation", String.valueOf(match.getId()), String.valueOf(quarter.getId()))
-        def formation = TestUtil.getTeamFormation(3l, FormationName.FORMATION_1)
-        def request = TestUtil.getQuarterFormationRequest(formation)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 2, 3)
+        def url = String.format(QUARTER_API + "/%s/participations", String.valueOf(match.getId()), String.valueOf(quarter.getId()))
+        def participation = TestUtil.getParticipation(user.getId(), user.getName(), null, null, Position.GK, Time.valueOf("00:00:00"))
+        def participationEntity = TestUtil.getQuarterParticipation(user, user.getName(), null, null, Position.GK, Time.valueOf("00:00:00"))
+        def request = TestUtil.getQuarterPaticipationRequest(teamA.getId(), [participation])
 
         matchService.getMatchById(match.getId()) >> match
-        quarterService.updateQuarterFormation(match, quarter.getId(), request)
+        quarterService.insertMemberParticipation(match, quarter.getId(), _) >> [participationEntity]
 
         when:
-        def result = mvc.perform(MockMvcRequestBuilders.put(url)
-                .content(objectMapper.writeValueAsString(request))
+        def result = mvc.perform(MockMvcRequestBuilders.post(url)
                 .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andReturn()
                 .getResponse()
 
-        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<?>>(){})
-
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<ParticipationDto>>() {
+        })
 
         then:
         noExceptionThrown()
         response.getCode() == 0
+        response.getContents() != null
+        response.getContents().getTeamId() == request.getTeamId()
+        response.getContents().getQuarterId() == quarter.getId()
+        response.getContents().getParticipations().size() == 1
+        response.getContents().getParticipations().get(0).getInUserId() == participation.getInUserId()
+        response.getContents().getParticipations().get(0).getInUserName() == participation.getInUserName()
+        response.getContents().getParticipations().get(0).getPosition() == participation.getPosition()
+        response.getContents().getParticipations().get(0).getEventTime() == participation.getEventTime()
     }
 
-    @Unroll
-    def "editQuarterFormation - path match_id #match_id / quarter_id #quarter_id 숫자 아님"() {
+    def "쿼터 출전 선수 추가 URL path vairiable 숫자가 아니면 40000 - match_id #match_id / quarter_id #quarter_id "() {
         given:
-        def url = String.format(QUARTER_API + "/%s/formation", String.valueOf(match_id), String.valueOf(quarter_id))
-        def formation = TestUtil.getTeamFormation(3l, FormationName.FORMATION_1)
-        def request = TestUtil.getQuarterFormationRequest(formation)
+        user.setName("test")
+        def teamA = TestUtil.getTeam(1l, "teamA", null)
+        def url = String.format(QUARTER_API + "/%s/participations", String.valueOf(match_id), String.valueOf(quarter_id))
+        def participation = TestUtil.getParticipation(user.getId(), user.getName(), null, null, Position.GK, Time.valueOf("00:00:00"))
+        def request = TestUtil.getQuarterPaticipationRequest(teamA.getId(), [participation])
 
         when:
-        def result = mvc.perform(MockMvcRequestBuilders.put(url)
-                .content(objectMapper.writeValueAsString(request))
+        def result = mvc.perform(MockMvcRequestBuilders.post(url)
                 .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andReturn()
                 .getResponse()
 
-        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<?>>(){})
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<ParticipationDto>>() {
+        })
 
         then:
         noExceptionThrown()
@@ -334,8 +353,81 @@ class QuarterControllerTest extends Specification {
 
         where:
         match_id | quarter_id
-        1 | "asd"
-        "asd" | 2
-        "ads" | "ads"
+        1        | "asd"
+        "asd"    | 2
+        "ads"    | "ads"
+    }
+
+    def "쿼터 출전 선수 추가 시, match에 상관 없는 팀의 요청은 40000"() {
+        given:
+        user.setName("test")
+        def teamA = TestUtil.getTeam(1l, "teamA", null)
+        def teamB = TestUtil.getTeam(2l, "teamB", null)
+        def teamC = TestUtil.getTeam(3l, "teamC", null)
+        def match = TestUtil.getMatch(1l, teamA, teamB, null)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 2, 3)
+        def url = String.format(QUARTER_API + "/%s/participations", String.valueOf(match.getId()), String.valueOf(quarter.getId()))
+        def participation = TestUtil.getParticipation(user.getId(), user.getName(), null, null, Position.GK, Time.valueOf("00:00:00"))
+        def request = TestUtil.getQuarterPaticipationRequest(teamC.getId(), [participation])
+
+        matchService.getMatchById(match.getId()) >> match
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.post(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andReturn()
+                .getResponse()
+
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<ParticipationDto>>() {
+        })
+
+        then:
+        noExceptionThrown()
+        response.getCode() == ErrorCode.INVALID_PARAM.getCode()
+    }
+
+    @Unroll
+    def "쿼터 출전 선수 추가 시, inUserId, InUserName, outUserId, outUserName, eventTime 검사 - #inUserId, #inUserName, #outUserId, #outUserName, #eventTime"() {
+        given:
+        user.setName("test")
+        def teamA = TestUtil.getTeam(1l, "teamA", null)
+        def teamB = TestUtil.getTeam(2l, "teamB", null)
+        def teamC = TestUtil.getTeam(3l, "teamC", null)
+        def match = TestUtil.getMatch(1l, teamA, teamB, null)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 2, 3)
+        def url = String.format(QUARTER_API + "/%s/participations", String.valueOf(match.getId()), String.valueOf(quarter.getId()))
+        def participation = TestUtil.getParticipation(inUserId, inUserName, outUserId, outUserName, Position.GK, eventTime)
+        def request = TestUtil.getQuarterPaticipationRequest(teamC.getId(), [participation])
+
+        matchService.getMatchById(match.getId()) >> match
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.post(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andReturn()
+                .getResponse()
+
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<ParticipationDto>>() {
+        })
+
+        then:
+        noExceptionThrown()
+        response.getCode() == ErrorCode.INVALID_PARAM.getCode()
+
+        where:
+        inUserId | inUserName | outUserId | outUserName | eventTime
+        null     | "test"     | 1l        | "test2"     | Time.valueOf("00:00:00")
+        1l       | ""         | 1l        | "test2"     | Time.valueOf("00:00:00")
+        1l       | null       | 1l        | "test2"     | Time.valueOf("00:00:00")
+        1l       | "test"     | 1l        | ""          | Time.valueOf("00:00:00")
+        1l       | "test"     | 1l        | null        | Time.valueOf("00:00:00")
+        1l       | "test"     | null      | "test2"     | Time.valueOf("00:00:00")
+        1l       | "test"     | 1l        | "test2"     | null
     }
 }

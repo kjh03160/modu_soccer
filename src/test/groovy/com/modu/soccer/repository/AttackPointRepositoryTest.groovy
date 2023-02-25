@@ -5,6 +5,7 @@ import com.modu.soccer.entity.AttackPoint
 import com.modu.soccer.entity.Match
 import com.modu.soccer.entity.Quarter
 import com.modu.soccer.enums.AttackPointType
+import com.modu.soccer.enums.FormationName
 import com.modu.soccer.enums.StatisticsType
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
@@ -54,9 +55,9 @@ class AttackPointRepositoryTest extends Specification {
         def m = TestUtil.getMatch(null, team1, team2, user)
         match = matchRepository.save(m)
 
-        quarter = TestUtil.getQuarter(null, this.match, team1, team2, 1, 2, 1)
+        quarter = TestUtil.getQuarter(null, this.match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 2, 1)
         quarterRepository.save(quarter)
-        def quarter2 = TestUtil.getQuarter(null, this.match, team1, team2, 2, 2, 3)
+        def quarter2 = TestUtil.getQuarter(null, this.match, FormationName.FORMATION_1, FormationName.FORMATION_2, 2, 2, 3)
         quarterRepository.save(quarter2)
 
         goal = TestUtil.getAttackPoint(null, team1, quarter, user, AttackPointType.OWN_GOAL, null)
