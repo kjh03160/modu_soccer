@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.lang3.ObjectUtils;
@@ -98,9 +99,9 @@ public class QuarterService {
 		Team team = teamRepository.getReferenceById(request.getTeamId());
 		checkCurrentUserPermissionOnTeam(team);
 
-		if (quarter.getMatch().getTeamA() == team) {
+		if (Objects.equals(quarter.getMatch().getTeamA(), team)) {
 			quarter.setTeamAFormation(request.getFormation());
-		} else if (quarter.getMatch().getTeamB() == team) {
+		} else if (Objects.equals(quarter.getMatch().getTeamB(), team)) {
 			quarter.setTeamBFormation(request.getFormation());
 		} else {
 			throw new CustomException(ErrorCode.INVALID_PARAM, "team does not match");

@@ -195,4 +195,11 @@ class TestUtil {
             }
         }
     }
+
+    static def getFormationEditRequest(teamId, formation) {
+        def request = new FormationEditRequest()
+        request.setFormation(formation)
+        request.setTeamId(teamId)
+        return request
+    }
 }

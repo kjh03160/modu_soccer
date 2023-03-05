@@ -430,4 +430,69 @@ class QuarterControllerTest extends Specification {
         1l       | "test"     | null      | "test2"     | Time.valueOf("00:00:00")
         1l       | "test"     | 1l        | "test2"     | null
     }
+
+    def "쿼터 포메이션 변경"() {
+        given:
+        user.setName("test")
+        def teamA = TestUtil.getTeam(1l, "teamA", null)
+        def teamB = TestUtil.getTeam(2l, "teamB", null)
+        def match = TestUtil.getMatch(1l, teamA, teamB, null)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 2, 3)
+        def url = String.format(QUARTER_API + "/%s/formation", String.valueOf(match.getId()), String.valueOf(quarter.getId()))
+        def request = TestUtil.getFormationEditRequest(teamA.getId(), FormationName.FORMATION_3)
+
+        quarterService.editQuarterFormationOfTeam(quarter.getId(), _) >> null
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.put(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andReturn()
+                .getResponse()
+
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<ParticipationDto>>() {
+        })
+
+        then:
+        noExceptionThrown()
+        response.getCode() == 0
+    }
+
+
+    def "쿼터 포메이션 변경 - request body가 비었을 경우 #body"() {
+        given:
+        user.setName("test")
+        def teamA = TestUtil.getTeam(1l, "teamA", null)
+        def teamB = TestUtil.getTeam(2l, "teamB", null)
+        def match = TestUtil.getMatch(1l, teamA, teamB, null)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 2, 3)
+        def url = String.format(QUARTER_API + "/%s/formation", String.valueOf(match.getId()), String.valueOf(quarter.getId()))
+        def request = body
+        quarterService.editQuarterFormationOfTeam(quarter.getId(), _) >> null
+
+        when:
+        def result = mvc.perform(MockMvcRequestBuilders.put(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andReturn()
+                .getResponse()
+
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<ParticipationDto>>() {
+        })
+
+        then:
+        noExceptionThrown()
+        response.getCode() == ErrorCode.INVALID_PARAM.getCode()
+
+        where:
+        body << [
+                TestUtil.getFormationEditRequest(1l, null),
+                TestUtil.getFormationEditRequest(null, null),
+                TestUtil.getFormationEditRequest(null, FormationName.FORMATION_3),
+        ]
+    }
 }
