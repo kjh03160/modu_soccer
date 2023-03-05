@@ -7,10 +7,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.modu.soccer.domain.Participation;
+import com.modu.soccer.domain.request.FormationEditRequest;
+import com.modu.soccer.domain.request.ParticipationEditRequest;
 import com.modu.soccer.domain.request.QuarterParticipationRequest;
 import com.modu.soccer.domain.request.QuarterRequest;
 import com.modu.soccer.entity.Match;
@@ -27,7 +30,6 @@ import com.modu.soccer.repository.QuarterRepository;
 import com.modu.soccer.repository.TeamMemberRepository;
 import com.modu.soccer.repository.TeamRepository;
 import com.modu.soccer.utils.UserContextUtil;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -89,11 +91,62 @@ public class QuarterService {
 	}
 
 	@Transactional
+	public void editQuarterFormationOfTeam(Long quarterId, FormationEditRequest request) {
+		Quarter quarter = quarterRepository.findByIdWithMatch(quarterId).orElseThrow(() -> {
+			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "quarter");
+		});
+		Team team = teamRepository.getReferenceById(request.getTeamId());
+		checkCurrentUserPermissionOnTeam(team);
+
+		if (quarter.getMatch().getTeamA() == team) {
+			quarter.setTeamAFormation(request.getFormation());
+		} else if (quarter.getMatch().getTeamB() == team) {
+			quarter.setTeamBFormation(request.getFormation());
+		} else {
+			throw new CustomException(ErrorCode.INVALID_PARAM, "team does not match");
+		}
+	}
+
+	@Transactional
 	public List<QuarterParticipation> insertMemberParticipation(Match match, Long quarterId,
 		QuarterParticipationRequest request) {
 		Quarter quarter = getQuarterInfoOfMatch(match, quarterId);
 
 		Team team = teamRepository.getReferenceById(request.getTeamId());
+		checkCurrentUserPermissionOnTeam(team);
+
+		Map<Long, TeamMember> userIdMemberMap = validateAndGetUserIdMemberMap(team, request.getParticipations());
+		List<QuarterParticipation> quarterParticipations = request.getParticipations().stream().map(r -> {
+			return r.toEntity(quarter, team, userIdMemberMap.get(r.getInUserId()),
+				userIdMemberMap.get(r.getOutUserId()));
+		}).toList();
+		return participationRepository.saveAll(quarterParticipations);
+	}
+
+	@Transactional
+	public void editMemberParticipation(Quarter quarter, ParticipationEditRequest request) {
+		QuarterParticipation participation = participationRepository.findById(request.getId()).orElseThrow(() -> {
+			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "participation");
+		});
+		if (participation.getQuarter() != quarter) {
+			throw new CustomException(ErrorCode.INVALID_PARAM, "invalid quarter id with participation id");
+		}
+
+		Team team = teamRepository.getReferenceById(request.getTeamId());
+		checkCurrentUserPermissionOnTeam(team);
+
+		Map<Long, TeamMember> userIdMemberMap = validateAndGetUserIdMemberMap(team, List.of(request));
+		participation.setEventTime(request.getEventTime());
+		participation.setPosition(request.getPosition());
+		participation.setInUser(userIdMemberMap.get(request.getInUserId()).getUser());
+		participation.setInUserName(request.getInUserName());
+		if (ObjectUtils.isNotEmpty(request.getOutUserId())) {
+			participation.setOutUser(userIdMemberMap.get(request.getOutUserId()).getUser());
+			participation.setOutUserName(request.getOutUserName());
+		}
+	}
+
+	private void checkCurrentUserPermissionOnTeam(Team team) {
 		User user = UserContextUtil.getCurrentUser();
 		TeamMember member = memberRepository.findByTeamAndUser(team, user).orElseThrow(() -> {
 			throw new CustomException(ErrorCode.FORBIDDEN);
@@ -102,13 +155,6 @@ public class QuarterService {
 		if (!member.hasManagePermission()) {
 			throw new CustomException(ErrorCode.NO_PERMISSION_ON_TEAM);
 		}
-
-		Map<Long, TeamMember> userIdMemberMap = validateAndGetUserIdMemberMap(team, request.getParticipations());
-		List<QuarterParticipation> quarterParticipations = request.getParticipations().stream().map(r -> {
-			return r.toEntity(quarter, team, userIdMemberMap.get(r.getInUserId()),
-				userIdMemberMap.get(r.getOutUserId()));
-		}).toList();
-		return participationRepository.saveAll(quarterParticipations);
 	}
 
 	private Map<Long, TeamMember> validateAndGetUserIdMemberMap(Team team, List<Participation> participations) {
