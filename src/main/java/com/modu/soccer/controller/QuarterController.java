@@ -115,6 +115,9 @@ public class QuarterController {
 		@PathVariable("quarter_id") long quarterId,
 		@Valid @RequestBody ParticipationEditRequest request
 	) {
+		if (request.getId() == null) {
+			throw new CustomException(ErrorCode.INVALID_PARAM, "request participation id should not be null");
+		}
 		Match match = matchService.getMatchById(matchId);
 		Quarter quarter = quarterService.getQuarterInfoOfMatch(match, quarterId);
 		quarterService.editMemberParticipation(quarter, request);

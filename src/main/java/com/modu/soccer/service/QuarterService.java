@@ -129,7 +129,7 @@ public class QuarterService {
 		QuarterParticipation participation = participationRepository.findById(request.getId()).orElseThrow(() -> {
 			throw new CustomException(ErrorCode.RESOURCE_NOT_FOUND, "participation");
 		});
-		if (participation.getQuarter() != quarter) {
+		if (!Objects.equals(participation.getQuarter(), quarter)) {
 			throw new CustomException(ErrorCode.INVALID_PARAM, "invalid quarter id with participation id");
 		}
 
