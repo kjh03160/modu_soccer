@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.modu.soccer.TestUtil
 import com.modu.soccer.domain.ApiResponse
+import com.modu.soccer.domain.TeamMemberDetail
 import com.modu.soccer.domain.TeamMemberInfo
 import com.modu.soccer.domain.request.TeamJoinApproveRequest
 import com.modu.soccer.domain.request.TeamJoinRequest
@@ -48,7 +49,7 @@ class TeamMemberControllerTest extends Specification {
     @SpringBean
     private final TeamService teamService = Stub()
     @SpringBean
-    private UserRepository userRepository= Stub();
+    private UserRepository userRepository = Stub();
     @Autowired
     private JwtProvider jwtProvider;
     private String token;
@@ -81,7 +82,8 @@ class TeamMemberControllerTest extends Specification {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andReturn()
                 .getResponse()
-        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<List<TeamMemberInfo>>>(){})
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<List<TeamMemberInfo>>>() {
+        })
 
         then:
         noExceptionThrown()
@@ -106,7 +108,8 @@ class TeamMemberControllerTest extends Specification {
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andReturn()
                 .getResponse()
-        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<List<TeamMemberInfo>>>(){})
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<List<TeamMemberInfo>>>() {
+        })
 
         then:
         noExceptionThrown()
@@ -124,7 +127,8 @@ class TeamMemberControllerTest extends Specification {
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andReturn()
                 .getResponse()
-        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<List<TeamMemberInfo>>>(){})
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<List<TeamMemberInfo>>>() {
+        })
 
         then:
         noExceptionThrown()
@@ -149,7 +153,8 @@ class TeamMemberControllerTest extends Specification {
                 .andExpect(MockMvcResultMatchers.status().isCreated())
                 .andReturn()
                 .getResponse()
-        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<TeamMemberInfo>>(){})
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<TeamMemberInfo>>() {
+        })
 
         then:
         noExceptionThrown()
@@ -172,7 +177,8 @@ class TeamMemberControllerTest extends Specification {
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andReturn()
                 .getResponse()
-        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<TeamMemberInfo>>(){})
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<TeamMemberInfo>>() {
+        })
 
         then:
         noExceptionThrown()
@@ -184,8 +190,9 @@ class TeamMemberControllerTest extends Specification {
         def team = TestUtil.getTeam(1l, "team", null)
         def member = TestUtil.getTeamMember(1l, user, team)
         def url = String.format(TEAM_MEMBER_URL + "/%s", String.valueOf(team.getId()), String.valueOf(member.getId()))
+        def detail = TestUtil.getTeamMemberDetail(member)
 
-        service.getTeamMemberInfo(team.getId(), member.getId()) >> member
+        service.getTeamMemberInfo(team.getId(), member.getId()) >> detail
 
         when:
         def result = mvc.perform(MockMvcRequestBuilders.get(url)
@@ -194,13 +201,14 @@ class TeamMemberControllerTest extends Specification {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andReturn()
                 .getResponse()
-        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<TeamMemberInfo>>(){})
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<TeamMemberDetail>>() {
+        })
 
         then:
         noExceptionThrown()
         response.getContents().getTeamId() == team.getId()
         response.getContents().getUserId() == user.getId()
-        response.getContents().getMemberId() == member.getId()
+        response.getContents().getName() == user.getName()
     }
 
     def "getTeamMember - invalid path teamId: #teamId memberId: #memberId"() {
@@ -214,7 +222,8 @@ class TeamMemberControllerTest extends Specification {
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andReturn()
                 .getResponse()
-        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<TeamMemberInfo>>(){})
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<TeamMemberInfo>>() {
+        })
 
         then:
         noExceptionThrown()
@@ -222,8 +231,8 @@ class TeamMemberControllerTest extends Specification {
 
         where:
         teamId | memberId
-        1l | "asd"
-        "asd" | 1l
+        1l     | "asd"
+        "asd"  | 1l
     }
 
     def "putTeamMember"() {
@@ -244,7 +253,7 @@ class TeamMemberControllerTest extends Specification {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andReturn()
                 .getResponse()
-        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<?>>(){})
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<?>>() {})
 
         then:
         noExceptionThrown()
@@ -267,7 +276,7 @@ class TeamMemberControllerTest extends Specification {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andReturn()
                 .getResponse()
-        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<?>>(){})
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<?>>() {})
 
         then:
         noExceptionThrown()
@@ -294,7 +303,7 @@ class TeamMemberControllerTest extends Specification {
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andReturn()
                 .getResponse()
-        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<?>>(){})
+        def response = objectMapper.readValue(result.getContentAsString(), new TypeReference<ApiResponse<?>>() {})
 
         then:
         noExceptionThrown()
@@ -302,7 +311,7 @@ class TeamMemberControllerTest extends Specification {
 
         where:
         teamId | memberId
-        1l | "asd"
-        "asd" | 1l
+        1l     | "asd"
+        "asd"  | 1l
     }
 }

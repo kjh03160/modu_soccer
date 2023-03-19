@@ -6,6 +6,8 @@ import com.modu.soccer.domain.request.TeamJoinRequest
 import com.modu.soccer.enums.*
 import com.modu.soccer.exception.CustomException
 import com.modu.soccer.exception.ErrorCode
+import com.modu.soccer.repository.AttackPointRepository
+import com.modu.soccer.repository.QuarterParticipationRepository
 import com.modu.soccer.repository.TeamMemberRepository
 import com.modu.soccer.repository.TeamRepository
 import com.modu.soccer.utils.UserContextUtil
@@ -14,14 +16,19 @@ import org.slf4j.MDC
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import java.sql.Time
+import java.time.LocalTime
+
 class TeamMemberServiceTest extends Specification {
     private TeamMemberRepository memberRepository = Mock();
     private TeamRepository teamRepository = Mock();
+    private QuarterParticipationRepository participationRepository = Mock()
+    private AttackPointRepository attackPointRepository = Mock()
     private TeamMemberService service;
+    private u = TestUtil.getUser(1l, "email")
 
     def setup() {
-        service = new TeamMemberService(memberRepository, teamRepository)
-        def u = TestUtil.getUser(1l, "email")
+        service = new TeamMemberService(memberRepository, teamRepository, attackPointRepository, participationRepository)
         UserContextUtil.setUser(u)
     }
 
@@ -47,10 +54,10 @@ class TeamMemberServiceTest extends Specification {
         noExceptionThrown()
 
         where:
-        permission        | status
-        Permission.MEMBER | AcceptStatus.ACCEPTED
+        permission         | status
+        Permission.MEMBER  | AcceptStatus.ACCEPTED
         Permission.MANAGER | AcceptStatus.WAITING
-        Permission.ADMIN | AcceptStatus.WAITING
+        Permission.ADMIN   | AcceptStatus.WAITING
     }
 
 
@@ -200,20 +207,46 @@ class TeamMemberServiceTest extends Specification {
     def "getTeamMemberInfo"() {
         given:
         def team = TestUtil.getTeam(1l, "team1", null)
-        def member = TestUtil.getTeamMember(1l, null, team)
+        def team2 = TestUtil.getTeam(2l, "team2", null)
+        def member = TestUtil.getTeamMember(1l, u, team)
         member.setAcceptStatus(AcceptStatus.ACCEPTED)
+        def quarter = TestUtil.getQuarter(1l, null, null, null, 1, 3, 2)
+        quarter.setTeamA(team)
+        quarter.setTeamB(team2)
+        def participation1 = TestUtil.getQuarterParticipation(member.getUser(), member.getUser().getName(), null, null, Position.CB, Time.valueOf(LocalTime.now()))
+        participation1.setTeam(team)
+        participation1.setQuarter(quarter)
+        def participation2 = TestUtil.getQuarterParticipation(member.getUser(), member.getUser().getName(), null, null, Position.GK, Time.valueOf(LocalTime.now()))
+        participation2.setTeam(team)
+        participation2.setQuarter(quarter)
+        def participation3 = TestUtil.getQuarterParticipation(member.getUser(), member.getUser().getName(), null, null, Position.CB, Time.valueOf(LocalTime.now()))
+        participation3.setTeam(team)
+        participation3.setQuarter(quarter)
+        def goal = TestUtil.getAttackPoint(1l, team, quarter, member.getUser(), AttackPointType.GOAL, null)
+        def assist = TestUtil.getAttackPoint(2l, team, quarter, member.getUser(), AttackPointType.ASSIST, null)
+        def ownGoal = TestUtil.getAttackPoint(3l, team, quarter, member.getUser(), AttackPointType.OWN_GOAL, null)
+
 
         1 * teamRepository.getReferenceById(team.getId()) >> team
         1 * memberRepository.findByIdAndTeamAndAcceptStatus(member.getId(), team, AcceptStatus.ACCEPTED) >> Optional.of(member)
+        1 * participationRepository.findAllByTeamAndInUser(team, member.getUser()) >> [participation1, participation2, participation3]
+        1 * attackPointRepository.findAllByTeamAndUser(team, member.getUser()) >> [goal, assist, ownGoal]
 
         when:
         def result = service.getTeamMemberInfo(team.getId(), member.getId())
 
         then:
         noExceptionThrown()
-        result.getId() == member.getId()
-        result.getTeam().getId() == team.getId()
-        result.getAcceptStatus() == AcceptStatus.ACCEPTED
+        result.getName() == member.getUser().getName()
+        result.getUserId() == member.getUser().getId()
+        result.getTeamId() == team.getId()
+        result.getAssists() == 1
+        result.getGoals() == 1
+        result.getBackNumber() == member.getBackNumber()
+        result.getMostPosition() == Position.CB
+        result.getPermission() == member.getPermission()
+        result.getTotalQuarters() == 1
+        result.getWinRate() == 100
     }
 
     def "getTeamMemberInfo - 멤버 없음"() {
