@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/teams/{team_id}/members")
 public class TeamMemberController {
+
 	private final TeamService teamService;
 	private final TeamMemberService memberService;
 
@@ -39,7 +40,7 @@ public class TeamMemberController {
 		@PathVariable("team_id") long teamId,
 		@RequestParam(name = "accept-status", defaultValue = "ACCEPTED") AcceptStatus status
 	) {
-		List<TeamMemberInfo> teamMembers = memberService.getTeamMembers(teamId,status)
+		List<TeamMemberInfo> teamMembers = memberService.getTeamMembers(teamId, status)
 			.stream().map(TeamMemberInfo::fromEntity).toList();
 
 		return ApiResponse.withBody(teamMembers);
@@ -59,10 +60,7 @@ public class TeamMemberController {
 		@PathVariable("team_id") long teamId,
 		@PathVariable("member_id") long memberId
 	) {
-		TeamMember teamMember = memberService
-			.getTeamMemberInfo(teamId, memberId);
-
-		return ApiResponse.withBody(TeamMemberInfo.fromEntity(teamMember));
+		return ApiResponse.withBody(memberService.getTeamMemberInfo(teamId, memberId));
 	}
 
 	@PutMapping("/{member_id}")
@@ -82,7 +80,7 @@ public class TeamMemberController {
 		@PathVariable("member_id") long memberId,
 		@RequestBody TeamJoinApproveRequest request
 	) {
-		memberService.approveTeamJoin(teamId, memberId,	request);
+		memberService.approveTeamJoin(teamId, memberId, request);
 		return ApiResponse.ok();
 	}
 }
