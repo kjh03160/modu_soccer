@@ -49,8 +49,12 @@ class QuarterRepositoryTest extends Specification {
         this.match = matchRepository.save(m)
 
         quarter = TestUtil.getQuarter(null, this.match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 2, 1)
+        quarter.setTeamA(team1)
+        quarter.setTeamB(team2)
         repository.save(quarter)
         def quarter2 = TestUtil.getQuarter(null, this.match, FormationName.FORMATION_1, FormationName.FORMATION_2, 2, 2, 3)
+        quarter2.setTeamA(team1)
+        quarter2.setTeamB(team2)
         repository.save(quarter2)
 
         entityManager.clear()

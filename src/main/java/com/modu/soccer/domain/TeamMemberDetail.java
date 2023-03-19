@@ -5,12 +5,16 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.modu.soccer.enums.Permission;
 import com.modu.soccer.enums.Position;
 import com.modu.soccer.enums.Role;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @JsonNaming(SnakeCaseStrategy.class)
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class TeamMemberDetail {
 
 	private Long teamId;
