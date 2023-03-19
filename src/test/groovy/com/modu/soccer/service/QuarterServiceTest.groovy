@@ -158,6 +158,91 @@ class QuarterServiceTest extends Specification {
     }
 
     @Unroll
+    def "쿼터 포메이션 수정 - #formation #requestTeam"() {
+        given:
+        def team1 = TestUtil.getTeam(1l, "name", null)
+        def team2 = TestUtil.getTeam(2l, "name", null)
+        def user = UserContextUtil.getCurrentUser();
+        def match = TestUtil.getMatch(1l, team1, team2, user)
+        def member = TestUtil.getTeamMember(1l, user, requestTeam)
+        member.setPermission(Permission.ADMIN)
+        def quarter = TestUtil.getQuarter(1l, match, null, null, 1, 2, 1)
+        def request = TestUtil.getFormationEditRequest(requestTeam.getId(), formation)
+
+        1 * quarterRepository.findByIdWithMatch(quarter.getId()) >> Optional.of(quarter)
+        1 * teamRepository.getReferenceById(requestTeam.getId()) >> requestTeam
+        1 * memberRepository.findByTeamAndUser(requestTeam, user) >> Optional.of(member)
+
+        when:
+        service.editQuarterFormationOfTeam(quarter.getId(), request);
+
+        then:
+        noExceptionThrown()
+        if (Objects.equals(team1, requestTeam)) {
+            assert quarter.getTeamAFormation() == formation
+            assert quarter.getTeamBFormation() == null
+        } else {
+            assert quarter.getTeamAFormation() == null
+            assert quarter.getTeamBFormation() == formation
+        }
+
+        where:
+        formation                 | requestTeam
+        FormationName.FORMATION_1 | TestUtil.getTeam(1l, "name", null)
+        FormationName.FORMATION_2 | TestUtil.getTeam(1l, "name", null)
+        FormationName.FORMATION_3 | TestUtil.getTeam(1l, "name", null)
+        FormationName.FORMATION_1 | TestUtil.getTeam(2l, "name", null)
+        FormationName.FORMATION_2 | TestUtil.getTeam(2l, "name", null)
+        FormationName.FORMATION_3 | TestUtil.getTeam(2l, "name", null)
+    }
+
+
+    @Unroll
+    def "쿼터 포메이션 수정 - 권한 없음"() {
+        given:
+        def team1 = TestUtil.getTeam(1l, "name", null)
+        def team2 = TestUtil.getTeam(2l, "name", null)
+        def user = UserContextUtil.getCurrentUser();
+        def match = TestUtil.getMatch(1l, team1, team2, user)
+        def member = TestUtil.getTeamMember(1l, user, team1)
+        def quarter = TestUtil.getQuarter(1l, match, null, null, 1, 2, 1)
+        def request = TestUtil.getFormationEditRequest(team1.getId(), FormationName.FORMATION_3)
+
+        1 * quarterRepository.findByIdWithMatch(quarter.getId()) >> Optional.of(quarter)
+        1 * teamRepository.getReferenceById(team1.getId()) >> team1
+        1 * memberRepository.findByTeamAndUser(team1, user) >> Optional.of(member)
+
+        when:
+        service.editQuarterFormationOfTeam(quarter.getId(), request);
+
+        then:
+        def e = thrown(CustomException)
+        e.getErrorCode() == ErrorCode.NO_PERMISSION_ON_TEAM
+    }
+
+    @Unroll
+    def "쿼터 포메이션 수정 - 팀에 속하지 않은 멤버가 요청"() {
+        given:
+        def team1 = TestUtil.getTeam(1l, "name", null)
+        def team2 = TestUtil.getTeam(2l, "name", null)
+        def user = UserContextUtil.getCurrentUser();
+        def match = TestUtil.getMatch(1l, team1, team2, user)
+        def quarter = TestUtil.getQuarter(1l, match, null, null, 1, 2, 1)
+        def request = TestUtil.getFormationEditRequest(team1.getId(), FormationName.FORMATION_3)
+
+        1 * quarterRepository.findByIdWithMatch(quarter.getId()) >> Optional.of(quarter)
+        1 * teamRepository.getReferenceById(team1.getId()) >> team1
+        1 * memberRepository.findByTeamAndUser(team1, user) >> Optional.empty()
+
+        when:
+        service.editQuarterFormationOfTeam(quarter.getId(), request);
+
+        then:
+        def e = thrown(CustomException)
+        e.getErrorCode() == ErrorCode.FORBIDDEN
+    }
+
+    @Unroll
     def "출전 선수 추가 - #permission, #requestTeam"() {
         given:
         def team1 = TestUtil.getTeam(1l, "name", null)
@@ -265,5 +350,160 @@ class QuarterServiceTest extends Specification {
         then:
         def e = thrown(CustomException)
         e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
+    }
+
+    @Unroll
+    def "출전 선수 수정 - #permission, #requestTeam"() {
+        given:
+        def team1 = TestUtil.getTeam(1l, "name", null)
+        def team2 = TestUtil.getTeam(2l, "name", null)
+        def user = UserContextUtil.getCurrentUser();
+        def user2 = TestUtil.getUser(2l, "")
+        def member = TestUtil.getTeamMember(1l, user, requestTeam)
+        member.setPermission(permission)
+        def member2 = TestUtil.getTeamMember(2l, user2, requestTeam)
+        def match = TestUtil.getMatch(1l, team1, team2, user)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 2, 1)
+        def participation = TestUtil.getParticipation(user.getId(), user.getName(), user2.getId(), user2.getName(), Position.GK, Time.valueOf("00:00:00"))
+        def participationEntity = participation.toEntity(quarter, requestTeam, member, member2)
+        def request = TestUtil.getParticipationEditRequest(participation.getId(), requestTeam.getId(), participation)
+
+        1 * participationRepository.findById(request.getId()) >> Optional.of(participationEntity)
+        1 * teamRepository.getReferenceById(request.getTeamId()) >> requestTeam
+        1 * memberRepository.findByTeamAndUser(requestTeam, user) >> Optional.of(member)
+        1 * memberRepository.findAllByTeamAndUser_IdIn(requestTeam, _) >> [member, member2]
+
+        when:
+        service.editMemberParticipation(quarter, request)
+
+        then:
+        noExceptionThrown()
+        participationEntity.getEventTime() == request.getEventTime()
+        participationEntity.getPosition() == request.getPosition()
+        participationEntity.getInUserName() == request.getInUserName()
+        participationEntity.getInUser().getId() == request.getInUserId()
+        participationEntity.getOutUserName() == request.getOutUserName()
+        if (request.getOutUserId() != null) {
+            assert participationEntity.getOutUser().getId() == request.getOutUserId()
+        }
+
+        where:
+        permission         | requestTeam
+        Permission.ADMIN   | TestUtil.getTeam(1l, "name", null)
+        Permission.MANAGER | TestUtil.getTeam(1l, "name", null)
+        Permission.ADMIN   | TestUtil.getTeam(2l, "name", null)
+        Permission.MANAGER | TestUtil.getTeam(2l, "name", null)
+    }
+
+    @Unroll
+    def "출전 선수 수정 - 찾을 수 없는 경우 404"() {
+        given:
+        def team1 = TestUtil.getTeam(1l, "name", null)
+        def team2 = TestUtil.getTeam(2l, "name", null)
+        def user = UserContextUtil.getCurrentUser();
+        def user2 = TestUtil.getUser(2l, "")
+        def match = TestUtil.getMatch(1l, team1, team2, user)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 2, 1)
+        def participation = TestUtil.getParticipation(user.getId(), user.getName(), user2.getId(), user2.getName(), Position.GK, Time.valueOf("00:00:00"))
+        def request = TestUtil.getParticipationEditRequest(participation.getId(), team1.getId(), participation)
+
+        1 * participationRepository.findById(request.getId()) >> Optional.empty()
+
+        when:
+        service.editMemberParticipation(quarter, request)
+
+        then:
+        def e = thrown(CustomException)
+        e.getErrorCode() == ErrorCode.RESOURCE_NOT_FOUND
+    }
+
+    @Unroll
+    def "출전 선수 수정 - 출전 기록의 쿼터와 요청 쿼터가 다른경우 400"() {
+        given:
+        def team1 = TestUtil.getTeam(1l, "name", null)
+        def team2 = TestUtil.getTeam(2l, "name", null)
+        def user = UserContextUtil.getCurrentUser();
+        def user2 = TestUtil.getUser(2l, "")
+        def member = TestUtil.getTeamMember(1l, user, team1)
+        def member2 = TestUtil.getTeamMember(2l, user2, team1)
+        def match = TestUtil.getMatch(1l, team1, team2, user)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 2, 1)
+        def quarter2 = TestUtil.getQuarter(2l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 2, 1)
+        def participation = TestUtil.getParticipation(user.getId(), user.getName(), user2.getId(), user2.getName(), Position.GK, Time.valueOf("00:00:00"))
+        def participationEntity = participation.toEntity(quarter2, team1, member, member2)
+        def request = TestUtil.getParticipationEditRequest(participation.getId(), team1.getId(), participation)
+
+        1 * participationRepository.findById(request.getId()) >> Optional.of(participationEntity)
+
+        when:
+        service.editMemberParticipation(quarter, request)
+
+        then:
+        def e = thrown(CustomException)
+        e.getErrorCode() == ErrorCode.INVALID_PARAM
+    }
+
+    @Unroll
+    def "출전 선수 수정 권한 없는 경우엔 403 - #permission, #requestTeam"() {
+        given:
+        def team1 = TestUtil.getTeam(1l, "name", null)
+        def team2 = TestUtil.getTeam(2l, "name", null)
+        def user = UserContextUtil.getCurrentUser();
+        def user2 = TestUtil.getUser(2l, "")
+        def member = TestUtil.getTeamMember(1l, user, requestTeam)
+        member.setPermission(permission)
+        def member2 = TestUtil.getTeamMember(2l, user2, requestTeam)
+        def match = TestUtil.getMatch(1l, team1, team2, user)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 2, 1)
+        def participation = TestUtil.getParticipation(user.getId(), user.getName(), user2.getId(), user2.getName(), Position.GK, Time.valueOf("00:00:00"))
+        def participationEntity = participation.toEntity(quarter, requestTeam, member, member2)
+        def request = TestUtil.getParticipationEditRequest(participation.getId(), requestTeam.getId(), participation)
+
+        1 * participationRepository.findById(request.getId()) >> Optional.of(participationEntity)
+        1 * teamRepository.getReferenceById(request.getTeamId()) >> requestTeam
+        1 * memberRepository.findByTeamAndUser(requestTeam, user) >> Optional.of(member)
+
+        when:
+        service.editMemberParticipation(quarter, request)
+
+        then:
+        def e = thrown(CustomException)
+        e.getErrorCode() == ErrorCode.NO_PERMISSION_ON_TEAM
+
+        where:
+        permission        | requestTeam
+        Permission.MEMBER | TestUtil.getTeam(1l, "name", null)
+    }
+
+    @Unroll
+    def "출전 선수 수정 요청자가 팀 멤버가 아니면 403 - #permission, #requestTeam"() {
+        given:
+        def team1 = TestUtil.getTeam(1l, "name", null)
+        def team2 = TestUtil.getTeam(2l, "name", null)
+        def user = UserContextUtil.getCurrentUser();
+        def user2 = TestUtil.getUser(2l, "")
+        def member = TestUtil.getTeamMember(1l, user, requestTeam)
+        member.setPermission(permission)
+        def member2 = TestUtil.getTeamMember(2l, user2, requestTeam)
+        def match = TestUtil.getMatch(1l, team1, team2, user)
+        def quarter = TestUtil.getQuarter(1l, match, FormationName.FORMATION_1, FormationName.FORMATION_2, 1, 2, 1)
+        def participation = TestUtil.getParticipation(user.getId(), user.getName(), user2.getId(), user2.getName(), Position.GK, Time.valueOf("00:00:00"))
+        def participationEntity = participation.toEntity(quarter, requestTeam, member, member2)
+        def request = TestUtil.getParticipationEditRequest(participation.getId(), requestTeam.getId(), participation)
+
+        1 * participationRepository.findById(request.getId()) >> Optional.of(participationEntity)
+        1 * teamRepository.getReferenceById(request.getTeamId()) >> requestTeam
+        1 * memberRepository.findByTeamAndUser(requestTeam, user) >> Optional.empty()
+
+        when:
+        service.editMemberParticipation(quarter, request)
+
+        then:
+        def e = thrown(CustomException)
+        e.getErrorCode() == ErrorCode.FORBIDDEN
+
+        where:
+        permission       | requestTeam
+        Permission.ADMIN | TestUtil.getTeam(1l, "name", null)
     }
 }

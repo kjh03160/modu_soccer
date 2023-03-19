@@ -12,18 +12,20 @@ import com.modu.soccer.entity.QuarterParticipation;
 import com.modu.soccer.entity.Team;
 import com.modu.soccer.entity.TeamMember;
 import com.modu.soccer.enums.Position;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonNaming(SnakeCaseStrategy.class)
 public class Participation {
+	private Long id;
 	@NotNull(message = "in user id should not be null")
 	private Long inUserId;
 	@NotEmpty(message = "in user name should not be empty")
@@ -37,6 +39,7 @@ public class Participation {
 
 	public static Participation fromEntity(QuarterParticipation participation) {
 		return Participation.builder()
+			.id(participation.getId())
 			.inUserId(participation.getInUser().getId())
 			.inUserName(participation.getInUserName())
 			.outUserId(participation.getOutUser() != null ? participation.getOutUser().getId() : null)

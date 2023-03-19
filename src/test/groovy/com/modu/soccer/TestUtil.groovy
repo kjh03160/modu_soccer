@@ -195,4 +195,24 @@ class TestUtil {
             }
         }
     }
+
+    static def getFormationEditRequest(teamId, formation) {
+        def request = new FormationEditRequest()
+        request.setFormation(formation)
+        request.setTeamId(teamId)
+        return request
+    }
+
+    static def getParticipationEditRequest(id, teamId, Participation participation) {
+        def request = new ParticipationEditRequest()
+        request.setTeamId(teamId)
+        request.setId(id)
+        request.setPosition(participation.getPosition())
+        request.setEventTime(participation.getEventTime())
+        request.setInUserId(participation.getInUserId())
+        request.setInUserName(participation.getInUserName())
+        request.setOutUserId(participation.getOutUserId())
+        request.setOutUserName(participation.getOutUserName())
+        return request
+    }
 }
