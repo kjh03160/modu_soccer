@@ -1,17 +1,5 @@
 package com.modu.soccer.service;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-
-import org.apache.commons.lang3.ObjectUtils;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.modu.soccer.domain.Participation;
 import com.modu.soccer.domain.request.FormationEditRequest;
 import com.modu.soccer.domain.request.ParticipationEditRequest;
@@ -31,8 +19,18 @@ import com.modu.soccer.repository.QuarterRepository;
 import com.modu.soccer.repository.TeamMemberRepository;
 import com.modu.soccer.repository.TeamRepository;
 import com.modu.soccer.utils.UserContextUtil;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -48,7 +46,10 @@ public class QuarterService {
 
 	@Transactional
 	public Quarter createQuarterOfMatch(Match match, QuarterRequest request) {
+		// TODO: quarter 생성 권한 및 team validation 체크
 		Quarter quarter = Quarter.builder()
+			.teamA(match.getTeamA())
+			.teamB(match.getTeamB())
 			.quarter(request.getQuarter())
 			.match(match)
 			.teamAScore(request.getTeamAScore())

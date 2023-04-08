@@ -4,6 +4,7 @@ import com.amazonaws.util.IOUtils
 import com.modu.soccer.domain.DuoRecordView
 import com.modu.soccer.domain.Participation
 import com.modu.soccer.domain.SoloRecordView
+import com.modu.soccer.domain.TeamMemberDetail
 import com.modu.soccer.domain.request.*
 import com.modu.soccer.entity.*
 import com.modu.soccer.utils.LocalDateTimeUtil
@@ -22,7 +23,7 @@ class TestUtil {
         return user
     }
 
-    static def getTeam(teamId, name, owner){
+    static def getTeam(teamId, name, owner) {
         def team = new Team()
         team.setId(teamId)
         team.setName(name)
@@ -31,7 +32,7 @@ class TestUtil {
         return team
     }
 
-    static def getTeamRecord(team){
+    static def getTeamRecord(team) {
         return new TeamRecord(team)
     }
 
@@ -214,5 +215,22 @@ class TestUtil {
         request.setOutUserId(participation.getOutUserId())
         request.setOutUserName(participation.getOutUserName())
         return request
+    }
+
+    static def getTeamMemberDetail(TeamMember teamMember) {
+        return TeamMemberDetail.builder()
+                .assists(0L)
+                .goals(0L)
+                .name(teamMember.getUser().getName())
+                .userId(teamMember.getUser().getId())
+                .teamId(teamMember.getTeam().getId())
+                .mostPosition(teamMember.getPosition())
+                .totalQuarters(0L)
+                .winRate(0)
+                .role(teamMember.getRole())
+                .permission(teamMember.getPermission())
+                .name(teamMember.getUser().getName())
+                .backNumber(teamMember.getBackNumber())
+                .build();
     }
 }
